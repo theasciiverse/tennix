@@ -3,6 +3,11 @@
 
 #include <math.h>
 
+#define PI 3.1415
+
+#define BALL_JUMP_MIN 7
+#define BALL_JUMP_MAX 20
+
 #define GAME_X_MIN 41.0
 #define GAME_X_MAX 270.0
 #define GAME_X_MID ((GAME_X_MIN+GAME_X_MAX)/2)
@@ -16,10 +21,11 @@
 
 #define PLAYER_AREA 10.0
 #define IS_NEAR_Y(py,by) (fabsf(py+(PLAYER_AREA/2)-by)<PLAYER_AREA)
-#define GET_MOVE(py,by) (-(py+(PLAYER_AREA/2)-by)/4)
+#define GET_MOVE(py,by) (-(py+(PLAYER_AREA/2)-by)/16)
 
 void game();
 void limit_value( float*, float, float);
+float get_phase( float, float, float, float);
 
 #endif
 

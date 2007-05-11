@@ -14,6 +14,8 @@ void wait_keypress() {
     while( !done) {
         if( SDL_PollEvent( &e)) {
             done = (e.type == SDL_KEYUP || e.type == SDL_MOUSEBUTTONUP);
+        } else {
+            SDL_Delay( 50);
         }
     }
 }
