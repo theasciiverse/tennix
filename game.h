@@ -6,8 +6,10 @@
 
 #define PI 3.1415
 
-#define BALL_JUMP_MIN 7
-#define BALL_JUMP_MAX 13
+#define GROUND_PHASE 0.3
+
+#define BALL_JUMP_MIN 4
+#define BALL_JUMP_MAX 10
 #define BALL_DEFAULT_SPEED 3.0
 
 #define GAME_X_MIN 41.0

@@ -62,7 +62,7 @@ void game() {
         show_sprite( RACKET_BMP, (!player1.state), 4, player1.x, player1.y, 255);
         show_sprite( RACKET_BMP, (!player2.state)+2, 4, player2.x, player2.y, 255);
         
-        phase = 2.0*ball.jump*get_phase( ball.x, GAME_X_MIN, GAME_X_MAX, ball.move_x);
+        phase = 1.6*ball.jump*get_phase( ball.x, GAME_X_MIN, GAME_X_MAX, ball.move_x);
         if( phase < 1.0) {
             if( !ground_state) {
                 sound_ground();
@@ -194,7 +194,7 @@ void limit_value( float* value, float min, float max) {
 float get_phase( float x, float min, float max, float direction) {
     float pos, fract;
     
-    pos = (direction>0)?(0.8):(0.2);
+    pos = (direction>0)?(1-GROUND_PHASE):(GROUND_PHASE);
 
     fract = (x-min)/(max-min);
 
