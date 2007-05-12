@@ -5,7 +5,7 @@
 #include "tennix.h"
 #include "game.h"
 #include "graphics.h"
-
+#include "sound.h"
 
 SDL_Surface *screen;
 
@@ -24,6 +24,8 @@ int main( int argc, char** argv) {
         fprintf( stderr, "Can't init SDL:  %s\n", SDL_GetError());
         exit( 1);
     }
+
+    init_sound();
    
     atexit( SDL_Quit);
 
@@ -57,6 +59,9 @@ int main( int argc, char** argv) {
    
         clearscr();
         show_bmp( "data/menu.bmp", 180, 0, 255);
+        if( i/12%4 == 0) {
+            sound_racket( 0);
+        }
         show_sprite( "data/animation.bmp", (i++/12%4), 4, 20, 30, 255);
         show_sprite( RACKET_BMP, (mb&SDL_BUTTON( SDL_BUTTON_LEFT)) > 0, 4, mx, my, 255);
         updatescr();
