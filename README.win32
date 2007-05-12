@@ -1,0 +1,19 @@
+Tennix can now be built on win32! :)
+
+Guide on installing SDL + MSYS + MinGW on Win32:
+http://www.netadelica.com/coding/sdl/install.html
+
+Cross-compiling on a Debian System (untested!)
+http://wiki.njh.eu/MinGW-Cross-Compiling_mit_SDL
+
+
+You should also consider installing UPX and ZIP 
+into your $PATH, so the .exe file can be compressed
+and the "zip" utility (from InfoZIP) is needed for
+the "release-win32" makefile target, which will create
+a zipfile with the binary release, ready to be distributed :)
+
+
+Enjoy,
+          thp     2007-05-12
+

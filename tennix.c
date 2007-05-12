@@ -16,8 +16,9 @@ int main( int argc, char** argv) {
     Uint8 *keys;
     Uint8 mb;
     SDL_Event e;
+    int sdl_flags = SDL_HWSURFACE;
 
-    srandom( (unsigned)time( NULL));
+    srand( (unsigned)time( NULL));
    
     if( SDL_Init( SDL_INIT_VIDEO) == -1) {
         fprintf( stderr, "Can't init SDL:  %s\n", SDL_GetError());
@@ -25,8 +26,12 @@ int main( int argc, char** argv) {
     }
    
     atexit( SDL_Quit);
+
+#ifdef WIN32
+    sdl_flags = SDL_SWSURFACE;
+#endif
    
-    if( (screen = SDL_SetVideoMode( WIDTH, HEIGHT, 16, SDL_HWSURFACE)) == NULL) {
+    if( (screen = SDL_SetVideoMode( WIDTH, HEIGHT, 16, sdl_flags)) == NULL) {
         fprintf( stderr, "Can't set video mode: %s\n", SDL_GetError());
         exit( 1);
     }   
