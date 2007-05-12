@@ -1,7 +1,7 @@
 CC        =  gcc
 RELEASE   =  svn
 
-LIBS = $$(sdl-config --libs) -lSDL_mixer
+LIBS = $$(sdl-config --libs) -lSDL_mixer -lSDL_image
 CFLAGS = -Wall $$(sdl-config --cflags)
 
 SRC = tennix.c game.c graphics.c input.c sound.c

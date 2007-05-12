@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
 
 #include "tennix.h"
 #include "graphics.h"
@@ -10,7 +11,7 @@ void show_sprite( const char* name, int pos, int items, int x_offset, int y_offs
     SDL_Surface *bitmap;
     SDL_Rect src, dst;
 
-    bitmap = SDL_LoadBMP( name);
+    bitmap = IMG_Load( name);
     if( bitmap == NULL) {
         fprintf( stderr, "Error: %s\n", SDL_GetError());
         return;
@@ -35,7 +36,7 @@ void show_bmp( const char *name, int x_offset, int y_offset, int opacity) {
 }
 
 void show_digit( int zahl, int x_offset, int y_offset, int opacity) {
-    show_sprite( "data/score.bmp", zahl, 11, x_offset, y_offset, opacity);
+    show_sprite( "data/score.png", zahl, 11, x_offset, y_offset, opacity);
 }
 
 void introimage( char *name) {
