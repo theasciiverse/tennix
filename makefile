@@ -8,7 +8,7 @@ SRC = tennix.c game.c graphics.c input.c sound.c
 OBJ = tennix.o game.o graphics.o input.o sound.o
 
 WIN32LIBS = *.dll
-DATAFILES = data/*.bmp data/*.wav
+DATAFILES = data/*.bmp data/*.png data/*.wav
 
 tennix: $(OBJ)
 	$(CC) $(CFLAGS)   -o tennix $(OBJ) $(LIBS)
