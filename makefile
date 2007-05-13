@@ -7,6 +7,7 @@ CFLAGS = -Wall $$(sdl-config --cflags)
 SRC = tennix.c game.c graphics.c input.c sound.c
 OBJ = tennix.o game.o graphics.o input.o sound.o
 
+WIN32LIBS = *.dll
 DATAFILES = data/*.bmp data/*.wav
 
 tennix: $(OBJ)
@@ -19,7 +20,7 @@ game.o: game.c game.h graphics.h tennix.h sound.h
 sound.o: sound.c sound.h tennix.h
 
 release-win32: tennix
-	zip tennix-$(RELEASE).zip tennix.exe sdl.dll $(DATAFILES)
+	zip tennix-$(RELEASE).zip tennix.exe $(WIN32LIBS) $(DATAFILES)
 
 release-bin: tennix
 	tar czvf tennix-$(RELEASE)-bin.tar.gz tennix $(DATAFILES)
