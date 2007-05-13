@@ -26,6 +26,7 @@ int main( int argc, char** argv) {
     }
 
     init_sound();
+    init_graphics();
    
     atexit( SDL_Quit);
 
@@ -42,8 +43,6 @@ int main( int argc, char** argv) {
     SDL_ShowCursor( SDL_DISABLE);
     SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, 1);
    
-    //introimage( "data/title.bmp");
-   
     while( 1) {
         SDL_PollEvent( &e);
         keys = SDL_GetKeyState( NULL);
@@ -58,12 +57,12 @@ int main( int argc, char** argv) {
         }
    
         clearscr();
-        show_bmp( "data/menu.bmp", 180*2, 0, 255);
+        show_image( GR_MENU, 180*2, 0, 255);
         if( i%(12*4) == 0) {
             sound_racket( 0);
         }
-        show_sprite( "data/animation.bmp", (i++/12%4), 4, 20*2, 30*2, 255);
-        show_sprite( RACKET_BMP, (mb&SDL_BUTTON( SDL_BUTTON_LEFT)) > 0, 4, mx, my, 255);
+        show_sprite( GR_ANIMATION, (i++/12%4), 4, 20*2, 30*2, 255);
+        show_sprite( GR_RACKET, (mb&SDL_BUTTON( SDL_BUTTON_LEFT)) > 0, 4, mx, my, 255);
         updatescr();
         
         if( mb & SDL_BUTTON( SDL_BUTTON_LEFT)) {
@@ -73,10 +72,10 @@ int main( int argc, char** argv) {
                 while( SDL_PollEvent( &e));
             }   
             if( M_POS_HIGH_SCORES(mx,my)) {
-                introimage( "data/hiscores.bmp");
+                //introimage( "data/hiscores.bmp");
             }
             if( M_POS_CREDITS(mx,my)) {
-                introimage( "data/credits.bmp");
+                //introimage( "data/credits.bmp");
             }
             if( M_POS_QUIT(mx,my)) {
                 break;
@@ -85,6 +84,8 @@ int main( int argc, char** argv) {
         SDL_Delay( 10);
     }
    
+    uninit_graphics();
+
     SDL_Quit();
     return 0;
 }

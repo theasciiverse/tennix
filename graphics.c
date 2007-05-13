@@ -7,15 +7,52 @@
 #include "graphics.h"
 #include "input.h"
 
-void show_sprite( const char* name, int pos, int items, int x_offset, int y_offset, int opacity) {
+static Image* images;
+
+static const char* filenames[] = {
+    "data/court.bmp",
+    "data/shadow.png",
+    "data/player-racket.bmp",
+    "data/ground.png",
+    "data/ball.png",
+    "data/score.png",
+    "data/menu.bmp",
+    "data/animation.bmp"
+};
+
+void init_graphics() {
+    int i;
+    SDL_Surface* data;
+
+    images = (Image*)calloc( GR_COUNT, sizeof( Image));
+
+    for( i=0; i<GR_COUNT; i++) {
+        data = IMG_Load( filenames[i]);
+        if( !data) {
+            fprintf( stderr, "Error: %s\n", SDL_GetError());
+            continue;
+        }
+        images[i].data = data;
+    }
+}
+
+void uninit_graphics() {
+    int i;
+
+    for( i=0; i<GR_COUNT; i++) {
+        SDL_FreeSurface( images[i].data);
+    }
+
+    free( images);
+}
+
+void show_sprite( unsigned int id, int pos, int items, int x_offset, int y_offset, int opacity) {
     SDL_Surface *bitmap;
     SDL_Rect src, dst;
 
-    bitmap = IMG_Load( name);
-    if( bitmap == NULL) {
-        fprintf( stderr, "Error: %s\n", SDL_GetError());
-        return;
-    }
+    bitmap = images[id].data;
+
+    if( !bitmap) return;
 
     SDL_SetAlpha( bitmap, SDL_SRCALPHA | SDL_RLEACCEL, opacity);
     SDL_SetColorKey( bitmap, SDL_SRCCOLORKEY, SDL_MapRGB( bitmap->format, 0, 0, 0)); 
@@ -28,23 +65,22 @@ void show_sprite( const char* name, int pos, int items, int x_offset, int y_offs
     dst.y = y_offset;
 
     SDL_BlitSurface( bitmap, &src, screen, &dst);
-    SDL_FreeSurface( bitmap);
 }
 
-void show_bmp( const char *name, int x_offset, int y_offset, int opacity) {
-    show_sprite( name, 0, 1, x_offset, y_offset, opacity);
+void show_image( unsigned int id, int x_offset, int y_offset, int opacity) {
+    show_sprite( id, 0, 1, x_offset, y_offset, opacity);
 }
 
 void show_digit( int zahl, int x_offset, int y_offset, int opacity) {
-    show_sprite( "data/score.png", zahl, 11, x_offset, y_offset, opacity);
+    show_sprite( GR_SCORE, zahl, 11, x_offset, y_offset, opacity);
 }
 
-void introimage( char *name) {
+void introimage( unsigned int id) {
     int i;
    
     for( i=0; i<256; i+=10) {
         clearscr();
-        show_bmp( name, 0, 0, i);
+        show_image( id, 0, 0, i);
         updatescr();
         SDL_Delay( 30);
     }
@@ -54,7 +90,7 @@ void introimage( char *name) {
    
     for( i=255; i>=0; i-=10) {
         clearscr();
-        show_bmp( name, 0, 0, i);
+        show_image( id, 0, 0, i);
         updatescr();
         SDL_Delay( 30);
     }

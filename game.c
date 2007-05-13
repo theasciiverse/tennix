@@ -46,11 +46,11 @@ void game() {
    
     while( 1) {
         clearscr();
-        show_bmp( "data/court.bmp", 0, 0, 255);
-        show_bmp( "data/shadow.png", ball.x, ball.y, 255);
+        show_image( GR_COURT, 0, 0, 255);
+        show_image( GR_SHADOW, ball.x, ball.y, 255);
         
-        show_sprite( RACKET_BMP, (!player1.state), 4, player1.x, player1.y, 255);
-        show_sprite( RACKET_BMP, (!player2.state)+2, 4, player2.x, player2.y, 255);
+        show_sprite( GR_RACKET, (!player1.state), 4, player1.x, player1.y, 255);
+        show_sprite( GR_RACKET, (!player2.state)+2, 4, player2.x, player2.y, 255);
         
         phase = 2*1.6*ball.jump*get_phase( ball.x, GAME_X_MIN, GAME_X_MAX, ball.move_x);
         if( phase < 1.0) {
@@ -69,13 +69,13 @@ void game() {
         }
 
         if( ground.jump) {
-            show_sprite( "data/ground.png", ground.jump-1, 3, ground.x, ground.y, 128);
+            show_sprite( GR_GROUND, ground.jump-1, 3, ground.x, ground.y, 128);
         }
 
         if( ball.move_x > 0) {
-            show_sprite( "data/ball.png", (i/5)%4, 4, ball.x, ball.y-phase, 255);
+            show_sprite( GR_BALL, (i/5)%4, 4, ball.x, ball.y-phase, 255);
         } else {
-            show_sprite( "data/ball.png", 3-(i/5)%4, 4, ball.x, ball.y-phase, 255);
+            show_sprite( GR_BALL, 3-(i/5)%4, 4, ball.x, ball.y-phase, 255);
         }
         
         show_digit( player1.score/10%10, 140*2, 14, 100);
@@ -168,7 +168,7 @@ void game() {
         limit_value( &ball.jump, BALL_JUMP_MIN, BALL_JUMP_MAX);
         
         
-        SDL_Delay( 7);
+        SDL_Delay( 10);
         i++;
     }
    
@@ -215,6 +215,4 @@ float get_move_y( float py, float by, float pa, float move_x, float phase) {
     /* return the should-be value for move_y */
     return (y_len*move_x)/(x_len);
 }
-
-
 
