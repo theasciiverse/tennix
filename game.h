@@ -4,9 +4,44 @@
 #include <math.h>
 #include "tennix.h"
 
+typedef unsigned char bool;
+enum {
+    false,
+    true
+};
+
+typedef struct {
+    float x;
+    float y;
+    float move_x;
+    float move_y;
+    float jump;
+} Ball;
+
+typedef struct {
+    float x;
+    float y;
+    unsigned char state;
+    unsigned int score;
+    unsigned char responsible; /* responsible for the next fault (if any) */
+} Player;
+
+typedef struct {
+    Ball ball;
+    Ball ground;
+    Player player1;
+    Player player2;
+    float phase;
+    unsigned int time;
+    bool was_stopped;
+} GameState;
+
 #define PI 3.1415
 
-#define GROUND_PHASE 0.3
+#define GAME_TICKS 15
+
+#define GROUND_PHASE 0.4
+#define PHASE_AMP 3.2
 
 #define BALL_JUMP_MIN 4
 #define BALL_JUMP_MAX 10
@@ -33,9 +68,11 @@
 #define PLAYER_POWERSHOT 8.2
 
 void game();
+void render( GameState*);
+bool step( GameState*);
 void limit_value( float*, float, float);
-float get_phase( float, float, float, float);
-float get_move_y( float, float, float, float, float);
+float get_phase( GameState*);
+float get_move_y( GameState*, unsigned char);
 
 #endif
 

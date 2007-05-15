@@ -23,11 +23,21 @@ static const char* filenames[] = {
 void init_graphics() {
     int i;
     SDL_Surface* data;
+    SDL_Surface* tmp;
 
     images = (Image*)calloc( GR_COUNT, sizeof( Image));
 
     for( i=0; i<GR_COUNT; i++) {
-        data = IMG_Load( filenames[i]);
+        tmp = IMG_Load( filenames[i]);
+        if( !tmp) {
+            fprintf( stderr, "Error: %s\n", SDL_GetError());
+            continue;
+        }
+
+        SDL_SetColorKey( tmp, SDL_SRCCOLORKEY, SDL_MapRGB( tmp->format, 0, 0, 0)); 
+        data = SDL_DisplayFormatAlpha( tmp);
+        SDL_FreeSurface( tmp);
+
         if( !data) {
             fprintf( stderr, "Error: %s\n", SDL_GetError());
             continue;
@@ -55,7 +65,6 @@ void show_sprite( unsigned int id, int pos, int items, int x_offset, int y_offse
     if( !bitmap) return;
 
     SDL_SetAlpha( bitmap, SDL_SRCALPHA | SDL_RLEACCEL, opacity);
-    SDL_SetColorKey( bitmap, SDL_SRCCOLORKEY, SDL_MapRGB( bitmap->format, 0, 0, 0)); 
 
     dst.w = src.w = bitmap->w/items;
     dst.h = src.h = bitmap->h;
@@ -111,5 +120,6 @@ void clearscr() {
 
 void updatescr() {
     SDL_UpdateRect( screen, 0, 0, 0, 0);
+    SDL_Flip( screen);
 }
 

@@ -16,7 +16,8 @@ int main( int argc, char** argv) {
     Uint8 *keys;
     Uint8 mb;
     SDL_Event e;
-    int sdl_flags = SDL_HWSURFACE;
+    SDL_VideoInfo* vi;
+    int sdl_flags = SDL_SWSURFACE | SDL_DOUBLEBUF;
 
     srand( (unsigned)time( NULL));
    
@@ -25,16 +26,11 @@ int main( int argc, char** argv) {
         exit( 1);
     }
 
-    init_sound();
-    init_graphics();
-   
     atexit( SDL_Quit);
 
-#ifdef WIN32
-    sdl_flags = SDL_SWSURFACE;
-#endif
+    vi = (SDL_VideoInfo*)SDL_GetVideoInfo();
    
-    if( (screen = SDL_SetVideoMode( WIDTH, HEIGHT, 16, sdl_flags)) == NULL) {
+    if( (screen = SDL_SetVideoMode( WIDTH, HEIGHT, vi->vfmt->BitsPerPixel, sdl_flags)) == NULL) {
         fprintf( stderr, "Can't set video mode: %s\n", SDL_GetError());
         exit( 1);
     }   
@@ -42,6 +38,9 @@ int main( int argc, char** argv) {
     SDL_WM_SetCaption( "Tennix! SDL", "Tennix");
     SDL_ShowCursor( SDL_DISABLE);
     SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, 1);
+
+    init_sound();
+    init_graphics();
    
     while( 1) {
         SDL_PollEvent( &e);
