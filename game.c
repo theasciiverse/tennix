@@ -34,8 +34,8 @@ void game() {
     GameState s = {
         { GAME_X_MID, GAME_Y_MID, BALL_DEFAULT_SPEED, 0.2, 7.5 },
         { 0, 0, 0, 0, 0 },
-        { GAME_X_MIN-4, GAME_Y_MID, 0, 0, 1 },
-        { GAME_X_MAX, GAME_Y_MID, 0, 0, 0 },
+        { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1 },
+        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0 },
         0,
         0,
         0,
@@ -84,7 +84,9 @@ bool step( GameState* s) {
         if( !s->ground.jump) {
             sound_ground();
             /* after the ball hit the ground, responsibilities change */
-            s->player1.responsible = !(s->player2.responsible = !s->player2.responsible);
+            if( !IS_OUT_Y( s->ball.y) && !IS_OUT_X( s->ball.x)) {
+                s->player1.responsible = !(s->player2.responsible = !s->player2.responsible);
+            }
         }
         s->ground.jump = 3;
         s->ground.x = s->ball.x;
@@ -93,8 +95,8 @@ bool step( GameState* s) {
         if( s->ground.jump && !(s->time%5)) s->ground.jump--;
     }
 
-    if( IS_OUT_X(s->ball.x) || IS_OUT_Y(s->ball.y)) {
-        if( (IS_OUT_Y(s->ball.y) && s->player1.responsible) || (!(s->player1.state && IS_NEAR_Y(s->player1.y, s->ball.y+get_phase( s))) && s->ball.x < GAME_X_MIN)) {
+    if( IS_OUT_X(s->ball.x) || IS_OFFSCREEN_Y(s->ball.y)) {
+        if( IS_OFFSCREEN( s->ball.x, s->ball.y) && s->player1.responsible) {
             s->player2.score++;
             sound_applause();
             s->player2.responsible = !(s->player1.responsible = 1);
@@ -108,7 +110,7 @@ bool step( GameState* s) {
             sound_applause_stop();
         }
     
-        if( (IS_OUT_Y(s->ball.y) && s->player2.responsible) || (!(s->player2.state && IS_NEAR_Y(s->player2.y, s->ball.y+get_phase( s))) && s->ball.x > GAME_X_MAX)) {
+        if( IS_OFFSCREEN( s->ball.x, s->ball.y) && s->player2.responsible) {
             s->player1.score++;
             sound_applause();
             s->player1.responsible = !(s->player2.responsible = 1);
@@ -123,7 +125,7 @@ bool step( GameState* s) {
         }
     
         if( IS_OUT_X(s->ball.x)) {
-            if( s->ball.move_x < 0) {
+            if( s->ball.move_x < 0 && IS_NEAR_X( s->player1.x, s->ball.x) && IS_NEAR_Y( s->player1.y-RACKET_Y_MID, s->ball.y-get_phase( s)-BALL_Y_MID) && s->player1.state) {
                 s->ball.x = GAME_X_MIN;
                 if( s->player1.state == PLAYER_STATE_MAX) {
                     s->ball.move_x = PLAYER_POWERSHOT;
@@ -133,7 +135,7 @@ bool step( GameState* s) {
                 s->ball.move_y = get_move_y( s, 1);
                 s->ball.jump += 1.0-2.0*(s->player1.state<5);
                 sound_racket( s->player1.state == PLAYER_STATE_MAX);
-            } else {
+            } else if( IS_NEAR_X( s->player2.x, s->ball.x) && IS_NEAR_Y( s->player2.y-BALL_Y_MID, s->ball.y-get_phase( s)-RACKET_Y_MID) && s->player2.state) {
                 s->ball.x = GAME_X_MAX;
                 if( s->player2.state == PLAYER_STATE_MAX) {
                     s->ball.move_x = -PLAYER_POWERSHOT;
@@ -183,19 +185,19 @@ bool step( GameState* s) {
 void render( GameState* s) {
     clearscr();
     show_image( GR_COURT, 0, 0, 255);
-    show_image( GR_SHADOW, s->ball.x, s->ball.y, 255);
+    show_image( GR_SHADOW, s->ball.x - BALL_X_MID, s->ball.y - BALL_Y_MID, 255);
     
-    show_sprite( GR_RACKET, (!s->player1.state), 4, s->player1.x, s->player1.y, 255);
-    show_sprite( GR_RACKET, (!s->player2.state)+2, 4, s->player2.x, s->player2.y, 255);
+    show_sprite( GR_RACKET, (!s->player1.state), 4, s->player1.x-RACKET_X_MID, s->player1.y-RACKET_Y_MID, 255);
+    show_sprite( GR_RACKET, (!s->player2.state)+2, 4, s->player2.x-RACKET_X_MID, s->player2.y-RACKET_Y_MID, 255);
     
     if( s->ground.jump) {
-        show_sprite( GR_GROUND, s->ground.jump-1, 3, s->ground.x, s->ground.y, 128);
+        show_sprite( GR_GROUND, s->ground.jump-1, 3, s->ground.x - BALL_X_MID, s->ground.y - BALL_Y_MID, 128);
     }
 
     if( s->ball.move_x > 0) {
-        show_sprite( GR_BALL, (s->time/1000)%4, 4, s->ball.x, s->ball.y - get_phase( s), 255);
+        show_sprite( GR_BALL, (s->time/1000)%4, 4, s->ball.x-BALL_X_MID, s->ball.y - get_phase( s) - BALL_Y_MID, 255);
     } else {
-        show_sprite( GR_BALL, 3-(s->time/1000)%4, 4, s->ball.x, s->ball.y - get_phase( s), 255);
+        show_sprite( GR_BALL, 3-(s->time/1000)%4, 4, s->ball.x-BALL_X_MID, s->ball.y - get_phase( s) - BALL_Y_MID, 255);
     }
     
     show_digit( s->player1.score/10%10, 140*2, 14, 100);
@@ -242,11 +244,11 @@ float get_move_y( GameState* s, unsigned char player) {
     float py, by, pa, move_x, phase;
 
     if( player == 1) {
-        py = s->player1.y;
+        py = s->player1.y - RACKET_Y_MID;
     } else {
-        py = s->player2.y;
+        py = s->player2.y - RACKET_Y_MID;
     }
-    by = s->ball.y - get_phase( s);
+    by = s->ball.y - get_phase( s) - BALL_Y_MID;
     pa = PLAYER_AREA;
     move_x = s->ball.move_x;
     phase = get_phase( s);

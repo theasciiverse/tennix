@@ -70,6 +70,12 @@ typedef struct {
 #define BALL_JUMP_MAX 10
 #define BALL_DEFAULT_SPEED 3.0
 
+#define RACKET_X_MID 15
+#define RACKET_Y_MID 15
+
+#define BALL_X_MID 9
+#define BALL_Y_MID 9
+
 #define GAME_X_MIN 41.0*2
 #define GAME_X_MAX 270.0*2
 #define GAME_X_MID ((GAME_X_MIN+GAME_X_MAX)/2)
@@ -81,11 +87,16 @@ typedef struct {
 #define PLAYER_Y_MIN 0.0
 #define PLAYER_Y_MAX 1.0*HEIGHT
 
+#define IS_OFFSCREEN_Y(y) (((y)<0) || ((y)>HEIGHT))
+#define IS_OFFSCREEN_X(x) (((x)<0) || ((x)>WIDTH))
+#define IS_OFFSCREEN(x,y) ((IS_OFFSCREEN_X(x)) || (IS_OFFSCREEN_Y(y)))
 #define IS_OUT_Y(y) (y<GAME_Y_MIN || y>GAME_Y_MAX)
 #define IS_OUT_X(x) (x<GAME_X_MIN || x>GAME_X_MAX)
 
-#define PLAYER_AREA 10.0*2
+#define PLAYER_AREA 40.0
+#define PLAYER_AREA_X RACKET_X_MID
 #define IS_NEAR_Y(py,by) (fabsf(py+(PLAYER_AREA/2)-by)<PLAYER_AREA)
+#define IS_NEAR_X(px,bx) (fabsf(px+(PLAYER_AREA_X/2)-bx)<PLAYER_AREA_X)
 
 #define PLAYER_STATE_MAX 10
 #define PLAYER_POWERSHOT 8.2
