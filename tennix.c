@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <time.h>
-#include <SDL/SDL.h>
+#include <libgen.h>
 
 #include "tennix.h"
 #include "game.h"
@@ -18,6 +18,7 @@ int main( int argc, char** argv) {
     SDL_Event e;
     SDL_VideoInfo* vi;
     int sdl_flags = SDL_SWSURFACE | SDL_DOUBLEBUF;
+    char datadir[MAXPATHLEN];
 
     srand( (unsigned)time( NULL));
    
@@ -39,8 +40,11 @@ int main( int argc, char** argv) {
     SDL_ShowCursor( SDL_DISABLE);
     SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, 1);
 
-    init_sound();
-    init_graphics();
+    strcpy( datadir, argv[0]);
+    strcpy( (char*)(datadir+strlen( dirname( datadir))), DATADIR);
+
+    init_sound( datadir);
+    init_graphics( datadir);
    
     while( 1) {
         SDL_PollEvent( &e);

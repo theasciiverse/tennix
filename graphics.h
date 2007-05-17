@@ -1,7 +1,9 @@
 #ifndef __GRAPHICS_H
 #define __GRAPHICS_H
 
-#include <SDL/SDL.h>
+#include "tennix.h"
+
+#include "SDL_image.h"
 
 typedef struct {
     SDL_Surface* data;
@@ -19,7 +21,7 @@ enum {
     GR_COUNT
 };
 
-void init_graphics();
+void init_graphics( const char*);
 void uninit_graphics();
 void show_sprite( unsigned int, int, int, int, int, int);
 void show_image( unsigned int, int, int, int);

@@ -1,5 +1,4 @@
-#include <SDL/SDL.h>
-
+#include "tennix.h"
 #include "input.h"
 
 void wait_keypress() {

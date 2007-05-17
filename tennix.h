@@ -1,7 +1,15 @@
 #ifndef __TENNIX_H
 #define __TENNIX_H
 
-#include <SDL/SDL.h>
+#include <sys/param.h>
+
+#include "SDL.h"
+
+#define DATADIR "/data/"
+#ifdef MACOSX
+#undef DATADIR
+#define DATADIR "/../Resources/"
+#endif
 
 #define WIDTH 640
 #define HEIGHT 480

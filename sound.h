@@ -1,7 +1,7 @@
 #ifndef __SOUND_H
 #define __SOUND_H
 
-#include <SDL/SDL_mixer.h>
+#include "SDL_mixer.h"
 
 #define FADE_OUT_MS 1000
 
@@ -13,7 +13,7 @@ enum {
     CH_MAX,
 };
 
-void init_sound();
+void init_sound( const char *);
 void play_sample( const char*, unsigned char, int);
 void fade_out( unsigned char);
 

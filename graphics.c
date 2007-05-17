@@ -1,8 +1,5 @@
 #include <stdio.h>
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
-
 #include "tennix.h"
 #include "graphics.h"
 #include "input.h"
@@ -10,25 +7,28 @@
 static Image* images;
 
 static const char* filenames[] = {
-    "data/court.bmp",
-    "data/shadow.png",
-    "data/player-racket.bmp",
-    "data/ground.png",
-    "data/ball.png",
-    "data/score.png",
-    "data/menu.bmp",
-    "data/animation.bmp"
+    "court.bmp",
+    "shadow.png",
+    "player-racket.bmp",
+    "ground.png",
+    "ball.png",
+    "score.png",
+    "menu.bmp",
+    "animation.bmp"
 };
 
-void init_graphics() {
+void init_graphics( const char *data_dir) {
     int i;
     SDL_Surface* data;
     SDL_Surface* tmp;
+    char temp[MAXPATHLEN];
 
     images = (Image*)calloc( GR_COUNT, sizeof( Image));
 
     for( i=0; i<GR_COUNT; i++) {
-        tmp = IMG_Load( filenames[i]);
+        strcpy( temp, data_dir);
+        strcat( temp, filenames[i]);
+        tmp = IMG_Load( temp);
         if( !tmp) {
             fprintf( stderr, "Error: %s\n", SDL_GetError());
             continue;
