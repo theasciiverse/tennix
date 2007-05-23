@@ -41,7 +41,7 @@ OBJ = tennix.o game.o graphics.o input.o sound.o
 WIN32LIBS = *.dll
 OSXAPP = Tennix.app
 
-DATAFILES = data/*.bmp data/*.png data/*.wav
+DATAFILES = data/*.png data/*.wav
 ifeq ($(TARGET),cocoa)
   DATAFILES += data/Tennix.icns
 endif
