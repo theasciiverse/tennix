@@ -30,14 +30,14 @@
 static Image* images;
 
 static const char* filenames[] = {
-    "court.bmp",
+    "court.png",
     "shadow.png",
-    "player-racket.bmp",
+    "player-racket.png",
     "ground.png",
     "ball.png",
     "score.png",
-    "menu.bmp",
-    "animation.bmp"
+    "menu.png",
+    "animation.png"
 };
 
 void init_graphics( const char *data_dir) {
