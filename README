@@ -1,0 +1,73 @@
+
+
+
+          ###### #####  ##   ##  ##   ##  ##  ##   ##
+            ##   ##     ###  ##  ###  ##  ##  ### ###
+            ##   ####   ## # ##  ## # ##  ##    ###
+            ##   ##     ##  ###  ##  ###  ##  ### ###
+            ##   #####  ##   ##  ##   ##  ##  ##   ##
+
+                                           SDL Port
+
+        Copyright (C) 2003, 2007 Thomas Perl <thp@perli.net>
+ 
+
+
+LICENSE
+=======
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
+    
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+    MA  02110-1301, USA.
+
+
+ABOUT
+=====
+
+   This is the SDL (Simple DirectMedia Layer) port of Tennix!, a 
+   game written by Thomas Perl in 2003. This version has been up-
+   scaled to a resolution of 640x480 in comparison to the 220x200 
+   format used in the original game.
+
+   Apart from the graphics and appearance, the gameplay has also 
+   been re-written so that the game doesn't resemble a ping-pong-
+   like game (as before), but a rather interesting form of tennis.
+
+   This also includes a shadow, advanced alpha blending and the 
+   removal of the previously-included pseudo-advertisements.
+
+   This port has been written on the 10th of May 2007 and has been 
+   improved and updated up till the 23rd of May of the same year.
+
+
+INSTALLATION
+============
+
+   To build tennix, simply run "make" (on Unix-like systems) or 
+   follow the instructions for your platform in the README.* files.
+
+   Tennix is known to build on Debian GNU/Linux 4.0 (etch), 
+   Win32 (mingw32) and Mac OS X 10.4 (using XCode tools).
+
+   Binaries of Tennix can be found on the webpage.
+
+
+CONTACT
+=======
+
+
+    E-Mail: Thomas Perl <thp@perli.net>
+    URL: http://thpinfo.com/2007/tennix/
+
+
