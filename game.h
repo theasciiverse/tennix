@@ -71,7 +71,7 @@ typedef struct {
 #define BALL_DEFAULT_SPEED 3.0
 
 #define RACKET_X_MID 15
-#define RACKET_Y_MID 15
+#define RACKET_Y_MID 24
 
 #define BALL_X_MID 9
 #define BALL_Y_MID 9
@@ -93,12 +93,12 @@ typedef struct {
 #define IS_OUT_Y(y) (y<GAME_Y_MIN || y>GAME_Y_MAX)
 #define IS_OUT_X(x) (x<GAME_X_MIN || x>GAME_X_MAX)
 
-#define PLAYER_AREA 40.0
+#define PLAYER_AREA_Y RACKET_Y_MID
 #define PLAYER_AREA_X RACKET_X_MID
-#define IS_NEAR_Y(py,by) (fabsf(py+(PLAYER_AREA/2)-by)<PLAYER_AREA)
-#define IS_NEAR_X(px,bx) (fabsf(px+(PLAYER_AREA_X/2)-bx)<PLAYER_AREA_X)
+#define IS_NEAR_Y(py,by) (fabsf(py-by)<PLAYER_AREA_Y)
+#define IS_NEAR_X(px,bx) (fabsf(px-bx)<PLAYER_AREA_X)
 
-#define PLAYER_STATE_MAX 10
+#define PLAYER_STATE_MAX 5
 #define PLAYER_POWERSHOT 8.2
 
 void game();

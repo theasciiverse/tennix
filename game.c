@@ -125,7 +125,7 @@ bool step( GameState* s) {
         }
     
         if( IS_OUT_X(s->ball.x)) {
-            if( s->ball.move_x < 0 && IS_NEAR_X( s->player1.x, s->ball.x) && IS_NEAR_Y( s->player1.y-RACKET_Y_MID, s->ball.y-get_phase( s)-BALL_Y_MID) && s->player1.state) {
+            if( s->ball.move_x < 0 && IS_NEAR_X( s->player1.x, s->ball.x) && IS_NEAR_Y( s->player1.y, s->ball.y) && s->player1.state) {
                 s->ball.x = GAME_X_MIN;
                 if( s->player1.state == PLAYER_STATE_MAX) {
                     s->ball.move_x = PLAYER_POWERSHOT;
@@ -135,7 +135,7 @@ bool step( GameState* s) {
                 s->ball.move_y = get_move_y( s, 1);
                 s->ball.jump += 1.0-2.0*(s->player1.state<5);
                 sound_racket( s->player1.state == PLAYER_STATE_MAX);
-            } else if( IS_NEAR_X( s->player2.x, s->ball.x) && IS_NEAR_Y( s->player2.y-BALL_Y_MID, s->ball.y-get_phase( s)-RACKET_Y_MID) && s->player2.state) {
+            } else if( IS_NEAR_X( s->player2.x, s->ball.x) && IS_NEAR_Y( s->player2.y, s->ball.y) && s->player2.state) {
                 s->ball.x = GAME_X_MAX;
                 if( s->player2.state == PLAYER_STATE_MAX) {
                     s->ball.move_x = -PLAYER_POWERSHOT;
@@ -185,7 +185,7 @@ bool step( GameState* s) {
 void render( GameState* s) {
     clearscr();
     show_image( GR_COURT, 0, 0, 255);
-    show_image( GR_SHADOW, s->ball.x - BALL_X_MID, s->ball.y - BALL_Y_MID, 255);
+    show_image( GR_SHADOW, s->ball.x-BALL_X_MID, s->ball.y + get_phase( s) - BALL_Y_MID, 255);
     
     show_sprite( GR_RACKET, (!s->player1.state), 4, s->player1.x-RACKET_X_MID, s->player1.y-RACKET_Y_MID, 255);
     show_sprite( GR_RACKET, (!s->player2.state)+2, 4, s->player2.x-RACKET_X_MID, s->player2.y-RACKET_Y_MID, 255);
@@ -195,9 +195,9 @@ void render( GameState* s) {
     }
 
     if( s->ball.move_x > 0) {
-        show_sprite( GR_BALL, (s->time/1000)%4, 4, s->ball.x-BALL_X_MID, s->ball.y - get_phase( s) - BALL_Y_MID, 255);
+        show_sprite( GR_BALL, (s->time/1000)%4, 4, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
     } else {
-        show_sprite( GR_BALL, 3-(s->time/1000)%4, 4, s->ball.x-BALL_X_MID, s->ball.y - get_phase( s) - BALL_Y_MID, 255);
+        show_sprite( GR_BALL, 3-(s->time/1000)%4, 4, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
     }
     
     show_digit( s->player1.score/10%10, 140*2, 14, 100);
@@ -205,7 +205,17 @@ void render( GameState* s) {
     show_digit( 10, 156*2, 14, 100);
     show_digit( s->player2.score/10%10, 164*2, 14, 100);
     show_digit( s->player2.score%10, 172*2, 14, 100);
-    
+
+#ifdef DEBUG
+    line_horiz( s->player1.y, 255, 0, 0);
+    line_horiz( s->player2.y, 0, 0, 255);
+    line_horiz( s->ball.y, 0, 255, 0);
+
+    line_vert( s->player1.x, 255, 0, 0);
+    line_vert( s->player2.x, 0, 0, 255);
+    line_vert( s->ball.x, 0, 255, 0);
+#endif
+
     updatescr();
 }
 
@@ -249,7 +259,7 @@ float get_move_y( GameState* s, unsigned char player) {
         py = s->player2.y - RACKET_Y_MID;
     }
     by = s->ball.y - get_phase( s) - BALL_Y_MID;
-    pa = PLAYER_AREA;
+    pa = PLAYER_AREA_Y;
     move_x = s->ball.move_x;
     phase = get_phase( s);
 

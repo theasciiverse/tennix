@@ -99,6 +99,30 @@ void show_sprite( unsigned int id, int pos, int items, int x_offset, int y_offse
     SDL_BlitSurface( bitmap, &src, screen, &dst);
 }
 
+void line_horiz( int y, Uint8 r, Uint8 g, Uint8 b) {
+    Uint32 color = SDL_MapRGB( screen->format, r, g, b);
+    SDL_Rect rect;
+
+    rect.x = 0;
+    rect.w = screen->w;
+    rect.y = y;
+    rect.h = 1;
+
+    SDL_FillRect( screen, &rect, color);
+}
+
+void line_vert( int x, Uint8 r, Uint8 g, Uint8 b) {
+    Uint32 color = SDL_MapRGB( screen->format, r, g, b);
+    SDL_Rect rect;
+
+    rect.x = x;
+    rect.w = 1;
+    rect.y = 0;
+    rect.h = screen->h;
+
+    SDL_FillRect( screen, &rect, color);
+}
+
 void show_image( unsigned int id, int x_offset, int y_offset, int opacity) {
     show_sprite( id, 0, 1, x_offset, y_offset, opacity);
 }
