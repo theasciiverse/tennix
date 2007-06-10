@@ -89,8 +89,8 @@ typedef struct {
 #define PLAYER_Y_MIN 0.0
 #define PLAYER_Y_MAX 1.0*HEIGHT
 
-#define IS_OFFSCREEN_Y(y) (((y)<0) || ((y)>HEIGHT))
-#define IS_OFFSCREEN_X(x) (((x)<0) || ((x)>WIDTH))
+#define IS_OFFSCREEN_Y(y) (((y)<0-BALL_Y_MID*2) || ((y)>HEIGHT+BALL_Y_MID*2))
+#define IS_OFFSCREEN_X(x) (((x)<0-BALL_X_MID*2) || ((x)>WIDTH+BALL_X_MID*2))
 #define IS_OFFSCREEN(x,y) ((IS_OFFSCREEN_X(x)) || (IS_OFFSCREEN_Y(y)))
 #define IS_OUT_Y(y) (y<GAME_Y_MIN || y>GAME_Y_MAX)
 #define IS_OUT_X(x) (x<GAME_X_MIN || x>GAME_X_MAX)
