@@ -33,6 +33,7 @@ enum {
     CH_GROUND,
     CH_AUDIENCE,
     CH_APPLAUSE,
+    CH_OUT,
     CH_MAX,
 };
 
@@ -45,5 +46,6 @@ void sound_racket( unsigned char);
 void sound_audience();
 void sound_applause();
 void sound_applause_stop();
+void sound_out();
 
 #endif

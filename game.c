@@ -83,8 +83,12 @@ bool step( GameState* s) {
     if( get_phase( s) < 1.0) {
         if( !s->ground.jump) {
             sound_ground();
-            /* after the ball hit the ground, responsibilities change */
-            if( !IS_OUT_Y( s->ball.y) && !IS_OUT_X( s->ball.x)) {
+
+            if( IS_OUT_Y( s->ball.y)) {
+                /* out - responsibilities stay the same */
+                sound_out();
+            } else {
+                /* not out - responsibilities change */
                 s->player1.responsible = !(s->player2.responsible = !s->player2.responsible);
             }
         }
@@ -135,6 +139,7 @@ bool step( GameState* s) {
                     s->ball.move_x = 2.5 + 2.0*s->player1.state/PLAYER_STATE_MAX;
                 }
                 s->ball.move_y = get_move_y( s, 1);
+                s->player2.responsible = !(s->player1.responsible = 1);
                 s->ball.jump += 1.0-2.0*(s->player1.state<5);
                 sound_racket( s->player1.state == PLAYER_STATE_MAX);
             } else if( IS_NEAR_X( s->player2.x, s->ball.x) && IS_NEAR_Y( s->player2.y, s->ball.y) && s->player2.state) {
@@ -145,6 +150,7 @@ bool step( GameState* s) {
                     s->ball.move_x = -(2.5 + 2.0*s->player2.state/PLAYER_STATE_MAX);
                 }
                 s->ball.move_y = get_move_y( s, 2);
+                s->player1.responsible = !(s->player2.responsible = 1);
                 s->ball.jump += 1.0-2.0*(s->player2.state<5);
                 sound_racket( s->player2.state == PLAYER_STATE_MAX);
             }
@@ -228,6 +234,9 @@ void render( GameState* s) {
 
     line_horiz( s->ball.dest1, 255, 0, 255);
     line_horiz( s->ball.dest2, 0, 255, 255);
+
+    line_horiz( GAME_Y_MIN, 100, 100, 100);
+    line_horiz( GAME_Y_MAX, 100, 100, 100);
 #endif
 
     updatescr();
@@ -273,11 +282,11 @@ float get_move_y( GameState* s, unsigned char player) {
     move_x = s->ball.move_x;
 
     /* -1.0 .. 1.0 for racket hit position */
-    pct = (by-py)/(pa);
+    pct = (by-py)/(pa/2);
     limit_value( &pct, -1.0, 1.0);
 
     /* Y destination for ball */
-    dest = GAME_Y_MID + pct*(GAME_Y_MAX-GAME_Y_MIN)/2;
+    dest = GAME_Y_MID + pct*(GAME_Y_MAX-GAME_Y_MIN);
     if( player == 1) {
         s->ball.dest1 = dest;
     } else {

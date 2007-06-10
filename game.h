@@ -82,8 +82,8 @@ typedef struct {
 #define GAME_X_MAX 270.0*2
 #define GAME_X_MID ((GAME_X_MIN+GAME_X_MAX)/2)
 
-#define GAME_Y_MIN 20.0*2+75
-#define GAME_Y_MAX 150.0*2+75
+#define GAME_Y_MIN 155.0
+#define GAME_Y_MAX 330.0
 #define GAME_Y_MID ((GAME_Y_MIN+GAME_Y_MAX)/2)
 
 #define PLAYER_Y_MIN 0.0

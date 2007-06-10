@@ -29,7 +29,7 @@
 #include "SDL.h"
 
 
-#define VERSION "SVN $Rev$"
+#define VERSION "0.3.0-devel"
 #define COPYRIGHT "Copyright (c) 2003, 2007 Thomas Perl"
 #define URL "http://thpinfo.com/2007/tennix/"
 

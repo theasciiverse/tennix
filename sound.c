@@ -84,3 +84,7 @@ void sound_applause_stop() {
     fade_out( CH_APPLAUSE);
 }
 
+void sound_out() {
+    play_sample( "out.wav", CH_OUT, 0);
+}
+
