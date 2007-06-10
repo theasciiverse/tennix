@@ -39,6 +39,8 @@ typedef struct {
     float move_x;
     float move_y;
     float jump;
+    float dest1;
+    float dest2;
 } Ball;
 
 typedef struct {
@@ -99,7 +101,7 @@ typedef struct {
 #define IS_NEAR_X(px,bx) (fabsf(px-bx)<PLAYER_AREA_X)
 
 #define PLAYER_STATE_MAX 5
-#define PLAYER_POWERSHOT 8.2
+#define PLAYER_POWERSHOT 6.2
 
 void game();
 void render( GameState*);

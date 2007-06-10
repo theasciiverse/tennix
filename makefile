@@ -25,7 +25,11 @@ RELEASE   =  svn
 TARGET ?= default
 
 LIBS =
-CFLAGS = -Wall
+CFLAGS += -Wall
+
+ifeq ($(DEBUG),1)
+  CFLAGS += -DDEBUG
+endif
 
 ifeq ($(TARGET),cocoa)
   LIBS += SDLmain.m -framework SDL -framework Cocoa -framework SDL_image -framework SDL_mixer

@@ -63,6 +63,15 @@ INSTALLATION
    Binaries of Tennix can be found on the webpage.
 
 
+DEVELOPMENT/DEBUGGING
+=====================
+
+   If you want to compile a debugging version of "tennix", you
+   have to set the environment variable "DEBUG" to "1", either by
+   using "DEBUG=1 make" or exporting the environment variable for
+   the current session, as in "export DEBUG=1" followed by "make".
+
+
 CONTACT
 =======
 

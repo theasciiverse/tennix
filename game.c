@@ -32,7 +32,7 @@
 
 void game() {
     GameState s = {
-        { GAME_X_MID, GAME_Y_MID, BALL_DEFAULT_SPEED, 0.2, 7.5 },
+        { GAME_X_MID, GAME_Y_MID, BALL_DEFAULT_SPEED, 0.2, 7.5, 0.0, 0.0 },
         { 0, 0, 0, 0, 0 },
         { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1 },
         { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0 },
@@ -103,6 +103,7 @@ bool step( GameState* s) {
             s->ball.x = GAME_X_MID;
             s->ball.y = GAME_Y_MID;
             s->ball.move_x = fabsf( s->ball.move_x);
+            s->ball.dest1 = 0.0;
             limit_value( &s->ball.move_x, s->ball.move_x, BALL_DEFAULT_SPEED);
             s->ball.move_y = -0.1;
             wait_keypress();
@@ -117,6 +118,7 @@ bool step( GameState* s) {
             s->ball.x = GAME_X_MID;
             s->ball.y = GAME_Y_MID;
             s->ball.move_x = -fabsf( s->ball.move_x);
+            s->ball.dest2 = 0.0;
             limit_value( &s->ball.move_x, -BALL_DEFAULT_SPEED, s->ball.move_x);
             s->ball.move_y = 0.1;
             wait_keypress();
@@ -148,7 +150,16 @@ bool step( GameState* s) {
             }
         }
     }
-    
+
+#ifdef DEBUG
+    /* Update dest1/dest2 for debugging purposes (visualisation) */
+    if( s->ball.move_x < 0) {
+        get_move_y( s, 1);
+    } else {
+        get_move_y( s, 2);
+    }
+#endif
+
     s->ball.x += s->ball.move_x;
     s->ball.y += s->ball.move_y;
     
@@ -214,6 +225,9 @@ void render( GameState* s) {
     line_vert( s->player1.x, 255, 0, 0);
     line_vert( s->player2.x, 0, 0, 255);
     line_vert( s->ball.x, 0, 255, 0);
+
+    line_horiz( s->ball.dest1, 255, 0, 255);
+    line_horiz( s->ball.dest2, 0, 255, 255);
 #endif
 
     updatescr();
@@ -251,28 +265,32 @@ float get_phase( GameState* s) {
 
 float get_move_y( GameState* s, unsigned char player) {
     float pct, dest, x_len, y_len;
-    float py, by, pa, move_x, phase;
+    float py, by, pa, move_x;
 
-    if( player == 1) {
-        py = s->player1.y - RACKET_Y_MID;
-    } else {
-        py = s->player2.y - RACKET_Y_MID;
-    }
-    by = s->ball.y - get_phase( s) - BALL_Y_MID;
-    pa = PLAYER_AREA_Y;
+    py = (player==1)?(s->player1.y):(s->player2.y);
+    by = s->ball.y;
+    pa = RACKET_Y_MID*2;
     move_x = s->ball.move_x;
-    phase = get_phase( s);
 
-    /* 0.0 .. 1.0 for racket hit position */
-    pct = ((py+pa)-by)/(2*pa);
-    limit_value( &pct, 0.0, 1.0);
+    /* -1.0 .. 1.0 for racket hit position */
+    pct = (by-py)/(pa);
+    limit_value( &pct, -1.0, 1.0);
 
     /* Y destination for ball */
-    dest = GAME_Y_MIN + pct*(GAME_Y_MAX-GAME_Y_MIN);
+    dest = GAME_Y_MID + pct*(GAME_Y_MAX-GAME_Y_MIN)/2;
+    if( player == 1) {
+        s->ball.dest1 = dest;
+    } else {
+        s->ball.dest2 = dest;
+    }
 
     /* lengths for the ball's journey */
-    x_len = GAME_X_MAX - GAME_X_MIN;
-    y_len = dest - py + phase;
+    if( player == 1) {
+        x_len = fabsf(GAME_X_MAX - s->ball.x);
+    } else {
+        x_len = s->ball.x - GAME_X_MIN;
+    }
+    y_len = fabsf( dest - by);
 
     /* return the should-be value for move_y */
     return (y_len*move_x)/(x_len);
