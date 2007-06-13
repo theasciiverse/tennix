@@ -24,6 +24,8 @@ def convert_3d_2d( threed, h_factor):
 
     return Coord2D( x, y)
 
+def resize_depth( size, depth):
+    return size*(0.75+depth/4)
 
 class Coord3D(object):
     def __init__( self, x, y, z = 0.0):
@@ -114,6 +116,7 @@ while i > 0:
         old = e
         u += int(255/len(hist))
 
+    ballpos = twod_to_real( convert_3d_2d( currd, H_FACT))
     twod_a = twod_to_real( convert_3d_2d( Coord3D( 0.0, 0.0), H_FACT))
     twod_b = twod_to_real( convert_3d_2d( currd, H_FACT))
     pygame.draw.aaline( surface, (255,0,0), (twod_a.x,twod_a.y), (twod_b.x,twod_b.y))
@@ -123,6 +126,9 @@ while i > 0:
     twod_a = twod_to_real( convert_3d_2d( currd, H_FACT))
     twod_b = twod_to_real( convert_3d_2d( Coord3D( x, y, 0), H_FACT))
     pygame.draw.aaline( surface, (255,0,0), (twod_a.x,twod_a.y), (twod_b.x,twod_b.y))
+
+    pygame.draw.circle( surface, (50,50,50), (twod_b.x,twod_b.y), int(resize_depth( 8, currd.y)/max(1,currd.z)))
+    pygame.draw.circle( surface, (255,230,0), (ballpos.x,ballpos.y), int(resize_depth( 9, currd.y)))
 
     pygame.display.flip()
 
