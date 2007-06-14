@@ -296,10 +296,11 @@ float get_move_y( GameState* s, unsigned char player) {
     /* lengths for the ball's journey */
     if( player == 1) {
         x_len = fabsf(GAME_X_MAX - s->ball.x);
+        y_len = dest - by;
     } else {
         x_len = s->ball.x - GAME_X_MIN;
+        y_len = by - dest;
     }
-    y_len = fabsf( dest - by);
 
     /* return the should-be value for move_y */
     return (y_len*move_x)/(x_len);
