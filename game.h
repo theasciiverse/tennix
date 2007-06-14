@@ -59,6 +59,7 @@ typedef struct {
     float phase;
     unsigned int time;
     bool was_stopped;
+    bool is_singleplayer;
 } GameState;
 
 #define PI 3.1415
@@ -98,12 +99,14 @@ typedef struct {
 #define PLAYER_AREA_Y RACKET_Y_MID
 #define PLAYER_AREA_X RACKET_X_MID
 #define IS_NEAR_Y(py,by) (fabsf(py-by)<PLAYER_AREA_Y)
+#define IS_NEAR_Y_AI(py,by) (fabsf(py-by)<PLAYER_AREA_Y/4)
 #define IS_NEAR_X(px,bx) (fabsf(px-bx)<PLAYER_AREA_X)
+#define IS_NEAR_X_AI(px,bx) (fabsf(px-bx)<PLAYER_AREA_X*2)
 
 #define PLAYER_STATE_MAX 5
 #define PLAYER_POWERSHOT 6.2
 
-void game();
+void game( bool);
 void render( GameState*);
 bool step( GameState*);
 void limit_value( float*, float, float);

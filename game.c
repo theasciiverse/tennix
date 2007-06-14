@@ -30,7 +30,7 @@
 #include "input.h"
 #include "sound.h"
 
-void game() {
+void game( bool singleplayer) {
     GameState s = {
         { GAME_X_MID, GAME_Y_MID, BALL_DEFAULT_SPEED, 0.2, 7.5, 0.0, 0.0 },
         { 0, 0, 0, 0, 0 },
@@ -39,6 +39,7 @@ void game() {
         0,
         0,
         0,
+        singleplayer,
     };
 
     Uint32 ot = SDL_GetTicks();
@@ -79,6 +80,7 @@ void game() {
 bool step( GameState* s) {
     Uint8 *keys;
     SDL_Event e;
+    float fact;
    
     if( get_phase( s) < 1.0) {
         if( !s->ground.jump) {
@@ -180,12 +182,34 @@ bool step( GameState* s) {
     if( keys['s']) s->player1.y+=6;
     if( keys['x']) s->player1.y+=8;
     if( keys['d'] && !s->player1.state) s->player1.state = PLAYER_STATE_MAX;
-    
-    if( keys['9']) s->player2.y-=8;
-    if( keys['o']) s->player2.y-=6;
-    if( keys['l']) s->player2.y+=6;
-    if( keys['.']) s->player2.y+=8;
-    if( keys['k'] && !s->player2.state) s->player2.state = PLAYER_STATE_MAX;
+   
+    if( s->is_singleplayer) {
+        if( s->player2.responsible) {
+            if( fabsf( s->player2.y - s->ball.y) > RACKET_Y_MID*5) {
+                fact = 4;
+            } else {
+                fact = 1.5;
+            }
+
+            if( !IS_NEAR_Y_AI( s->player2.y, s->ball.y)) {
+                if( s->player2.y < s->ball.y) {
+                    s->player2.y += fmin( 2*fact, s->ball.y-s->player2.y);
+                } else if( s->player2.y > s->ball.y) {
+                    s->player2.y -= fmin( 2*fact, s->player2.y-s->ball.y);
+                }
+            }
+
+            if( IS_NEAR_X_AI( s->player2.x, s->ball.x) && !s->player2.state && rand()%4) {
+                s->player2.state = PLAYER_STATE_MAX;
+            }
+        }
+    } else {
+        if( keys['9']) s->player2.y-=8;
+        if( keys['o']) s->player2.y-=6;
+        if( keys['l']) s->player2.y+=6;
+        if( keys['.']) s->player2.y+=8;
+        if( keys['k'] && !s->player2.state) s->player2.state = PLAYER_STATE_MAX;
+    }
     
     if( keys['f']) SDL_WM_ToggleFullScreen( screen);
     if( keys['y']) SDL_SaveBMP( screen, "screenshot.bmp");

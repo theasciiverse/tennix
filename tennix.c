@@ -94,11 +94,14 @@ int main( int argc, char** argv) {
         
         if( mb & SDL_BUTTON( SDL_BUTTON_LEFT)) {
             if( M_POS_START_GAME(mx,my)) {
-                game();
+                game( false);
                 SDL_Delay( 50);
                 while( SDL_PollEvent( &e));
             }   
             if( M_POS_HIGH_SCORES(mx,my)) {
+                game( true);
+                SDL_Delay( 50);
+                while( SDL_PollEvent( &e));
                 //introimage( "data/hiscores.bmp");
             }
             if( M_POS_CREDITS(mx,my)) {
