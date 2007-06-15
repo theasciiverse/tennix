@@ -41,10 +41,21 @@ int main( int argc, char** argv) {
     SDL_VideoInfo* vi;
     int sdl_flags = SDL_SWSURFACE | SDL_DOUBLEBUF;
     char datadir[MAXPATHLEN];
+    int highlight_y = 0;
+
+    Point elektrons[ELEKTRONS];
+    int el;
 
     fprintf( stderr, "Tennix %s\n%s\n%s\n\n", VERSION, COPYRIGHT, URL);
 
     srand( (unsigned)time( NULL));
+
+    for( el=0; el<ELEKTRONS; el++) {
+        elektrons[el].x = elektrons[el].y = 0;
+        elektrons[el].w = 20+(rand()%80);
+        elektrons[el].h = 10+(rand()%10);
+        elektrons[el].phase = 4*2*PI*((rand()%1000)/1000.0);
+    }
    
     if( SDL_Init( SDL_INIT_VIDEO) == -1) {
         fprintf( stderr, "Can't init SDL:  %s\n", SDL_GetError());
@@ -84,6 +95,33 @@ int main( int argc, char** argv) {
         }
    
         clearscr();
+        
+        if( highlight_y) {
+            for( el=0; el<ELEKTRONS; el++) {
+                elektrons[el].phase += 0.02+(rand()%20/100.0);
+                elektrons[el].x = HIGHLIGHT_X + 85 + elektrons[el].w*cosf(elektrons[el].phase/4);
+                elektrons[el].y = highlight_y + elektrons[el].h*sinf(elektrons[el].phase);
+            }
+        }
+
+        highlight_y = 0;
+        if( M_POS_START_GAME(mx,my)) {
+            highlight_y = HIGHLIGHT_START_GAME;
+        } else if( M_POS_START_MULTI(mx,my)) {
+            highlight_y = HIGHLIGHT_START_MULTI;
+        } else if( M_POS_CREDITS(mx,my)) {
+            highlight_y = HIGHLIGHT_CREDITS;
+        } else if( M_POS_QUIT(mx,my)) {
+            highlight_y = HIGHLIGHT_QUIT;
+        }
+
+        if( highlight_y) {
+            show_image( GR_MENU_HIGHLIGHT, HIGHLIGHT_X, highlight_y, 255);
+            for( el=0; el<ELEKTRONS; el++) {
+                rectangle( elektrons[el].x, elektrons[el].y, 2, 2, 255, 255, 0);
+            }
+        }
+
         show_image( GR_MENU, 180*2, 0, 255);
         if( i%(12*4) == 0) {
             sound_racket( 0);
@@ -91,18 +129,17 @@ int main( int argc, char** argv) {
         show_sprite( GR_ANIMATION, (i++/12%4), 4, 20*2, 30*2, 255);
         show_sprite( GR_RACKET, (mb&SDL_BUTTON( SDL_BUTTON_LEFT)) > 0, 4, mx, my, 255);
         updatescr();
-        
+
         if( mb & SDL_BUTTON( SDL_BUTTON_LEFT)) {
             if( M_POS_START_GAME(mx,my)) {
-                game( false);
-                SDL_Delay( 50);
-                while( SDL_PollEvent( &e));
-            }   
-            if( M_POS_HIGH_SCORES(mx,my)) {
                 game( true);
                 SDL_Delay( 50);
                 while( SDL_PollEvent( &e));
-                //introimage( "data/hiscores.bmp");
+            }   
+            if( M_POS_START_MULTI(mx,my)) {
+                game( false);
+                SDL_Delay( 50);
+                while( SDL_PollEvent( &e));
             }
             if( M_POS_CREDITS(mx,my)) {
                 //introimage( "data/credits.bmp");

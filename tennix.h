@@ -48,13 +48,30 @@
 
 #define RACKET_BMP "data/player-racket.bmp"
 
-#define M_POS_XPOS(x) (x>170*2 && x<280*2)
+#define M_POS_XPOS(x) (x>340 && x<640)
 
-#define M_POS_START_GAME(x,y)  (M_POS_XPOS(x) && y>60*2 && y<70*2)
-#define M_POS_HIGH_SCORES(x,y) (M_POS_XPOS(x) && y>80*2 && y<90*2)
-#define M_POS_CREDITS(x,y)     (M_POS_XPOS(x) && y>100*2 && y<115*2)
-#define M_POS_QUIT(x,y)        (M_POS_XPOS(x) && y>140*2 && y<150*2)
+#define M_POS_START_GAME(x,y)  (M_POS_XPOS(x) && y>120 && y<160)
+#define M_POS_START_MULTI(x,y) (M_POS_XPOS(x) && y>170 && y<200)
+#define M_POS_CREDITS(x,y)     (M_POS_XPOS(x) && y>210 && y<250)
+#define M_POS_QUIT(x,y)        (M_POS_XPOS(x) && y>280 && y<320)
+
+#define HIGHLIGHT_X 370
+
+#define HIGHLIGHT_START_GAME 145
+#define HIGHLIGHT_START_MULTI 190
+#define HIGHLIGHT_CREDITS 235
+#define HIGHLIGHT_QUIT 305
 
 extern SDL_Surface *screen;
+
+typedef struct {
+    int x;
+    int y;
+    int w;
+    int h;
+    float phase;
+} Point;
+
+#define ELEKTRONS 50
 
 #endif

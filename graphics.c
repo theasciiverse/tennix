@@ -37,7 +37,8 @@ static const char* filenames[] = {
     "ball.png",
     "score.png",
     "menu.png",
-    "animation.png"
+    "animation.png",
+    "menu-highlight.png"
 };
 
 void init_graphics( const char *data_dir) {
@@ -119,6 +120,18 @@ void line_vert( int x, Uint8 r, Uint8 g, Uint8 b) {
     rect.w = 1;
     rect.y = 0;
     rect.h = screen->h;
+
+    SDL_FillRect( screen, &rect, color);
+}
+
+void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b) {
+    Uint32 color = SDL_MapRGB( screen->format, r, g, b);
+    SDL_Rect rect;
+
+    rect.x = x;
+    rect.y = y;
+    rect.w = w;
+    rect.h = h;
 
     SDL_FillRect( screen, &rect, color);
 }

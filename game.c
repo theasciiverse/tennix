@@ -49,7 +49,9 @@ void game( bool singleplayer) {
     bool quit = false;
 
     if( singleplayer) {
+#ifdef DEBUG
         s.player1.type = PLAYER_TYPE_AI;
+#endif
         s.player2.type = PLAYER_TYPE_AI;
     }
 

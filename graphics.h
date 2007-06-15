@@ -41,6 +41,7 @@ enum {
     GR_SCORE,
     GR_MENU,
     GR_ANIMATION,
+    GR_MENU_HIGHLIGHT,
     GR_COUNT
 };
 
@@ -51,6 +52,7 @@ void show_image( unsigned int, int, int, int);
 void show_digit( int, int, int, int);
 void line_horiz( int y, Uint8 r, Uint8 g, Uint8 b);
 void line_vert( int x, Uint8 r, Uint8 g, Uint8 b);
+void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);
 void introimage( unsigned int);
 void clearscr();
 void updatescr();
