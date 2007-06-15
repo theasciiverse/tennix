@@ -32,14 +32,13 @@
 
 void game( bool singleplayer) {
     GameState s = {
-        { GAME_X_MID, GAME_Y_MID, BALL_DEFAULT_SPEED, 0.2, 7.5, 0.0, 0.0 },
+        { GAME_X_MID, GAME_Y_MID, BALL_DEFAULT_SPEED, 0.2, 7.5 },
         { 0, 0, 0, 0, 0 },
-        { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1 },
-        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0 },
+        { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1, DESIRE_NORMAL, PLAYER_TYPE_HUMAN },
+        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN },
         0,
         0,
         0,
-        singleplayer,
     };
 
     Uint32 ot = SDL_GetTicks();
@@ -48,6 +47,11 @@ void game( bool singleplayer) {
     Uint32 diff;
     Uint32 accumulator = 0;
     bool quit = false;
+
+    if( singleplayer) {
+        s.player1.type = PLAYER_TYPE_AI;
+        s.player2.type = PLAYER_TYPE_AI;
+    }
 
     sound_audience();
    
@@ -80,7 +84,6 @@ void game( bool singleplayer) {
 bool step( GameState* s) {
     Uint8 *keys;
     SDL_Event e;
-    float fact;
    
     if( get_phase( s) < 1.0) {
         if( !s->ground.jump) {
@@ -109,7 +112,7 @@ bool step( GameState* s) {
             s->ball.x = GAME_X_MID;
             s->ball.y = GAME_Y_MID;
             s->ball.move_x = fabsf( s->ball.move_x);
-            s->ball.dest1 = 0.0;
+            s->player1.ball_dest = 0.0;
             limit_value( &s->ball.move_x, s->ball.move_x, BALL_DEFAULT_SPEED);
             s->ball.move_y = -0.1;
             wait_keypress();
@@ -124,7 +127,7 @@ bool step( GameState* s) {
             s->ball.x = GAME_X_MID;
             s->ball.y = GAME_Y_MID;
             s->ball.move_x = -fabsf( s->ball.move_x);
-            s->ball.dest2 = 0.0;
+            s->player2.ball_dest = 0.0;
             limit_value( &s->ball.move_x, -BALL_DEFAULT_SPEED, s->ball.move_x);
             s->ball.move_y = 0.1;
             wait_keypress();
@@ -160,7 +163,7 @@ bool step( GameState* s) {
     }
 
 #ifdef DEBUG
-    /* Update dest1/dest2 for debugging purposes (visualisation) */
+    /* Update ball_dest for debugging purposes */
     if( s->ball.move_x < 0) {
         get_move_y( s, 1);
     } else {
@@ -177,38 +180,16 @@ bool step( GameState* s) {
     SDL_PollEvent( &e);
     keys = SDL_GetKeyState( NULL);
     
-    if( keys['2']) s->player1.y-=8;
-    if( keys['w']) s->player1.y-=6;
-    if( keys['s']) s->player1.y+=6;
-    if( keys['x']) s->player1.y+=8;
-    if( keys['d'] && !s->player1.state) s->player1.state = PLAYER_STATE_MAX;
-   
-    if( s->is_singleplayer) {
-        if( s->player2.responsible) {
-            if( fabsf( s->player2.y - s->ball.y) > RACKET_Y_MID*5) {
-                fact = 4;
-            } else {
-                fact = 1.5;
-            }
-
-            if( !IS_NEAR_Y_AI( s->player2.y, s->ball.y)) {
-                if( s->player2.y < s->ball.y) {
-                    s->player2.y += fmin( 2*fact, s->ball.y-s->player2.y);
-                } else if( s->player2.y > s->ball.y) {
-                    s->player2.y -= fmin( 2*fact, s->player2.y-s->ball.y);
-                }
-            }
-
-            if( IS_NEAR_X_AI( s->player2.x, s->ball.x) && !s->player2.state && rand()%4) {
-                s->player2.state = PLAYER_STATE_MAX;
-            }
-        }
+    if( s->player1.type == PLAYER_TYPE_HUMAN) {
+        input_human( &s->player1, keys['w'], keys['s'], keys['d']);
     } else {
-        if( keys['9']) s->player2.y-=8;
-        if( keys['o']) s->player2.y-=6;
-        if( keys['l']) s->player2.y+=6;
-        if( keys['.']) s->player2.y+=8;
-        if( keys['k'] && !s->player2.state) s->player2.state = PLAYER_STATE_MAX;
+        input_ai( &s->player1, &s->ball);
+    }
+
+    if( s->player2.type == PLAYER_TYPE_HUMAN) {
+        input_human( &s->player2, keys['o'], keys['l'], keys['k']);
+    } else {
+        input_ai( &s->player2, &s->ball);
     }
     
     if( keys['f']) SDL_WM_ToggleFullScreen( screen);
@@ -256,8 +237,8 @@ void render( GameState* s) {
     line_vert( s->player2.x, 0, 0, 255);
     line_vert( s->ball.x, 0, 255, 0);
 
-    line_horiz( s->ball.dest1, 255, 0, 255);
-    line_horiz( s->ball.dest2, 0, 255, 255);
+    line_horiz( s->player1.ball_dest, 255, 0, 255);
+    line_horiz( s->player2.ball_dest, 0, 255, 255);
 
     line_horiz( GAME_Y_MIN, 100, 100, 100);
     line_horiz( GAME_Y_MAX, 100, 100, 100);
@@ -312,9 +293,9 @@ float get_move_y( GameState* s, unsigned char player) {
     /* Y destination for ball */
     dest = GAME_Y_MID + pct*(GAME_Y_MAX-GAME_Y_MIN);
     if( player == 1) {
-        s->ball.dest1 = dest;
+        s->player1.ball_dest = dest;
     } else {
-        s->ball.dest2 = dest;
+        s->player2.ball_dest = dest;
     }
 
     /* lengths for the ball's journey */
@@ -328,5 +309,43 @@ float get_move_y( GameState* s, unsigned char player) {
 
     /* return the should-be value for move_y */
     return (y_len*move_x)/(x_len);
+}
+
+void input_human( Player* player, bool up, bool down, bool hit) {
+    if( up) {
+        player->y -= 6;
+    }
+
+    if( down) {
+        player->y += 6;
+    }
+
+    if( hit && !player->state) {
+        player->state = PLAYER_STATE_MAX;
+    }
+}
+
+void input_ai( Player* player, Ball* ball) {
+    float fact;
+
+    if( player->responsible) {
+        if( fabsf( player->y - ball->y) > RACKET_Y_MID*5) {
+            fact = 4;
+        } else {
+            fact = 1.5;
+        }
+
+        if( player->desire == DESIRE_NORMAL && !IS_NEAR_Y_AI( player->y, ball->y)) {
+            if( player->y < ball->y) {
+                player->y += fmin( 2*fact, ball->y - player->y);
+            } else if( player->y > ball->y) {
+                player->y -= fmin( 2*fact, player->y - ball->y);
+            }
+        }
+
+        if( IS_NEAR_X_AI( player->x, ball->x) && !player->state && rand()%4) {
+            player->state = PLAYER_STATE_MAX;
+        }
+    }
 }
 

@@ -39,8 +39,6 @@ typedef struct {
     float move_x;
     float move_y;
     float jump;
-    float dest1;
-    float dest2;
 } Ball;
 
 typedef struct {
@@ -48,8 +46,21 @@ typedef struct {
     float y;
     unsigned char state;
     unsigned int score;
-    unsigned char responsible; /* responsible for the next fault (if any) */
+    bool responsible; /* responsible for the next fault (if any) */
+    unsigned char desire; /* what the player aims to do (0=normal, 1=upper edge, 2=lower edge)*/
+    bool type; /* is this player ai-controlled or human? */
+    float ball_dest; /* prospective y-position of ball */
 } Player;
+
+enum {
+    PLAYER_TYPE_HUMAN,
+    PLAYER_TYPE_AI,
+};
+
+enum {
+    DESIRE_NORMAL,
+    DESIRE_MAX
+};
 
 typedef struct {
     Ball ball;
@@ -59,7 +70,6 @@ typedef struct {
     float phase;
     unsigned int time;
     bool was_stopped;
-    bool is_singleplayer;
 } GameState;
 
 #define PI 3.1415
@@ -87,6 +97,10 @@ typedef struct {
 #define GAME_Y_MAX 330.0
 #define GAME_Y_MID ((GAME_Y_MIN+GAME_Y_MAX)/2)
 
+#define GAME_EDGE_AREA 20.0
+#define GAME_EDGE_UPPER GAME_Y_MIN+GAME_EDGE_AREA
+#define GAME_EDGE_LOWER GAME_Y_MAX-GAME_EDGE_AREA
+
 #define PLAYER_Y_MIN 0.0
 #define PLAYER_Y_MAX 1.0*HEIGHT
 
@@ -99,7 +113,7 @@ typedef struct {
 #define PLAYER_AREA_Y RACKET_Y_MID
 #define PLAYER_AREA_X RACKET_X_MID
 #define IS_NEAR_Y(py,by) (fabsf(py-by)<PLAYER_AREA_Y)
-#define IS_NEAR_Y_AI(py,by) (fabsf(py-by)<PLAYER_AREA_Y/4)
+#define IS_NEAR_Y_AI(py,by) (fabsf(py-by)<PLAYER_AREA_Y/2.5)
 #define IS_NEAR_X(px,bx) (fabsf(px-bx)<PLAYER_AREA_X)
 #define IS_NEAR_X_AI(px,bx) (fabsf(px-bx)<PLAYER_AREA_X*2)
 
@@ -112,6 +126,8 @@ bool step( GameState*);
 void limit_value( float*, float, float);
 float get_phase( GameState*);
 float get_move_y( GameState*, unsigned char);
+void input_human( Player*, bool, bool, bool);
+void input_ai( Player*, Ball*);
 
 #endif
 
