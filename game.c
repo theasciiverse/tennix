@@ -148,7 +148,7 @@ bool step( GameState* s) {
                 s->ball.move_y = get_move_y( s, 1);
                 s->player2.responsible = !(s->player1.responsible = 1);
                 s->ball.jump += 1.0-2.0*(s->player1.state<5);
-                sound_racket( s->player1.state == PLAYER_STATE_MAX);
+                sound_racket();
             } else if( IS_NEAR_X( s->player2.x, s->ball.x) && IS_NEAR_Y( s->player2.y, s->ball.y) && s->player2.state) {
                 s->ball.x = GAME_X_MAX;
                 if( s->player2.state == PLAYER_STATE_MAX) {
@@ -159,7 +159,7 @@ bool step( GameState* s) {
                 s->ball.move_y = get_move_y( s, 2);
                 s->player1.responsible = !(s->player2.responsible = 1);
                 s->ball.jump += 1.0-2.0*(s->player2.state<5);
-                sound_racket( s->player2.state == PLAYER_STATE_MAX);
+                sound_racket();
             }
         }
     }

@@ -42,7 +42,7 @@ void play_sample( const char*, unsigned char, int);
 void fade_out( unsigned char);
 
 void sound_ground();
-void sound_racket( unsigned char);
+void sound_racket();
 void sound_audience();
 void sound_applause();
 void sound_applause_stop();

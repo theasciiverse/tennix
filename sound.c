@@ -63,13 +63,9 @@ void sound_ground() {
     play_sample( sounds[rand()%2], CH_GROUND, 0);
 }
 
-void sound_racket( unsigned char powershot) {
+void sound_racket() {
     const char* sounds[] = { "racket1.wav", "racket2.wav" };
-    if( powershot) {
-        play_sample( "powershot.wav", CH_RACKET, 0);
-    } else {
-        play_sample( sounds[rand()%2], CH_RACKET, 0);
-    }
+    play_sample( sounds[rand()%2], CH_RACKET, 0);
 }
 
 void sound_audience() {
