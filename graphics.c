@@ -37,8 +37,7 @@ static const char* filenames[] = {
     "ball.png",
     "score.png",
     "menu.png",
-    "animation.png",
-    "menu-highlight.png"
+    "animation.png"
 };
 
 void init_graphics( const char *data_dir) {

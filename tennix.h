@@ -55,7 +55,7 @@
 #define M_POS_CREDITS(x,y)     (M_POS_XPOS(x) && y>210 && y<250)
 #define M_POS_QUIT(x,y)        (M_POS_XPOS(x) && y>280 && y<320)
 
-#define HIGHLIGHT_X 370
+#define HIGHLIGHT_X 420
 
 #define HIGHLIGHT_START_GAME 145
 #define HIGHLIGHT_START_MULTI 190
@@ -67,11 +67,22 @@ extern SDL_Surface *screen;
 typedef struct {
     int x;
     int y;
+    int current_x;
+    int current_y;
+    int new_x;
+    int new_y;
     int w;
     int h;
     float phase;
+    int r;
+    int g;
+    int b;
+    int size;
+    int new_size;
 } Point;
 
+#define ELEKTRONS_WIDTH 85
+#define ELEKTRON_LAZYNESS 7.0
 #define ELEKTRONS 50
 
 #endif

@@ -52,9 +52,18 @@ int main( int argc, char** argv) {
 
     for( el=0; el<ELEKTRONS; el++) {
         elektrons[el].x = elektrons[el].y = 0;
-        elektrons[el].w = 20+(rand()%80);
+        elektrons[el].w = 50+(rand()%120);
         elektrons[el].h = 10+(rand()%10);
+        elektrons[el].current_x = WIDTH/2;
+        elektrons[el].current_y = HEIGHT/2;
+        elektrons[el].new_x = rand()%WIDTH;
+        elektrons[el].new_y = rand()%HEIGHT;
         elektrons[el].phase = 4*2*PI*((rand()%1000)/1000.0);
+        elektrons[el].r = 100+rand()%155;
+        elektrons[el].g = 100+rand()%155;
+        elektrons[el].b = 0;
+        elektrons[el].size = 0;
+        elektrons[el].new_size = 5+rand()%10;
     }
    
     if( SDL_Init( SDL_INIT_VIDEO) == -1) {
@@ -95,16 +104,36 @@ int main( int argc, char** argv) {
         }
    
         clearscr();
-        
-        if( highlight_y) {
-            for( el=0; el<ELEKTRONS; el++) {
-                elektrons[el].phase += 0.02+(rand()%20/100.0);
-                elektrons[el].x = HIGHLIGHT_X + 85 + elektrons[el].w*cosf(elektrons[el].phase/4);
-                elektrons[el].y = highlight_y + elektrons[el].h*sinf(elektrons[el].phase);
+        for( el=0; el<ELEKTRONS; el++) {
+            if( highlight_y) {
+                elektrons[el].new_x = HIGHLIGHT_X;
+                elektrons[el].new_y = highlight_y;
+                if( elektrons[el].new_size >= 5) {
+                    elektrons[el].new_size = 1+rand()%4;
+                }
             }
         }
+        
+        for( el=0; el<ELEKTRONS; el++) {
+            elektrons[el].current_x += (int)(1.0*(elektrons[el].new_x-elektrons[el].current_x)/ELEKTRON_LAZYNESS);
+            elektrons[el].current_y += (int)(1.0*(elektrons[el].new_y-elektrons[el].current_y)/ELEKTRON_LAZYNESS);
+            if( abs(elektrons[el].current_x - elektrons[el].new_x) < ELEKTRON_LAZYNESS) {
+                elektrons[el].current_x = elektrons[el].new_x;
+            }
+            if( abs(elektrons[el].current_y - elektrons[el].new_y) < ELEKTRON_LAZYNESS) {
+                elektrons[el].current_y = elektrons[el].new_y;
+            }
+            if( i%4==0 && elektrons[el].size < elektrons[el].new_size) {
+                elektrons[el].size++;
+            }
+            if( i%4==0 && elektrons[el].size > elektrons[el].new_size) {
+                elektrons[el].size--;
+            }
+            elektrons[el].phase += 0.02+(rand()%20/100.0);
+            elektrons[el].x = elektrons[el].current_x + ELEKTRONS_WIDTH + elektrons[el].w*cosf(elektrons[el].phase/4);
+            elektrons[el].y = elektrons[el].current_y + elektrons[el].h*sinf(elektrons[el].phase);
+        }
 
-        highlight_y = 0;
         if( M_POS_START_GAME(mx,my)) {
             highlight_y = HIGHLIGHT_START_GAME;
         } else if( M_POS_START_MULTI(mx,my)) {
@@ -113,12 +142,30 @@ int main( int argc, char** argv) {
             highlight_y = HIGHLIGHT_CREDITS;
         } else if( M_POS_QUIT(mx,my)) {
             highlight_y = HIGHLIGHT_QUIT;
+        } else if( highlight_y == 0) {
+            if( i%20 == 0) {
+                for( el=0; el<ELEKTRONS; el++) {
+                    elektrons[el].new_size = 5+rand()%10;
+                }
+            }
+        } else {
+            for( el=0; el<ELEKTRONS; el++) {
+                elektrons[el].new_x = rand()%(WIDTH-ELEKTRONS_WIDTH-elektrons[el].w/2);
+                elektrons[el].new_y = rand()%HEIGHT;
+                elektrons[el].new_size = 5+rand()%10;
+            }
+            highlight_y = 0;
         }
 
         if( highlight_y) {
-            show_image( GR_MENU_HIGHLIGHT, HIGHLIGHT_X, highlight_y, 255);
-            for( el=0; el<ELEKTRONS; el++) {
-                rectangle( elektrons[el].x, elektrons[el].y, 2, 2, 255, 255, 0);
+            //show_image( GR_MENU_HIGHLIGHT, HIGHLIGHT_X, highlight_y, 255);
+        }
+        for( el=0; el<ELEKTRONS; el++) {
+            if( elektrons[el].size > 0) {
+                rectangle( elektrons[el].x, elektrons[el].y, elektrons[el].size, elektrons[el].size, elektrons[el].r, elektrons[el].g, elektrons[el].b);
+                if( elektrons[el].size > 5) {
+                    rectangle( elektrons[el].x+2, elektrons[el].y+2, elektrons[el].size-4, elektrons[el].size-4, 0, 0, 0);
+                }
             }
         }
 
@@ -126,7 +173,7 @@ int main( int argc, char** argv) {
         if( i%(12*4) == 0) {
             sound_racket( 0);
         }
-        show_sprite( GR_ANIMATION, (i++/12%4), 4, 20*2, 30*2, 255);
+        show_sprite( GR_ANIMATION, (i++/12%4), 4, 40, 100, 255);
         show_sprite( GR_RACKET, (mb&SDL_BUTTON( SDL_BUTTON_LEFT)) > 0, 4, mx, my, 255);
         updatescr();
 

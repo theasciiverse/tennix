@@ -41,7 +41,6 @@ enum {
     GR_SCORE,
     GR_MENU,
     GR_ANIMATION,
-    GR_MENU_HIGHLIGHT,
     GR_COUNT
 };
 
