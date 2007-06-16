@@ -179,13 +179,17 @@ int main( int argc, char** argv) {
 
         if( mb & SDL_BUTTON( SDL_BUTTON_LEFT)) {
             if( M_POS_START_GAME(mx,my)) {
+                start_fade();
                 game( true);
-                SDL_Delay( 50);
+                SDL_Delay( 150);
+                start_fade();
                 while( SDL_PollEvent( &e));
             }   
             if( M_POS_START_MULTI(mx,my)) {
+                start_fade();
                 game( false);
-                SDL_Delay( 50);
+                SDL_Delay( 150);
+                start_fade();
                 while( SDL_PollEvent( &e));
             }
             if( M_POS_CREDITS(mx,my)) {

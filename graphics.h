@@ -28,6 +28,8 @@
 
 #include "SDL_image.h"
 
+#define FADE_DURATION 500
+
 typedef struct {
     SDL_Surface* data;
 } Image;
@@ -55,6 +57,7 @@ void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);
 void introimage( unsigned int);
 void clearscr();
 void updatescr();
+void start_fade();
 
 #endif
 

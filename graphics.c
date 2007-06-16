@@ -29,6 +29,10 @@
 
 static Image* images;
 
+static SDL_Surface *buffer;
+
+static Uint32 fading_start = 0;
+
 static const char* filenames[] = {
     "court.png",
     "shadow.png",
@@ -67,6 +71,12 @@ void init_graphics( const char *data_dir) {
         }
         images[i].data = data;
     }
+
+    buffer = SDL_CreateRGBSurface( SDL_HWSURFACE, WIDTH, HEIGHT, screen->format->BitsPerPixel, screen->format->Rmask, screen->format->Gmask, screen->format->Bmask, screen->format->Amask);
+
+    if( buffer == NULL) {
+        fprintf( stderr, "Cannot create buffer surface: %s\n", SDL_GetError());
+    }
 }
 
 void uninit_graphics() {
@@ -74,6 +84,10 @@ void uninit_graphics() {
 
     for( i=0; i<GR_COUNT; i++) {
         SDL_FreeSurface( images[i].data);
+    }
+
+    if( buffer != NULL) {
+        SDL_FreeSurface( buffer);
     }
 
     free( images);
@@ -178,7 +192,19 @@ void clearscr() {
 }
 
 void updatescr() {
+    int ticks = SDL_GetTicks();
+
+    if( ticks < fading_start+FADE_DURATION) {
+        SDL_SetAlpha( buffer, SDL_SRCALPHA | SDL_RLEACCEL, 255-255*(ticks-fading_start)/FADE_DURATION);
+        SDL_BlitSurface( buffer, NULL, screen, NULL);
+    }
+
     SDL_UpdateRect( screen, 0, 0, 0, 0);
     SDL_Flip( screen);
+}
+
+void start_fade() {
+    SDL_BlitSurface( screen, NULL, buffer, NULL);
+    fading_start = SDL_GetTicks();
 }
 
