@@ -50,6 +50,14 @@ void init_graphics( const char *data_dir) {
     SDL_Surface* tmp;
     char temp[MAXPATHLEN];
 
+    strcpy( temp, data_dir);
+    strcat( temp, "icon.png");
+    tmp = IMG_Load( temp);
+    if( tmp != NULL) {
+        SDL_WM_SetIcon( tmp, NULL);
+        SDL_FreeSurface( tmp);
+    }
+
     images = (Image*)calloc( GR_COUNT, sizeof( Image));
 
     for( i=0; i<GR_COUNT; i++) {
