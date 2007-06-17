@@ -37,18 +37,17 @@ ABOUT
 
    This is the SDL (Simple DirectMedia Layer) port of Tennix!, a 
    game written by Thomas Perl in 2003. This version has been up-
-   scaled to a resolution of 640x480 in comparison to the 220x200 
+   scaled to a resolution of 640x480 in comparison to the 320x200 
    format used in the original game.
 
-   Apart from the graphics and appearance, the gameplay has also 
-   been re-written so that the game doesn't resemble a ping-pong-
-   like game (as before), but a rather interesting form of tennis.
+   Changes from the original Tennix to the first SDL release include
+   a new shadow, advanced alpha blending and the removal of the 
+   previously-included pseudo-advertisements.
 
-   This also includes a shadow, advanced alpha blending and the 
-   removal of the previously-included pseudo-advertisements.
+   For all changes, please see the ChangeLog file.
 
-   This port has been written on the 10th of May 2007 and has been 
-   improved and updated up till the 23rd of May of the same year.
+   This port has been written on the 10th of May 2007 and is now 
+   being improved and updated since then.
 
 
 INSTALLATION
