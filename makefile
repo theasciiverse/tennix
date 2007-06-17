@@ -20,12 +20,12 @@
 #
 
 CC        =  gcc
-RELEASE   =  svn
+RELEASE   =  0.3.1
 
 TARGET ?= default
 
 LIBS =
-CFLAGS += -Wall
+CFLAGS += -Wall -DVERSION=\"$(RELEASE)\"
 
 ifeq ($(DEBUG),1)
   CFLAGS += -DDEBUG
@@ -68,7 +68,7 @@ release-osx: tennix
 	zip -r tennix-$(RELEASE).zip $(OSXAPP)
 
 release-win32: tennix
-	zip tennix-$(RELEASE).zip tennix.exe $(WIN32LIBS) $(DATAFILES)
+	zip tennix-$(RELEASE)-win32.zip tennix.exe $(WIN32LIBS) $(DATAFILES)
 
 release-bin: tennix
 	tar czvf tennix-$(RELEASE)-bin.tar.gz tennix $(DATAFILES)

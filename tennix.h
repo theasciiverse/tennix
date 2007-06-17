@@ -29,7 +29,6 @@
 #include "SDL.h"
 
 
-#define VERSION "0.3.1"
 #define COPYRIGHT "Copyright (c) 2003, 2007 Thomas Perl"
 #define URL "http://thpinfo.com/2007/tennix/"
 
