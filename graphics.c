@@ -216,3 +216,7 @@ void start_fade() {
     fading_start = SDL_GetTicks();
 }
 
+int is_fading() {
+    return SDL_GetTicks() < fading_start+FADE_DURATION;
+}
+

@@ -184,6 +184,7 @@ int main( int argc, char** argv) {
                 SDL_Delay( 150);
                 start_fade();
                 while( SDL_PollEvent( &e));
+                fade_out( CH_AUDIENCE);
             }   
             if( M_POS_START_MULTI(mx,my)) {
                 start_fade();
@@ -191,6 +192,7 @@ int main( int argc, char** argv) {
                 SDL_Delay( 150);
                 start_fade();
                 while( SDL_PollEvent( &e));
+                fade_out( CH_AUDIENCE);
             }
             if( M_POS_CREDITS(mx,my)) {
                 //introimage( "data/credits.bmp");

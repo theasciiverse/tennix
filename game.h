@@ -70,6 +70,7 @@ typedef struct {
     float phase;
     unsigned int time;
     bool was_stopped;
+    bool player1_serves;
 } GameState;
 
 #define PI 3.1415
@@ -120,6 +121,8 @@ typedef struct {
 #define PLAYER_STATE_MAX 5
 #define PLAYER_POWERSHOT 6.2
 
+#define MOVE_Y_SEED 3
+
 void game( bool);
 void render( GameState*);
 bool step( GameState*);
@@ -127,7 +130,8 @@ void limit_value( float*, float, float);
 float get_phase( GameState*);
 float get_move_y( GameState*, unsigned char);
 void input_human( Player*, bool, bool, bool);
-void input_ai( Player*, Ball*);
+void input_ai( Player*, Ball*, Player*);
+void game_setup_serve( GameState*);
 
 #endif
 

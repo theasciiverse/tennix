@@ -58,6 +58,7 @@ void introimage( unsigned int);
 void clearscr();
 void updatescr();
 void start_fade();
+int is_fading();
 
 #endif
 
