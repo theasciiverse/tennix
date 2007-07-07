@@ -138,9 +138,9 @@ int main( int argc, char** argv) {
             highlight_y = HIGHLIGHT_START_GAME;
         } else if( M_POS_START_MULTI(mx,my)) {
             highlight_y = HIGHLIGHT_START_MULTI;
-        } else if( M_POS_CREDITS(mx,my)) {
+        /*} else if( M_POS_CREDITS(mx,my)) {
             highlight_y = HIGHLIGHT_CREDITS;
-        } else if( M_POS_QUIT(mx,my)) {
+        */} else if( M_POS_QUIT(mx,my)) {
             highlight_y = HIGHLIGHT_QUIT;
         } else if( highlight_y == 0) {
             if( i%20 == 0) {

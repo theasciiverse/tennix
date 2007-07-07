@@ -1,3 +1,11 @@
+Tennix 0.3.2 (Sat, 07 Jul 2007 15:57:34 +0200)
+
+	* Move release information to makefile, update win32 target
+	* Added application window icon setup code
+	* Support for ball service; AI improved; gameplay fading
+	* Add "Playing Tennix" section in README
+
+###############################################################################
 
 Tennix 0.3.1 (Sun, 17 Jun 2007 16:25:37 +0200)
 

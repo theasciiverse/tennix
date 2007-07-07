@@ -30,7 +30,7 @@
 
 
 #define COPYRIGHT "Copyright (c) 2003, 2007 Thomas Perl"
-#define URL "http://thpinfo.com/2007/tennix/"
+#define URL "http://icculus.org/tennix/"
 
 
 #define DATADIR "/data/"

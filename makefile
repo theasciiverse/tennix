@@ -20,7 +20,7 @@
 #
 
 CC        =  gcc
-RELEASE   =  0.3.1
+RELEASE   =  0.3.2
 
 TARGET ?= default
 
