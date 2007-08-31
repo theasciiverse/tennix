@@ -42,11 +42,15 @@ int main( int argc, char** argv) {
     int sdl_flags = SDL_SWSURFACE | SDL_DOUBLEBUF;
     char datadir[MAXPATHLEN];
     int highlight_y = 0;
+    char copyright_line[100];
+    int copyright_line_width, url_width;
 
     Point elektrons[ELEKTRONS];
     int el;
 
     fprintf( stderr, "Tennix %s\n%s\n%s\n\n", VERSION, COPYRIGHT, URL);
+
+    sprintf( copyright_line, "Tennix %s -- %s", VERSION, COPYRIGHT);
 
     srand( (unsigned)time( NULL));
 
@@ -89,6 +93,9 @@ int main( int argc, char** argv) {
 
     init_sound( datadir);
     init_graphics( datadir);
+
+    copyright_line_width = font_get_string_width( GR_SMALLISH_FONT, copyright_line);
+    url_width = font_get_string_width( GR_SMALLISH_FONT, URL);
    
     while( 1) {
         SDL_PollEvent( &e);
@@ -174,6 +181,8 @@ int main( int argc, char** argv) {
             sound_racket( 0);
         }
         show_sprite( GR_ANIMATION, (i++/12%4), 4, 40, 100, 255);
+        font_draw_string( GR_SMALLISH_FONT, copyright_line, (WIDTH-copyright_line_width)/2, HEIGHT-70, i, ((i/150)%ANIMATION_COUNT));
+        font_draw_string( GR_SMALLISH_FONT, URL, (WIDTH-url_width)/2, HEIGHT-30, i, ((i/50)%ANIMATION_COUNT));
         show_sprite( GR_RACKET, (mb&SDL_BUTTON( SDL_BUTTON_LEFT)) > 0, 4, mx, my, 255);
         updatescr();
 

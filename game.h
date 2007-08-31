@@ -71,6 +71,7 @@ typedef struct {
     unsigned int time;
     bool was_stopped;
     bool player1_serves;
+    char* status;
 } GameState;
 
 #define PI 3.1415

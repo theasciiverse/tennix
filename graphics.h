@@ -43,7 +43,16 @@ enum {
     GR_SCORE,
     GR_MENU,
     GR_ANIMATION,
+    GR_SMALLISH_FONT,
     GR_COUNT
+};
+
+enum {
+    ANIMATION_NONE = 0,
+    ANIMATION_WAVE = 1,
+    ANIMATION_SPACING = 2,
+    ANIMATION_SKIP_TWO = 4,
+    ANIMATION_COUNT = 8
 };
 
 void init_graphics( const char*);
@@ -59,6 +68,11 @@ void clearscr();
 void updatescr();
 void start_fade();
 int is_fading();
+
+int font_get_metrics( unsigned int id, char ch, int* xp, int* wp);
+int font_draw_char( unsigned int id, char ch, int x_offset, int y_offset);
+void font_draw_string( unsigned int id, char* s, int x_offset, int y_offset, int start, int animation);
+int font_get_string_width( unsigned int id, char* s);
 
 #endif
 

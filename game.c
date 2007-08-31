@@ -39,7 +39,8 @@ void game( bool singleplayer) {
         0,
         0,
         0,
-        true
+        true,
+        "welcome to tennix " VERSION
     };
 
     Uint32 ot = SDL_GetTicks();
@@ -95,10 +96,12 @@ bool step( GameState* s) {
 
             if( IS_OUT_Y( s->ball.y)) {
                 /* out - responsibilities stay the same */
+                s->status = "out -- don't hit the ball!";
                 sound_out();
             } else {
                 /* not out - responsibilities change */
                 s->player1.responsible = !(s->player2.responsible = !s->player2.responsible);
+                s->status = "";
             }
         }
         s->ground.jump = 3;
@@ -113,6 +116,20 @@ bool step( GameState* s) {
             s->player1_serves = s->player1.responsible;
 
             (s->player1.responsible)?(s->player2.score++):(s->player1.score++);
+
+            if( s->player1.responsible) {
+                if( s->player1.type == PLAYER_TYPE_HUMAN && s->player2.type == PLAYER_TYPE_AI) {
+                    s->status = "computer scores";
+                } else {
+                    s->status = "player 2 scores";
+                }
+            } else {
+                if( s->player1.type == PLAYER_TYPE_HUMAN && s->player2.type == PLAYER_TYPE_AI) {
+                    s->status = "player scores";
+                } else {
+                    s->status = "player 1 scores";
+                }
+            }
 
             game_setup_serve( s);
             sound_applause();
@@ -214,6 +231,8 @@ void render( GameState* s) {
     show_digit( 10, 156*2, 14, 100);
     show_digit( s->player2.score/10%10, 164*2, 14, 100);
     show_digit( s->player2.score%10, 172*2, 14, 100);
+
+    font_draw_string( GR_SMALLISH_FONT, s->status, (WIDTH-font_get_string_width( GR_SMALLISH_FONT, s->status))/2, HEIGHT-50, s->time/30, ANIMATION_WAVE);
 
 #ifdef DEBUG
     line_horiz( s->player1.y, 255, 0, 0);

@@ -22,6 +22,7 @@
  **/
 
 #include <stdio.h>
+#include <math.h>
 
 #include "tennix.h"
 #include "graphics.h"
@@ -41,8 +42,11 @@ static const char* filenames[] = {
     "ball.png",
     "score.png",
     "menu.png",
-    "animation.png"
+    "animation.png",
+    "smallish-font.png"
 };
+
+static const char* smallish_font_chars = " !\"#----()'+,-./0123456789:;<=>?@abcdefghijklmnopqrstuvwxyz";
 
 void init_graphics( const char *data_dir) {
     int i;
@@ -50,6 +54,7 @@ void init_graphics( const char *data_dir) {
     SDL_Surface* tmp;
     char temp[MAXPATHLEN];
 
+#ifndef MACOSX
     strcpy( temp, data_dir);
     strcat( temp, "icon.png");
     tmp = IMG_Load( temp);
@@ -57,6 +62,7 @@ void init_graphics( const char *data_dir) {
         SDL_WM_SetIcon( tmp, NULL);
         SDL_FreeSurface( tmp);
     }
+#endif
 
     images = (Image*)calloc( GR_COUNT, sizeof( Image));
 
@@ -218,5 +224,121 @@ void start_fade() {
 
 int is_fading() {
     return SDL_GetTicks() < fading_start+FADE_DURATION;
+}
+
+int font_get_metrics( unsigned int id, char ch, int* xp, int* wp) {
+    SDL_Surface *bitmap;
+    SDL_PixelFormat *fmt;
+    int pos, x = -1, w = 0;
+    int search_pos = 0, search_x = 0;
+    Uint8 red, green, blue;
+    Uint32 pixel;
+
+    if( id > GR_COUNT) return 0;
+
+    ch = tolower( ch);
+
+    if( ch == ' ') {
+        w = 5;
+    } else {
+        for( pos = 0; pos < strlen( smallish_font_chars); pos++) {
+            if( smallish_font_chars[pos] == ch)
+                break;
+        }
+
+        if( pos == strlen( smallish_font_chars)) {
+            return 0;
+        }
+
+        bitmap = images[id].data;
+        fmt = bitmap->format;
+
+        SDL_LockSurface( bitmap);
+        while( search_x < bitmap->w) {
+            pixel = *( (Uint32*)(bitmap->pixels + search_x*fmt->BytesPerPixel));
+            red = (Uint8)(((pixel & fmt->Rmask) >> fmt->Rshift) << fmt->Rloss);
+            green = (Uint8)(((pixel & fmt->Gmask) >> fmt->Gshift) << fmt->Gloss);
+            blue = (Uint8)(((pixel & fmt->Bmask) >> fmt->Bshift) << fmt->Bloss);
+
+            /* Increase pos counter if we have a "marker" pixel (255,0,255) */
+            if( red == 255 && green == 0 && blue == 255) {
+                search_pos++;
+                if( search_pos == pos) {
+                    x = search_x;
+                } else if( search_pos == pos + 1) {
+                    w = search_x - x;
+                    break;
+                }
+            }
+
+            search_x++;
+        }
+        SDL_UnlockSurface( bitmap);
+    }
+
+    if( wp != NULL) (*wp) = w;
+    if( xp != NULL) (*xp) = x;
+
+    return w;
+}
+
+int font_draw_char( unsigned int id, char ch, int x_offset, int y_offset) {
+    SDL_Surface *bitmap;
+    SDL_Rect src, dst;
+    int x = -1, w = 0;
+
+    font_get_metrics( id, ch, &x, &w);
+    if( x == -1) return w;
+
+    bitmap = images[id].data;
+
+    dst.w = src.w = w;
+    dst.h = src.h = bitmap->h - 1;
+    src.x = x;
+    src.y = 1;
+    dst.x = x_offset;
+    dst.y = y_offset;
+
+    SDL_BlitSurface( bitmap, &src, screen, &dst);
+
+    return src.w;
+}
+
+void font_draw_string( unsigned int id, char* s, int x_offset, int y_offset, int start, int animation) {
+    int y = y_offset;
+    int x = x_offset;
+    int i, xw;
+
+    if( animation & ANIMATION_SPACING) {
+        xw = (int)fabsf((15.0*sinf( start/10.0 + x_offset/30.0)));
+        x -= xw;
+    }
+
+    if( animation & ANIMATION_SKIP_TWO) {
+        x -= (strlen(s)*(int)(2.0*sinf( start / 10.0)))/2;
+    }
+
+    for( i=0; i<strlen(s); i++) {
+        if( animation & ANIMATION_WAVE) {
+            y = y_offset + (int)(3.0*sinf( start/10.0 + x/30.0));
+        }
+        x += font_draw_char( id, s[i], x, y);
+        if( animation & ANIMATION_SKIP_TWO) {
+            x += (int)(2.0*sinf( start / 10.0));
+        }
+        if( animation & ANIMATION_SPACING) {
+            x += (int)(xw/strlen(s));
+        }
+    }
+}
+
+int font_get_string_width( unsigned int id, char* s) {
+    int w = 0, i;
+
+    for( i=0; i<strlen(s); i++) {
+        w += font_get_metrics( id, s[i], NULL, NULL);
+    }
+
+    return w;
 }
 
