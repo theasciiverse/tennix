@@ -30,6 +30,11 @@
 
 #define FADE_DURATION 500
 
+#define GET_PIXEL_DATA(surface,x,y) (*((Uint32*)(surface->pixels + x * surface->format->BytesPerPixel + y * surface->pitch)))
+
+#define GET_PIXEL_RGB(surface,x,y,r,g,b) (SDL_GetRGB( GET_PIXEL_DATA(surface,x,y), surface->format, r, g, b))
+#define SET_PIXEL_RGB(surface,x,y,r,g,b) (GET_PIXEL_DATA(surface,x,y)=SDL_MapRGB(surface->format, r, g, b))
+
 typedef struct {
     SDL_Surface* data;
 } Image;
@@ -73,6 +78,8 @@ int font_get_metrics( unsigned int id, char ch, int* xp, int* wp);
 int font_draw_char( unsigned int id, char ch, int x_offset, int y_offset);
 void font_draw_string( unsigned int id, char* s, int x_offset, int y_offset, int start, int animation);
 int font_get_string_width( unsigned int id, char* s);
+
+void draw_line( int x1, int y1, int x2, int y2, int r, int g, int b);
 
 #endif
 

@@ -22,6 +22,7 @@
  **/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 
 #include "tennix.h"
@@ -228,11 +229,9 @@ int is_fading() {
 
 int font_get_metrics( unsigned int id, char ch, int* xp, int* wp) {
     SDL_Surface *bitmap;
-    SDL_PixelFormat *fmt;
     int pos, x = -1, w = 0;
     int search_pos = 0, search_x = 0;
     Uint8 red, green, blue;
-    Uint32 pixel;
 
     if( id > GR_COUNT) return 0;
 
@@ -251,14 +250,10 @@ int font_get_metrics( unsigned int id, char ch, int* xp, int* wp) {
         }
 
         bitmap = images[id].data;
-        fmt = bitmap->format;
 
         SDL_LockSurface( bitmap);
         while( search_x < bitmap->w) {
-            pixel = *( (Uint32*)(bitmap->pixels + search_x*fmt->BytesPerPixel));
-            red = (Uint8)(((pixel & fmt->Rmask) >> fmt->Rshift) << fmt->Rloss);
-            green = (Uint8)(((pixel & fmt->Gmask) >> fmt->Gshift) << fmt->Gloss);
-            blue = (Uint8)(((pixel & fmt->Bmask) >> fmt->Bshift) << fmt->Bloss);
+            GET_PIXEL_RGB( bitmap, search_x, 0, &red, &green, &blue);
 
             /* Increase pos counter if we have a "marker" pixel (255,0,255) */
             if( red == 255 && green == 0 && blue == 255) {
@@ -340,5 +335,20 @@ int font_get_string_width( unsigned int id, char* s) {
     }
 
     return w;
+}
+
+void draw_line( int x1, int y1, int x2, int y2, int r, int g, int b) {
+    float step, dx, dy, x = x1, y = y1;
+    int i;
+
+    step = abs(x2-x1)>abs(y2-y1)?abs(x2-x1):abs(y2-y1);
+    dx = (x2-y1) / step;
+    dy = (y2-y1) / step;
+
+    SDL_LockSurface( screen);
+    for( i=0; i<=step; i++) {
+        SET_PIXEL_RGB( screen, (int)(x+=dx), (int)(y+=dy), r, g, b);
+    }
+    SDL_UnlockSurface( screen);
 }
 
