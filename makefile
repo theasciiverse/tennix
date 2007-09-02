@@ -65,7 +65,7 @@ release-osx: tennix
 	cp -rpv $(DATAFILES) $(OSXAPP)/Contents/Resources/
 	cp -rpv osxapp.plist $(OSXAPP)/Contents/Info.plist
 	echo 'APPL????' >$(OSXAPP)/Contents/PkgInfo
-	zip -r tennix-$(RELEASE).zip $(OSXAPP)
+	zip -r tennix-$(RELEASE)-macosx.zip $(OSXAPP)
 
 release-win32: tennix
 	zip tennix-$(RELEASE)-win32.zip tennix.exe $(WIN32LIBS) $(DATAFILES)

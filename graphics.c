@@ -302,15 +302,17 @@ int font_draw_char( unsigned int id, char ch, int x_offset, int y_offset) {
 void font_draw_string( unsigned int id, char* s, int x_offset, int y_offset, int start, int animation) {
     int y = y_offset;
     int x = x_offset;
-    int i, xw;
+    int i;
+    float xw, xw_diff;
 
-    if( animation & ANIMATION_SPACING) {
-        xw = (int)fabsf((15.0*sinf( start/10.0 + x_offset/30.0)));
-        x -= xw;
+    if( animation & ANIMATION_BUNGEE) {
+        xw = (25.0*sinf( start/10.0));
+        xw_diff = 0.0;
+        x -= xw / 2;
     }
 
-    if( animation & ANIMATION_SKIP_TWO) {
-        x -= (strlen(s)*(int)(2.0*sinf( start / 10.0)))/2;
+    if( animation & ANIMATION_PENDULUM) {
+        x -= (int)(20.0*sinf( start/20.0));
     }
 
     for( i=0; i<strlen(s); i++) {
@@ -318,11 +320,16 @@ void font_draw_string( unsigned int id, char* s, int x_offset, int y_offset, int
             y = y_offset + (int)(3.0*sinf( start/10.0 + x/30.0));
         }
         x += font_draw_char( id, s[i], x, y);
-        if( animation & ANIMATION_SKIP_TWO) {
-            x += (int)(2.0*sinf( start / 10.0));
-        }
-        if( animation & ANIMATION_SPACING) {
-            x += (int)(xw/strlen(s));
+        if( animation & ANIMATION_BUNGEE) {
+            xw_diff += xw/strlen(s);
+            if( xw_diff > 1.0 || xw_diff < -1.0) {
+                x += (int)(xw_diff);
+                if( xw_diff > 1.0) {
+                    xw_diff -= 1.0;
+                } else {
+                    xw_diff += 1.0;
+                }
+            }
         }
     }
 }
