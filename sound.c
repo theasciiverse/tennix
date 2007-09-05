@@ -26,6 +26,8 @@
 
 static char datadir[MAXPATHLEN];
 
+#include "data/sounds_data.c"
+
 void init_sound( const char *data_dir) {
     strcpy( datadir, data_dir);
 
@@ -34,19 +36,15 @@ void init_sound( const char *data_dir) {
     }
 }
 
-void play_sample( const char* filename, unsigned char channel, int loop) {
+void play_sample( ResourceData sound, unsigned char channel, int loop) {
     static Mix_Chunk* chunks[CH_MAX] = { 0 };
-    char fn[MAXPATHLEN];
-
-    strcpy( fn, datadir);
-    strcat( fn, filename);
 
     if( chunks[channel] != NULL) {
         Mix_FreeChunk( chunks[channel]);
         chunks[channel] = NULL;
     }
 
-    chunks[channel] = Mix_LoadWAV( fn);
+    chunks[channel] = Mix_LoadWAV_RW( SDL_RWFromConstMem( sound.data, sound.size), 1);
     if( chunks[channel] != NULL) {
         Mix_PlayChannel( channel, chunks[channel], loop);
     } else {
@@ -59,21 +57,21 @@ void fade_out( unsigned char channel) {
 }
 
 void sound_ground() {
-    const char* sounds[] = { "ground1.wav", "ground2.wav" };
+    ResourceData sounds[] = { RESOURCE(ground1), RESOURCE(ground2) };
     play_sample( sounds[rand()%2], CH_GROUND, 0);
 }
 
 void sound_racket() {
-    const char* sounds[] = { "racket1.wav", "racket2.wav" };
+    ResourceData sounds[] = { RESOURCE(racket1), RESOURCE(racket2) };
     play_sample( sounds[rand()%2], CH_RACKET, 0);
 }
 
 void sound_audience() {
-    play_sample( "audience.wav", CH_AUDIENCE, -1);
+    play_sample( RESOURCE(audience), CH_AUDIENCE, -1);
 }
 
 void sound_applause() {
-    play_sample( "applause.wav", CH_APPLAUSE, 0);
+    play_sample( RESOURCE(applause), CH_APPLAUSE, 0);
 }
 
 void sound_applause_stop() {
@@ -81,6 +79,6 @@ void sound_applause_stop() {
 }
 
 void sound_out() {
-    play_sample( "out.wav", CH_OUT, 0);
+    play_sample( RESOURCE(out), CH_OUT, 0);
 }
 

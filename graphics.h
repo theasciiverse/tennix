@@ -29,6 +29,8 @@
 #include "SDL_image.h"
 
 #define FADE_DURATION 500
+#define BUTTON_HIGHLIGHT 0.4
+#define BUTTON_BORDER 2
 
 #define GET_PIXEL_DATA(surface,x,y) (*((Uint32*)(surface->pixels + x * surface->format->BytesPerPixel + y * surface->pitch)))
 
@@ -69,6 +71,8 @@ void show_image( unsigned int, int, int, int);
 void line_horiz( int y, Uint8 r, Uint8 g, Uint8 b);
 void line_vert( int x, Uint8 r, Uint8 g, Uint8 b);
 void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);
+void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
+void draw_button_text( char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
 void introimage( unsigned int);
 void clearscr();
 void updatescr();

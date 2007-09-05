@@ -32,13 +32,6 @@
 #define COPYRIGHT "Copyright 2003, 2007 Thomas Perl"
 #define URL "http://icculus.org/tennix/"
 
-
-#define DATADIR "/data/"
-#ifdef MACOSX
-#undef DATADIR
-#define DATADIR "/../Resources/"
-#endif
-
 #define WIDTH 640
 #define HEIGHT 480
 
@@ -57,6 +50,13 @@
 #define HIGHLIGHT_QUIT 305
 
 extern SDL_Surface *screen;
+
+typedef struct {
+    const char* data;
+    unsigned int size;
+} ResourceData;
+
+#define RESOURCE(x) ((ResourceData){ x, sizeof( x) })
 
 typedef struct {
     int x;

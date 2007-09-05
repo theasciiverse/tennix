@@ -35,27 +35,25 @@ static SDL_Surface *buffer;
 
 static Uint32 fading_start = 0;
 
-static const char* filenames[] = {
-    "court.png",
-    "shadow.png",
-    "player-racket.png",
-    "ground.png",
-    "ball.png",
-    "menu.png",
-    "smallish-font.png",
-    "dkc2.png"
+#include "data/graphics_data.c"
+static const ResourceData graphics[] = {
+    RESOURCE(court),
+    RESOURCE(shadow),
+    RESOURCE(player_racket),
+    RESOURCE(ground),
+    RESOURCE(ball),
+    RESOURCE(menu),
+    RESOURCE(smallish_font),
+    RESOURCE(dkc2)
 };
 
 void init_graphics( const char *data_dir) {
     int i;
     SDL_Surface* data;
     SDL_Surface* tmp;
-    char temp[MAXPATHLEN];
 
 #ifndef MACOSX
-    strcpy( temp, data_dir);
-    strcat( temp, "icon.png");
-    tmp = IMG_Load( temp);
+    tmp = IMG_Load_RW( SDL_RWFromConstMem( icon, sizeof(icon)), 1);
     if( tmp != NULL) {
         SDL_WM_SetIcon( tmp, NULL);
         SDL_FreeSurface( tmp);
@@ -65,9 +63,7 @@ void init_graphics( const char *data_dir) {
     images = (Image*)calloc( GR_COUNT, sizeof( Image));
 
     for( i=0; i<GR_COUNT; i++) {
-        strcpy( temp, data_dir);
-        strcat( temp, filenames[i]);
-        tmp = IMG_Load( temp);
+        tmp = IMG_Load_RW( SDL_RWFromConstMem( graphics[i].data, graphics[i].size), 1);
         if( !tmp) {
             fprintf( stderr, "Error: %s\n", SDL_GetError());
             continue;
@@ -171,6 +167,23 @@ void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b) {
     rect.h = h;
 
     SDL_FillRect( screen, &rect, color);
+}
+
+void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed) {
+    float diff = (pressed?1.0-BUTTON_HIGHLIGHT:1.0+BUTTON_HIGHLIGHT);
+    int border = BUTTON_BORDER;
+    rectangle( x, y, w, h, r*diff, g*diff, b*diff);
+    rectangle( x+border, y+border, w-border, h-border, r/diff, g/diff, b/diff);
+    rectangle( x+border, y+border, w-2*border, h-2*border, r, g, b);
+}
+
+void draw_button_text( char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed) {
+    int font_x, font_y;
+    pressed = pressed?1:0;
+    draw_button( x, y, w, h, r, g, b, pressed);
+    font_x = x + w/2 - font_get_string_width( GR_SMALLISH_FONT, s)/2 + pressed*BUTTON_BORDER;
+    font_y = y + h/2 - get_image_height( GR_SMALLISH_FONT)/2 + pressed*BUTTON_BORDER;
+    font_draw_string( GR_SMALLISH_FONT, s, font_x, font_y, 0, 0);
 }
 
 void show_image( unsigned int id, int x_offset, int y_offset, int opacity) {

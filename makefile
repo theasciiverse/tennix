@@ -45,7 +45,7 @@ OBJ = tennix.o game.o graphics.o input.o sound.o
 WIN32LIBS = *.dll
 OSXAPP = Tennix.app
 
-DATAFILES = README README.* data/*.png data/*.wav
+DATAFILES = README README.*
 ifeq ($(TARGET),cocoa)
   DATAFILES += data/Tennix.icns
 endif
@@ -55,9 +55,15 @@ tennix: $(OBJ)
 	test -f tennix.exe && upx tennix.exe || true 
 
 tennix.o: tennix.c tennix.h game.h graphics.h input.h sound.h
-graphics.o: graphics.c graphics.h tennix.h input.h
+graphics.o: graphics.c graphics.h tennix.h input.h data/graphics_data.c
 game.o: game.c game.h graphics.h tennix.h sound.h
-sound.o: sound.c sound.h tennix.h
+sound.o: sound.c sound.h tennix.h data/sounds_data.c
+
+data/graphics_data.c:
+	make -C data graphics_data.c
+
+data/sounds_data.c:
+	make -C data sounds_data.c
 
 release-osx: tennix
 	mkdir -p $(OSXAPP)/Contents/{MacOS,/Resources}
@@ -76,6 +82,7 @@ release-bin: tennix
 clean:
 	rm -f *.o tennix{,.exe}
 	rm -rf $(OSXAPP)
+	make -C data clean
 
 distclean: clean
 	rm -f tennix-$(RELEASE).zip tennix-$(RELEASE)-bin.tar.gz

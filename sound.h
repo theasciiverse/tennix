@@ -38,7 +38,7 @@ enum {
 };
 
 void init_sound( const char *);
-void play_sample( const char*, unsigned char, int);
+void play_sample( ResourceData sound, unsigned char channel, int loop);
 void fade_out( unsigned char);
 
 void sound_ground();

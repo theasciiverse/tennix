@@ -88,9 +88,6 @@ int main( int argc, char** argv) {
     SDL_ShowCursor( SDL_DISABLE);
     SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, 1);
 
-    strcpy( datadir, argv[0]);
-    strcpy( (char*)(datadir+strlen( dirname( datadir))), DATADIR);
-
     init_sound( datadir);
     init_graphics( datadir);
 
