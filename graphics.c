@@ -41,13 +41,10 @@ static const char* filenames[] = {
     "player-racket.png",
     "ground.png",
     "ball.png",
-    "score.png",
     "menu.png",
-    "animation.png",
-    "smallish-font.png"
+    "smallish-font.png",
+    "dkc2.png"
 };
-
-static const char* smallish_font_chars = " !\"#----()'+,-./0123456789:;<=>?@abcdefghijklmnopqrstuvwxyz";
 
 void init_graphics( const char *data_dir) {
     int i;
@@ -108,6 +105,18 @@ void uninit_graphics() {
     free( images);
 }
 
+int get_image_width( unsigned int id) {
+    return images[id].data->w;
+}
+
+int get_image_height( unsigned int id) {
+    return images[id].data->h;
+}
+
+int get_sprite_width( unsigned int id, int items) {
+    return images[id].data->w / items;
+}
+
 void show_sprite( unsigned int id, int pos, int items, int x_offset, int y_offset, int opacity) {
     SDL_Surface *bitmap;
     SDL_Rect src, dst;
@@ -166,10 +175,6 @@ void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b) {
 
 void show_image( unsigned int id, int x_offset, int y_offset, int opacity) {
     show_sprite( id, 0, 1, x_offset, y_offset, opacity);
-}
-
-void show_digit( int zahl, int x_offset, int y_offset, int opacity) {
-    show_sprite( GR_SCORE, zahl, 11, x_offset, y_offset, opacity);
 }
 
 void introimage( unsigned int id) {
@@ -235,41 +240,28 @@ int font_get_metrics( unsigned int id, char ch, int* xp, int* wp) {
 
     if( id > GR_COUNT) return 0;
 
-    ch = tolower( ch);
+    pos = toupper( ch) - ' '; /* ' ' = first character in font bitmap */
 
-    if( ch == ' ') {
-        w = 5;
-    } else {
-        for( pos = 0; pos < strlen( smallish_font_chars); pos++) {
-            if( smallish_font_chars[pos] == ch)
+    bitmap = images[id].data;
+
+    SDL_LockSurface( bitmap);
+    while( search_x < bitmap->w) {
+        GET_PIXEL_RGB( bitmap, search_x, 0, &red, &green, &blue);
+
+        /* Increase pos counter if we have a "marker" pixel (255,0,255) */
+        if( red > 250 && green < 10 && blue > 250) {
+            search_pos++;
+            if( search_pos == pos) {
+                x = search_x;
+            } else if( search_pos == pos + 1) {
+                w = search_x - x;
                 break;
-        }
-
-        if( pos == strlen( smallish_font_chars)) {
-            return 0;
-        }
-
-        bitmap = images[id].data;
-
-        SDL_LockSurface( bitmap);
-        while( search_x < bitmap->w) {
-            GET_PIXEL_RGB( bitmap, search_x, 0, &red, &green, &blue);
-
-            /* Increase pos counter if we have a "marker" pixel (255,0,255) */
-            if( red == 255 && green == 0 && blue == 255) {
-                search_pos++;
-                if( search_pos == pos) {
-                    x = search_x;
-                } else if( search_pos == pos + 1) {
-                    w = search_x - x;
-                    break;
-                }
             }
-
-            search_x++;
         }
-        SDL_UnlockSurface( bitmap);
+
+        search_x++;
     }
+    SDL_UnlockSurface( bitmap);
 
     if( wp != NULL) (*wp) = w;
     if( xp != NULL) (*xp) = x;
@@ -303,7 +295,7 @@ void font_draw_string( unsigned int id, char* s, int x_offset, int y_offset, int
     int y = y_offset;
     int x = x_offset;
     int i;
-    float xw, xw_diff;
+    float xw = 0.0, xw_diff;
 
     if( animation & ANIMATION_BUNGEE) {
         xw = (25.0*sinf( start/10.0));
@@ -344,17 +336,27 @@ int font_get_string_width( unsigned int id, char* s) {
     return w;
 }
 
-void draw_line( int x1, int y1, int x2, int y2, int r, int g, int b) {
+void draw_line_faded( int x1, int y1, int x2, int y2, int r, int g, int b, int r2, int g2, int b2) {
     float step, dx, dy, x = x1, y = y1;
     int i;
+    char fade = (r!=r2 || g!=g2 || b!=b2);
 
-    step = abs(x2-x1)>abs(y2-y1)?abs(x2-x1):abs(y2-y1);
-    dx = (x2-y1) / step;
-    dy = (y2-y1) / step;
+    step = (float)(abs(x2-x1)>abs(y2-y1)?abs(x2-x1):abs(y2-y1));
+    dx = (float)(x2-x1) / step;
+    dy = (float)(y2-y1) / step;
 
     SDL_LockSurface( screen);
-    for( i=0; i<=step; i++) {
-        SET_PIXEL_RGB( screen, (int)(x+=dx), (int)(y+=dy), r, g, b);
+    for( i=0; i<step; i++) {
+        x += dx;
+        y += dy;
+        if( x < 0.0 || x >= WIDTH || y < 0.0 || y >= HEIGHT) {
+            continue;
+        }
+        if( fade) {
+            SET_PIXEL_RGB( screen, (int)x, (int)y, (r*(step-i)+r2*i)/step, (g*(step-i)+g2*i)/step, (b*(step-i)+b2*i)/step);
+        } else {
+            SET_PIXEL_RGB( screen, (int)x, (int)y, r, g, b);
+        }
     }
     SDL_UnlockSurface( screen);
 }

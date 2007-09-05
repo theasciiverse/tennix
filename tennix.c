@@ -43,7 +43,7 @@ int main( int argc, char** argv) {
     char datadir[MAXPATHLEN];
     int highlight_y = 0;
     char copyright_line[100];
-    int copyright_line_width, url_width;
+    int copyright_line_width;
 
     Point elektrons[ELEKTRONS];
     int el;
@@ -94,11 +94,13 @@ int main( int argc, char** argv) {
     init_sound( datadir);
     init_graphics( datadir);
 
-    copyright_line_width = font_get_string_width( GR_SMALLISH_FONT, copyright_line);
-    url_width = font_get_string_width( GR_SMALLISH_FONT, URL);
+    copyright_line_width = font_get_string_width( GR_DKC2_FONT, copyright_line);
    
     while( 1) {
         SDL_PollEvent( &e);
+        if( e.type == SDL_QUIT) {
+            break;
+        }
         keys = SDL_GetKeyState( NULL);
         mb = SDL_GetMouseState( &mx, &my);
    
@@ -111,9 +113,9 @@ int main( int argc, char** argv) {
         }
    
         clearscr();
-        for( el=0; el<ELEKTRONS; el++) {
-            if( highlight_y) {
-                elektrons[el].new_x = HIGHLIGHT_X;
+        if( highlight_y) {
+            for( el=0; el<ELEKTRONS; el++) {
+                elektrons[el].new_x = WIDTH/2 - ELEKTRONS_WIDTH;
                 elektrons[el].new_y = highlight_y;
                 if( elektrons[el].new_size >= 5) {
                     elektrons[el].new_size = 1+rand()%4;
@@ -122,14 +124,8 @@ int main( int argc, char** argv) {
         }
         
         for( el=0; el<ELEKTRONS; el++) {
-            elektrons[el].current_x += (int)(1.0*(elektrons[el].new_x-elektrons[el].current_x)/ELEKTRON_LAZYNESS);
-            elektrons[el].current_y += (int)(1.0*(elektrons[el].new_y-elektrons[el].current_y)/ELEKTRON_LAZYNESS);
-            if( abs(elektrons[el].current_x - elektrons[el].new_x) < ELEKTRON_LAZYNESS) {
-                elektrons[el].current_x = elektrons[el].new_x;
-            }
-            if( abs(elektrons[el].current_y - elektrons[el].new_y) < ELEKTRON_LAZYNESS) {
-                elektrons[el].current_y = elektrons[el].new_y;
-            }
+            elektrons[el].current_x += (1.0*(elektrons[el].new_x-elektrons[el].current_x)/ELEKTRON_LAZYNESS);
+            elektrons[el].current_y += (1.0*(elektrons[el].new_y-elektrons[el].current_y)/ELEKTRON_LAZYNESS);
             if( i%4==0 && elektrons[el].size < elektrons[el].new_size) {
                 elektrons[el].size++;
             }
@@ -164,25 +160,20 @@ int main( int argc, char** argv) {
             highlight_y = 0;
         }
 
-        if( highlight_y) {
-            //show_image( GR_MENU_HIGHLIGHT, HIGHLIGHT_X, highlight_y, 255);
-        }
         for( el=0; el<ELEKTRONS; el++) {
             if( elektrons[el].size > 0) {
                 rectangle( elektrons[el].x, elektrons[el].y, elektrons[el].size, elektrons[el].size, elektrons[el].r, elektrons[el].g, elektrons[el].b);
-                if( elektrons[el].size > 5) {
+                if( elektrons[el].size > 4) {
+                    if( highlight_y != 0 || rand()%10 == 0) {
+                        draw_line_faded( elektrons[el].x+elektrons[el].size/2, elektrons[el].y+elektrons[el].size/2, mx+15, my+24, elektrons[el].r/3, elektrons[el].g/3, 0, 0 ,0 ,0);
+                    }
                     rectangle( elektrons[el].x+2, elektrons[el].y+2, elektrons[el].size-4, elektrons[el].size-4, 0, 0, 0);
                 }
             }
         }
 
-        show_image( GR_MENU, 180*2, 0, 255);
-        if( i%(12*4) == 0) {
-            sound_racket( 0);
-        }
-        show_sprite( GR_ANIMATION, (i++/12%4), 4, 40, 100, 255);
-        font_draw_string( GR_SMALLISH_FONT, copyright_line, (WIDTH-copyright_line_width)/2, HEIGHT-70, i, ((i/150)%ANIMATION_COUNT));
-        font_draw_string( GR_SMALLISH_FONT, URL, (WIDTH-url_width)/2, HEIGHT-30, i, ((i/50)%ANIMATION_COUNT));
+        show_image( GR_MENU, WIDTH/2-get_image_width( GR_MENU)/2, 0, 255);
+        font_draw_string( GR_DKC2_FONT, copyright_line, (WIDTH-copyright_line_width)/2, HEIGHT-35, i, ((i/150)%ANIMATION_COUNT));
         show_sprite( GR_RACKET, (mb&SDL_BUTTON( SDL_BUTTON_LEFT)) > 0, 4, mx, my, 255);
         updatescr();
 
@@ -210,6 +201,14 @@ int main( int argc, char** argv) {
                 break;
             }
         }
+        i++;
+        SDL_Delay( 10);
+    }
+
+    start_fade();
+    while( is_fading()) {
+        clearscr();
+        updatescr();
         SDL_Delay( 10);
     }
    

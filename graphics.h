@@ -45,10 +45,9 @@ enum {
     GR_RACKET,
     GR_GROUND,
     GR_BALL,
-    GR_SCORE,
     GR_MENU,
-    GR_ANIMATION,
     GR_SMALLISH_FONT,
+    GR_DKC2_FONT,
     GR_COUNT
 };
 
@@ -62,9 +61,11 @@ enum {
 
 void init_graphics( const char*);
 void uninit_graphics();
+int get_image_width( unsigned int);
+int get_image_height( unsigned int);
+int get_sprite_width( unsigned int, int);
 void show_sprite( unsigned int, int, int, int, int, int);
 void show_image( unsigned int, int, int, int);
-void show_digit( int, int, int, int);
 void line_horiz( int y, Uint8 r, Uint8 g, Uint8 b);
 void line_vert( int x, Uint8 r, Uint8 g, Uint8 b);
 void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);
@@ -79,7 +80,8 @@ int font_draw_char( unsigned int id, char ch, int x_offset, int y_offset);
 void font_draw_string( unsigned int id, char* s, int x_offset, int y_offset, int start, int animation);
 int font_get_string_width( unsigned int id, char* s);
 
-void draw_line( int x1, int y1, int x2, int y2, int r, int g, int b);
+void draw_line_faded( int x1, int y1, int x2, int y2, int r, int g, int b, int r2, int g2, int b2);
+#define draw_line(x1,y1,x2,y2,r,g,b) draw_line_faded(x1,y1,x2,y2,r,g,b,r,g,b)
 
 #endif
 

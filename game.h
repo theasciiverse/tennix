@@ -72,6 +72,7 @@ typedef struct {
     bool was_stopped;
     bool player1_serves;
     char* status;
+    char score_str[10];
 } GameState;
 
 #define PI 3.1415

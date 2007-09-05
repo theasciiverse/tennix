@@ -40,8 +40,11 @@ void game( bool singleplayer) {
         0,
         0,
         true,
-        "welcome to tennix " VERSION
+        "welcome to tennix " VERSION,
+        { 0 }
     };
+
+    strcpy( s.score_str, "00:00");
 
     Uint32 ot = SDL_GetTicks();
     Uint32 nt;
@@ -116,6 +119,7 @@ bool step( GameState* s) {
             s->player1_serves = s->player1.responsible;
 
             (s->player1.responsible)?(s->player2.score++):(s->player1.score++);
+            sprintf( s->score_str, "%02d:%02d", s->player1.score, s->player2.score);
 
             if( s->player1.responsible) {
                 if( s->player1.type == PLAYER_TYPE_HUMAN && s->player2.type == PLAYER_TYPE_AI) {
@@ -225,14 +229,11 @@ void render( GameState* s) {
     } else {
         show_sprite( GR_BALL, 0, 4, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
     }
-    
-    show_digit( s->player1.score/10%10, 140*2, 14, 100);
-    show_digit( s->player1.score%10, 148*2, 14, 100);
-    show_digit( 10, 156*2, 14, 100);
-    show_digit( s->player2.score/10%10, 164*2, 14, 100);
-    show_digit( s->player2.score%10, 172*2, 14, 100);
 
-    font_draw_string( GR_SMALLISH_FONT, s->status, (WIDTH-font_get_string_width( GR_SMALLISH_FONT, s->status))/2, HEIGHT-50, s->time/30, ANIMATION_WAVE);
+    
+    font_draw_string( GR_DKC2_FONT, s->score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->score_str))/2, 14, 0, ANIMATION_NONE);
+
+    font_draw_string( GR_DKC2_FONT, s->status, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->status))/2, HEIGHT-50, s->time/30, ANIMATION_WAVE);
 
 #ifdef DEBUG
     line_horiz( s->player1.y, 255, 0, 0);

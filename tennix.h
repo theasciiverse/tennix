@@ -29,7 +29,7 @@
 #include "SDL.h"
 
 
-#define COPYRIGHT "Copyright (c) 2003, 2007 Thomas Perl"
+#define COPYRIGHT "Copyright 2003, 2007 Thomas Perl"
 #define URL "http://icculus.org/tennix/"
 
 
@@ -42,12 +42,7 @@
 #define WIDTH 640
 #define HEIGHT 480
 
-#define SPONSOR_BMP "data/sponsor.bmp"
-#define SPONSOR_COUNT 6
-
-#define RACKET_BMP "data/player-racket.bmp"
-
-#define M_POS_XPOS(x) (x>340 && x<640)
+#define M_POS_XPOS(x) (x>WIDTH/2-150&&x<WIDTH/2+150)
 
 #define M_POS_START_GAME(x,y)  (M_POS_XPOS(x) && y>120 && y<160)
 #define M_POS_START_MULTI(x,y) (M_POS_XPOS(x) && y>170 && y<200)
@@ -66,8 +61,8 @@ extern SDL_Surface *screen;
 typedef struct {
     int x;
     int y;
-    int current_x;
-    int current_y;
+    float current_x;
+    float current_y;
     int new_x;
     int new_y;
     int w;
@@ -80,8 +75,8 @@ typedef struct {
     int new_size;
 } Point;
 
-#define ELEKTRONS_WIDTH 85
-#define ELEKTRON_LAZYNESS 7.0
+#define ELEKTRONS_WIDTH 65
+#define ELEKTRON_LAZYNESS 30.0
 #define ELEKTRONS 50
 
 #endif
