@@ -24,6 +24,8 @@ RELEASE   =  0.3.4
 
 TARGET ?= default
 
+PREFIX ?= usr/local/
+
 LIBS =
 CFLAGS += -Wall -DVERSION=\"$(RELEASE)\"
 
@@ -53,6 +55,12 @@ endif
 tennix: $(OBJ)
 	$(CC) $(CFLAGS)   -o tennix $(OBJ) $(LIBS)
 	test -f tennix.exe && upx tennix.exe || true 
+
+install: tennix
+	echo install -d $(DESTDIR)/$(PREFIX)/bin $(DESTDIR)/$(PREFIX)/share/pixmaps $(DESTDIR)/$(PREFIX)/share/applications
+	false && install -s tennix $(DESTDIR)/$(PREFIX)/bin/tennix
+	install -m644 data/tennix-icon.png $(DESTDIR)/$(PREFIX)/share/pixmaps/tennix.png
+	install -m644 tennix.desktop $(DESTDIR)/$(PREFIX)/share/applications/
 
 tennix.o: tennix.c tennix.h game.h graphics.h input.h sound.h
 graphics.o: graphics.c graphics.h tennix.h input.h data/graphics_data.c
@@ -87,5 +95,5 @@ clean:
 distclean: clean
 	rm -f tennix-$(RELEASE).zip tennix-$(RELEASE)-bin.tar.gz
 
-.PHONY: distclean clean release-bin release-win32 release-osx
+.PHONY: distclean clean release-bin release-win32 release-osx install
 
