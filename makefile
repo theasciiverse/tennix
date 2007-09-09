@@ -59,7 +59,7 @@ tennix: $(OBJ)
 install: tennix
 	echo install -d $(DESTDIR)/$(PREFIX)/bin $(DESTDIR)/$(PREFIX)/share/pixmaps $(DESTDIR)/$(PREFIX)/share/applications
 	false && install -s tennix $(DESTDIR)/$(PREFIX)/bin/tennix
-	install -m644 data/tennix-icon.png $(DESTDIR)/$(PREFIX)/share/pixmaps/tennix.png
+	install -m644 data/icon.png $(DESTDIR)/$(PREFIX)/share/pixmaps/tennix.png
 	install -m644 tennix.desktop $(DESTDIR)/$(PREFIX)/share/applications/
 
 tennix.o: tennix.c tennix.h game.h graphics.h input.h sound.h

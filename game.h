@@ -33,6 +33,13 @@ enum {
     true
 };
 
+enum {
+    REFEREE_NORMAL,
+    REFEREE_PLAYER1,
+    REFEREE_OUT,
+    REFEREE_PLAYER2
+};
+
 typedef struct {
     float x;
     float y;
@@ -73,6 +80,7 @@ typedef struct {
     bool player1_serves;
     char* status;
     char score_str[10];
+    unsigned char referee;
 } GameState;
 
 #define PI 3.1415

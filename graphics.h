@@ -50,6 +50,7 @@ enum {
     GR_MENU,
     GR_SMALLISH_FONT,
     GR_DKC2_FONT,
+    GR_REFEREE,
     GR_COUNT
 };
 

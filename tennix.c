@@ -171,7 +171,7 @@ int main( int argc, char** argv) {
 
         show_image( GR_MENU, WIDTH/2-get_image_width( GR_MENU)/2, 0, 255);
         font_draw_string( GR_DKC2_FONT, copyright_line, (WIDTH-copyright_line_width)/2, HEIGHT-35, i, ((i/150)%ANIMATION_COUNT));
-        show_sprite( GR_RACKET, (mb&SDL_BUTTON( SDL_BUTTON_LEFT)) > 0, 4, mx, my, 255);
+        show_sprite( GR_RACKET, ((mb&SDL_BUTTON( SDL_BUTTON_LEFT))>0)+(((mb&SDL_BUTTON( SDL_BUTTON_RIGHT))>0)*2), 4, mx, my, 255);
         updatescr();
 
         if( mb & SDL_BUTTON( SDL_BUTTON_LEFT)) {

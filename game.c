@@ -41,7 +41,8 @@ void game( bool singleplayer) {
         0,
         true,
         "welcome to tennix " VERSION,
-        { 0 }
+        { 0 },
+        REFEREE_NORMAL
     };
 
     strcpy( s.score_str, "00:00");
@@ -101,10 +102,12 @@ bool step( GameState* s) {
                 /* out - responsibilities stay the same */
                 s->status = "out -- don't hit the ball!";
                 sound_out();
+                s->referee = REFEREE_OUT;
             } else {
                 /* not out - responsibilities change */
                 s->player1.responsible = !(s->player2.responsible = !s->player2.responsible);
                 s->status = "";
+                s->referee = REFEREE_NORMAL;
             }
         }
         s->ground.jump = 3;
@@ -127,12 +130,14 @@ bool step( GameState* s) {
                 } else {
                     s->status = "player 2 scores";
                 }
+                s->referee = REFEREE_PLAYER2;
             } else {
                 if( s->player1.type == PLAYER_TYPE_HUMAN && s->player2.type == PLAYER_TYPE_AI) {
                     s->status = "player scores";
                 } else {
                     s->status = "player 1 scores";
                 }
+                s->referee = REFEREE_PLAYER1;
             }
 
             game_setup_serve( s);
@@ -213,6 +218,7 @@ bool step( GameState* s) {
 void render( GameState* s) {
     clearscr();
     show_image( GR_COURT, 0, 0, 255);
+    show_sprite( GR_REFEREE, s->referee, 4, 250, 10, 255);
     show_image( GR_SHADOW, s->ball.x-BALL_X_MID, s->ball.y + get_phase( s) - BALL_Y_MID, 255);
     
     show_sprite( GR_RACKET, (!s->player1.state), 4, s->player1.x-RACKET_X_MID, s->player1.y-RACKET_Y_MID, 255);
@@ -223,15 +229,15 @@ void render( GameState* s) {
     }
 
     if( s->ball.move_x > 0) {
-        show_sprite( GR_BALL, (s->time/1000)%4, 4, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
+        show_sprite( GR_BALL, (s->time/500)%4, 4, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
     } else if( s->ball.move_x < 0) {
-        show_sprite( GR_BALL, 3-(s->time/1000)%4, 4, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
+        show_sprite( GR_BALL, 3-(s->time/500)%4, 4, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
     } else {
         show_sprite( GR_BALL, 0, 4, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
     }
 
     
-    font_draw_string( GR_DKC2_FONT, s->score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->score_str))/2, 14, 0, ANIMATION_NONE);
+    font_draw_string( GR_DKC2_FONT, s->score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->score_str))-14, 14, 0, ANIMATION_NONE);
 
     font_draw_string( GR_DKC2_FONT, s->status, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->status))/2, HEIGHT-50, s->time/30, ANIMATION_WAVE);
 

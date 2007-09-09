@@ -44,7 +44,8 @@ static const ResourceData graphics[] = {
     RESOURCE(ball),
     RESOURCE(menu),
     RESOURCE(smallish_font),
-    RESOURCE(dkc2)
+    RESOURCE(dkc2),
+    RESOURCE(referee)
 };
 
 void init_graphics( const char *data_dir) {
