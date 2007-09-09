@@ -20,7 +20,7 @@
 #
 
 CC        =  gcc
-RELEASE   =  0.3.4
+RELEASE   =  0.4.0
 
 TARGET ?= default
 
@@ -57,8 +57,8 @@ tennix: $(OBJ)
 	test -f tennix.exe && upx tennix.exe || true 
 
 install: tennix
-	echo install -d $(DESTDIR)/$(PREFIX)/bin $(DESTDIR)/$(PREFIX)/share/pixmaps $(DESTDIR)/$(PREFIX)/share/applications
-	false && install -s tennix $(DESTDIR)/$(PREFIX)/bin/tennix
+	install -d $(DESTDIR)/$(PREFIX)/bin $(DESTDIR)/$(PREFIX)/share/pixmaps $(DESTDIR)/$(PREFIX)/share/applications
+	install -s tennix $(DESTDIR)/$(PREFIX)/bin/tennix
 	install -m644 data/icon.png $(DESTDIR)/$(PREFIX)/share/pixmaps/tennix.png
 	install -m644 tennix.desktop $(DESTDIR)/$(PREFIX)/share/applications/
 
