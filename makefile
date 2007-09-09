@@ -67,10 +67,10 @@ graphics.o: graphics.c graphics.h tennix.h input.h data/graphics_data.c
 game.o: game.c game.h graphics.h tennix.h sound.h
 sound.o: sound.c sound.h tennix.h data/sounds_data.c
 
-data/graphics_data.c:
+data/graphics_data.c: data/*.png
 	make -C data graphics_data.c
 
-data/sounds_data.c:
+data/sounds_data.c: data/*.wav
 	make -C data sounds_data.c
 
 release-osx: tennix
