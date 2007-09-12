@@ -27,6 +27,8 @@
 #include <math.h>
 #include "tennix.h"
 
+#define SETS_TO_WIN 3
+
 typedef unsigned char bool;
 enum {
     false,
@@ -38,6 +40,12 @@ enum {
     REFEREE_PLAYER1,
     REFEREE_OUT,
     REFEREE_PLAYER2
+};
+
+enum {
+    WINNER_NONE,
+    WINNER_PLAYER1,
+    WINNER_PLAYER2
 };
 
 typedef struct {
@@ -58,6 +66,8 @@ typedef struct {
     bool type; /* is this player ai-controlled or human? */
     float ball_dest; /* prospective y-position of ball */
     bool state_locked; /* enabled when user keeps pressing the "hit" key */
+    int game; /* score for the current game */
+    int sets[SETS_TO_WIN*2]; /* score for each set */
 } Player;
 
 enum {
@@ -80,8 +90,12 @@ typedef struct {
     bool was_stopped;
     bool player1_serves;
     char* status;
-    char score_str[10];
+    char game_score_str[50];
+    char sets_score_str[50];
     unsigned char referee;
+    unsigned int current_set;
+    int winner;
+    bool is_over;
 } GameState;
 
 #define PI 3.1415
@@ -143,6 +157,12 @@ float get_move_y( GameState*, unsigned char);
 void input_human( Player*, bool, bool, bool);
 void input_ai( Player*, Ball*, Player*);
 void game_setup_serve( GameState*);
+
+void score_game( GameState*, bool);
+char* format_sets( GameState*);
+char* format_game( GameState*);
+char* format_status( GameState*);
+int game_get_winner( GameState*);
 
 #endif
 

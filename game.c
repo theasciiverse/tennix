@@ -42,10 +42,15 @@ void game( bool singleplayer) {
         true,
         "welcome to tennix " VERSION,
         { 0 },
-        REFEREE_NORMAL
+        { 0 },
+        REFEREE_NORMAL,
+        0,
+        WINNER_NONE,
+        false
     };
 
-    strcpy( s.score_str, "00:00");
+    strcpy( s.game_score_str, format_game( &s));
+    strcpy( s.sets_score_str, format_sets( &s));
 
     Uint32 ot = SDL_GetTicks();
     Uint32 nt;
@@ -106,7 +111,7 @@ bool step( GameState* s) {
             } else {
                 /* not out - responsibilities change */
                 s->player1.responsible = !(s->player2.responsible = !s->player2.responsible);
-                s->status = "";
+                s->status = format_status( s);
                 s->referee = REFEREE_NORMAL;
             }
         }
@@ -121,8 +126,9 @@ bool step( GameState* s) {
         if( IS_OFFSCREEN( s->ball.x, s->ball.y)) {
             s->player1_serves = s->player1.responsible;
 
-            (s->player1.responsible)?(s->player2.score++):(s->player1.score++);
-            sprintf( s->score_str, "%02d:%02d", s->player1.score, s->player2.score);
+            score_game( s, s->player2.responsible);
+            strcpy( s->game_score_str, format_game( s));
+            strcpy( s->sets_score_str, format_sets( s));
 
             if( s->player1.responsible) {
                 if( s->player1.type == PLAYER_TYPE_HUMAN && s->player2.type == PLAYER_TYPE_AI) {
@@ -188,7 +194,7 @@ bool step( GameState* s) {
 
     SDL_PollEvent( &e);
     keys = SDL_GetKeyState( NULL);
-    
+
     if( !is_fading()) {
         if( s->player1.type == PLAYER_TYPE_HUMAN) {
            input_human( &s->player1, keys['w'], keys['s'], keys['d']);
@@ -216,6 +222,18 @@ bool step( GameState* s) {
 }
 
 void render( GameState* s) {
+    if( s->winner != WINNER_NONE) {
+        if( !s->is_over) {
+            start_fade();
+            s->is_over = true;
+        }
+        clearscr();
+        show_sprite( GR_RACKET, 2*(s->winner-1), 4, WIDTH/2 - get_image_width( GR_RACKET)/8, HEIGHT/2 - get_image_height( GR_RACKET), 255);
+        sprintf( s->game_score_str, "player %d wins the match with %s", s->winner, format_sets( s));
+        font_draw_string( GR_DKC2_FONT, s->game_score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->game_score_str))/2, HEIGHT/2 + 30, s->time/20, ANIMATION_WAVE | ANIMATION_BUNGEE);
+        updatescr();
+        return;
+    }
     clearscr();
     show_image( GR_COURT, 0, 0, 255);
     show_sprite( GR_REFEREE, s->referee, 4, 250, 10, 255);
@@ -237,7 +255,8 @@ void render( GameState* s) {
     }
 
     
-    font_draw_string( GR_DKC2_FONT, s->score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->score_str))-14, 14, 0, ANIMATION_NONE);
+    font_draw_string( GR_DKC2_FONT, s->game_score_str, 14, 14, 0, ANIMATION_NONE);
+    font_draw_string( GR_DKC2_FONT, s->sets_score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->sets_score_str))-14, 14, 0, ANIMATION_NONE);
 
     font_draw_string( GR_DKC2_FONT, s->status, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->status))/2, HEIGHT-50, s->time/30, ANIMATION_WAVE);
 
@@ -399,5 +418,92 @@ void game_setup_serve( GameState* s) {
     }
 
     s->player2.responsible = !(s->player1.responsible);
+}
+
+void score_game( GameState* s, bool player1_scored) {
+    Player* winner = (player1_scored)?(&(s->player1)):(&(s->player2));
+    Player* loser = (player1_scored)?(&(s->player2)):(&(s->player1));
+
+    if( s->current_set >= SETS_TO_WIN*2-1) {
+        return;
+    }
+
+    winner->game++;
+    if( loser->game < winner->game-1) {
+        if( winner->game >= 4) {
+            winner->game = loser->game = 0;
+            winner->sets[s->current_set]++;
+            /* scoring the set.. */
+            if( (winner->sets[s->current_set] == 6 && loser->sets[s->current_set] < 5) ||
+                winner->sets[s->current_set] == 7) {
+                s->current_set++;
+                s->winner = game_get_winner( s);
+            }
+        }
+    }
+}
+
+char* format_sets( GameState* s) {
+    static char sets[100];
+    static char tmp[100];
+    int i, max = s->current_set;
+
+    sets[0] = '\0';
+
+    if( s->winner != WINNER_NONE) {
+        max--;
+    }
+    for( i=0; i<=max; i++) {
+        sprintf( tmp, "%d:%d, ", s->player1.sets[i], s->player2.sets[i]);
+        strcat( sets, tmp);
+    }
+
+    sets[strlen(sets)-2] = '\0';
+
+    return sets;
+}
+
+char* format_game( GameState* s) {
+    static char game[100];
+    static const int game_scoring[] = { 0, 15, 30, 40 };
+
+    if( s->player1.game < 4 && s->player2.game < 4) {
+        sprintf( game, "%d - %d", game_scoring[s->player1.game], game_scoring[s->player2.game]);
+    } else if( s->player1.game > s->player2.game) {
+        strcpy( game, "advantage player 1");
+    } else if( s->player1.game < s->player2.game) {
+        strcpy( game, "advantage player 2");
+    } else {
+        strcpy( game, "deuce");
+    }
+
+    return game;
+}
+
+char* format_status( GameState* s) {
+    static char status[100];
+    static const char* set_names[] = { "first", "second", "third", "fourth", "fifth" };
+
+    sprintf( status, "%d:%d in %s set, game: %s", s->player1.sets[s->current_set], s->player2.sets[s->current_set], set_names[s->current_set], format_game( s));
+
+    return status;
+}
+
+int game_get_winner( GameState* s) {
+    int i;
+    int sets[2] = {0};
+
+    for( i=0; i<s->current_set; i++) {
+        if( s->player1.sets[i] > s->player2.sets[i]) {
+            sets[0]++;
+        } else {
+            sets[1]++;
+        }
+    }
+
+    if( sets[0] == SETS_TO_WIN) return WINNER_PLAYER1;
+    if( sets[1] == SETS_TO_WIN) return WINNER_PLAYER2;
+
+    return WINNER_NONE;
 }
 
