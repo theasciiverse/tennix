@@ -9,25 +9,41 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int main( int argc, char** argv) {
     FILE *fp;
-    int c, x = 0;
+    int c, x = 0, i;
+    char filename[FILENAME_MAX], varname[FILENAME_MAX];
 
-    if( argc != 3) {
-        fprintf( stderr, "Usage: %s /path/to/infile.dat name_of_variable\n", argv[0]);
+    if( argc != 3 && argc != 2) {
+        fprintf( stderr, "Usage: %s /path/to/infile.dat [name_of_variable]\n", argv[0]);
         exit(1);
     }
 
-    fp = fopen( argv[1], "rb");
+    strcpy( filename, argv[1]);
+
+    if( argc == 2) {
+        /* Determine variable name based on filename */
+        strcpy( varname, (char*)basename( argv[1]));
+        for( i=0; i<strlen( varname); i++) {
+            if( varname[i] == '.') varname[i] = '\0';
+            if( varname[i] < 'a' || varname[i] > 'z') varname[i] = '_';
+        }
+    } else {
+        strcpy( varname, argv[2]);
+    }
+
+    fp = fopen( filename, "rb");
     if( fp == NULL) { fprintf( stderr, "Cannot open file: %s\n", argv[1]); exit(1); }
-    printf( "const char %s[] = {", argv[2]);
+    printf( "/**\n * Automatically generated from \"%s\" by %s.\n **/\n", filename, (char*)basename( argv[0]));
+    printf( "const char %s[] = {", varname);
     while( (c = fgetc( fp)) != EOF) {
         if( x > 0) putchar(',');
         if( x++ % 20 == 0) putchar('\n');
         printf( "%d", c);
     }
-    printf( "\n};\n");
+    printf( "\n};\n\n");
     fclose( fp);
     return 0;
 }
