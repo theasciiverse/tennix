@@ -34,8 +34,8 @@ void game( bool singleplayer) {
     GameState s = {
         { 0, 0, 0.0, 0.0, 0.0 },
         { 0, 0, 0, 0, 0 },
-        { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1, DESIRE_NORMAL, PLAYER_TYPE_HUMAN },
-        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN },
+        { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, false },
+        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, false },
         0,
         0,
         0,
@@ -100,7 +100,7 @@ bool step( GameState* s) {
 
             if( IS_OUT_Y( s->ball.y)) {
                 /* out - responsibilities stay the same */
-                s->status = "out -- don't hit the ball!";
+                s->status = "out!";
                 sound_out();
                 s->referee = REFEREE_OUT;
             } else {
@@ -148,7 +148,7 @@ bool step( GameState* s) {
         }
     
         if( IS_OUT_X(s->ball.x)) {
-            if( s->ball.move_x <= 0 && IS_NEAR_X( s->player1.x, s->ball.x) && IS_NEAR_Y( s->player1.y, s->ball.y) && s->player1.state) {
+            if( s->ball.move_x <= 0 && IS_NEAR_X( s->player1.x, s->ball.x) && IS_NEAR_Y( s->player1.y, s->ball.y) && s->player1.state && s->referee != REFEREE_OUT) {
                 s->ball.x = GAME_X_MIN;
                 if( s->player1.state == PLAYER_STATE_MAX) {
                     s->ball.move_x = PLAYER_POWERSHOT;
@@ -160,7 +160,7 @@ bool step( GameState* s) {
                 s->ball.jump += 1.0-2.0*(s->player1.state<5);
                 sound_applause_stop();
                 sound_racket();
-            } else if( s->ball.move_x >= 0 && IS_NEAR_X( s->player2.x, s->ball.x) && IS_NEAR_Y( s->player2.y, s->ball.y) && s->player2.state) {
+            } else if( s->ball.move_x >= 0 && IS_NEAR_X( s->player2.x, s->ball.x) && IS_NEAR_Y( s->player2.y, s->ball.y) && s->player2.state && s->referee != REFEREE_OUT) {
                 s->ball.x = GAME_X_MAX;
                 if( s->player2.state == PLAYER_STATE_MAX) {
                     s->ball.move_x = -PLAYER_POWERSHOT;
@@ -333,8 +333,13 @@ void input_human( Player* player, bool up, bool down, bool hit) {
         player->y += 6;
     }
 
-    if( hit && !player->state) {
-        player->state = PLAYER_STATE_MAX;
+    if( hit) {
+        if( !player->state && !player->state_locked) {
+            player->state = PLAYER_STATE_MAX;
+            player->state_locked = true;
+        }
+    } else {
+        player->state_locked = false;
     }
 }
 

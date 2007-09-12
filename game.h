@@ -57,6 +57,7 @@ typedef struct {
     unsigned char desire; /* what the player aims to do (0=normal, 1=upper edge, 2=lower edge)*/
     bool type; /* is this player ai-controlled or human? */
     float ball_dest; /* prospective y-position of ball */
+    bool state_locked; /* enabled when user keeps pressing the "hit" key */
 } Player;
 
 enum {
@@ -128,7 +129,7 @@ typedef struct {
 #define IS_NEAR_X(px,bx) (fabsf(px-bx)<PLAYER_AREA_X)
 #define IS_NEAR_X_AI(px,bx) (fabsf(px-bx)<PLAYER_AREA_X*2)
 
-#define PLAYER_STATE_MAX 5
+#define PLAYER_STATE_MAX 7
 #define PLAYER_POWERSHOT 6.2
 
 #define MOVE_Y_SEED 3
