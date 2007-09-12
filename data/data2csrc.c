@@ -25,10 +25,10 @@ int main( int argc, char** argv) {
 
     if( argc == 2) {
         /* Determine variable name based on filename */
-        strcpy( varname, (char*)basename( argv[1]));
+        strcpy( varname, argv[1]);
         for( i=0; i<strlen( varname); i++) {
             if( varname[i] == '.') varname[i] = '\0';
-            if( varname[i] < 'a' || varname[i] > 'z') varname[i] = '_';
+            if( varname[i] == '-') varname[i] = '_';
         }
     } else {
         strcpy( varname, argv[2]);
@@ -36,7 +36,7 @@ int main( int argc, char** argv) {
 
     fp = fopen( filename, "rb");
     if( fp == NULL) { fprintf( stderr, "Cannot open file: %s\n", argv[1]); exit(1); }
-    printf( "/**\n * Automatically generated from \"%s\" by %s.\n **/\n", filename, (char*)basename( argv[0]));
+    printf( "/**\n * Automatically generated from \"%s\" by %s.\n **/\n", filename, argv[0]);
     printf( "const char %s[] = {", varname);
     while( (c = fgetc( fp)) != EOF) {
         if( x > 0) putchar(',');
