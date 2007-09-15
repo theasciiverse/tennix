@@ -46,7 +46,8 @@ void game( bool singleplayer) {
         REFEREE_NORMAL,
         0,
         WINNER_NONE,
-        false
+        false,
+        GR_CTT_GRASS
     };
 
     strcpy( s.game_score_str, format_game( &s));
@@ -195,6 +196,13 @@ bool step( GameState* s) {
     SDL_PollEvent( &e);
     keys = SDL_GetKeyState( NULL);
 
+    if( keys['c'] && s->time%50==0) {
+        s->court_type++;
+        if( s->court_type > GR_CTT_LAST) {
+            s->court_type = GR_CTT_FIRST;
+        }
+    }
+
     if( !is_fading()) {
         if( s->player1.type == PLAYER_TYPE_HUMAN) {
            input_human( &s->player1, keys['w'], keys['s'], keys['d']);
@@ -235,6 +243,7 @@ void render( GameState* s) {
         return;
     }
     clearscr();
+    fill_image( s->court_type, 120, 120, 400, 250);
     show_image( GR_COURT, 0, 0, 255);
     show_sprite( GR_REFEREE, s->referee, 4, 250, 10, 255);
     show_image( GR_SHADOW, s->ball.x-BALL_X_MID, s->ball.y + get_phase( s) - BALL_Y_MID, 255);
@@ -484,7 +493,7 @@ char* format_status( GameState* s) {
     static char status[100];
     static const char* set_names[] = { "first", "second", "third", "fourth", "fifth" };
 
-    sprintf( status, "%d:%d in %s set, game: %s", s->player1.sets[s->current_set], s->player2.sets[s->current_set], set_names[s->current_set], format_game( s));
+    sprintf( status, "%d:%d in %s set", s->player1.sets[s->current_set], s->player2.sets[s->current_set], set_names[s->current_set]);
 
     return status;
 }

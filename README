@@ -78,6 +78,12 @@ PLAYING TENNIX
    Swing racket             D              K
                        ---------------------------
 
+   FUNCTION KEYS
+
+   Y  .... Make screenshot (save as screenshot.bmp)
+   F  .... Toggle fullscreen (X11 only)
+   C  .... Switch type of court (grass, clay, etc..)
+
 
 DEVELOPMENT/DEBUGGING
 =====================

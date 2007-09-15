@@ -96,6 +96,7 @@ typedef struct {
     unsigned int current_set;
     int winner;
     bool is_over;
+    unsigned int court_type;
 } GameState;
 
 #define PI 3.1415

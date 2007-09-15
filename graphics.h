@@ -51,8 +51,14 @@ enum {
     GR_SMALLISH_FONT,
     GR_DKC2_FONT,
     GR_REFEREE,
+    GR_CTT_HARD,
+    GR_CTT_CLAY,
+    GR_CTT_GRASS,
     GR_COUNT
 };
+
+#define GR_CTT_FIRST GR_CTT_HARD
+#define GR_CTT_LAST GR_CTT_GRASS
 
 enum {
     ANIMATION_NONE = 0,
@@ -72,9 +78,9 @@ void show_image( unsigned int, int, int, int);
 void line_horiz( int y, Uint8 r, Uint8 g, Uint8 b);
 void line_vert( int x, Uint8 r, Uint8 g, Uint8 b);
 void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);
+void fill_image( unsigned int id, int x, int y, int w, int h);
 void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
 void draw_button_text( char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
-void introimage( unsigned int);
 void clearscr();
 void updatescr();
 void start_fade();

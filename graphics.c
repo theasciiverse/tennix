@@ -45,7 +45,10 @@ static const ResourceData graphics[] = {
     RESOURCE(menu),
     RESOURCE(smallish_font),
     RESOURCE(dkc2),
-    RESOURCE(referee)
+    RESOURCE(referee),
+    RESOURCE(ctt_hard),
+    RESOURCE(ctt_clay),
+    RESOURCE(ctt_grass)
 };
 
 void init_graphics( const char *data_dir) {
@@ -70,7 +73,6 @@ void init_graphics( const char *data_dir) {
             continue;
         }
 
-        SDL_SetColorKey( tmp, SDL_SRCCOLORKEY, SDL_MapRGB( tmp->format, 0, 0, 0)); 
         data = SDL_DisplayFormatAlpha( tmp);
         SDL_FreeSurface( tmp);
 
@@ -134,6 +136,34 @@ void show_sprite( unsigned int id, int pos, int items, int x_offset, int y_offse
     SDL_BlitSurface( bitmap, &src, screen, &dst);
 }
 
+void fill_image( unsigned int id, int x, int y, int w, int h) {
+    SDL_Surface *bitmap;
+    SDL_Rect src, dst;
+    int dx = 0, dy = 0, cx, cy;
+
+    if( id >= GR_COUNT) return;
+
+    bitmap = images[id].data;
+    src.x = src.y = 0;
+
+    while( dy < h) {
+        src.h = dst.h = cy = (h-dy > bitmap->h)?(bitmap->h):(h-dy);
+        dst.y = y+dy;
+
+        dx = 0;
+        while( dx < w) {
+            src.w = dst.w = cx = (w-dx > bitmap->w)?(bitmap->w):(w-dx);
+            dst.x = x+dx;
+
+            SDL_BlitSurface( bitmap, &src, screen, &dst);
+
+            dx += cx;
+        }
+
+        dy += cy;
+    }
+}
+
 void line_horiz( int y, Uint8 r, Uint8 g, Uint8 b) {
     Uint32 color = SDL_MapRGB( screen->format, r, g, b);
     SDL_Rect rect;
@@ -191,29 +221,6 @@ void show_image( unsigned int id, int x_offset, int y_offset, int opacity) {
     show_sprite( id, 0, 1, x_offset, y_offset, opacity);
 }
 
-void introimage( unsigned int id) {
-    int i;
-   
-    for( i=0; i<256; i+=10) {
-        clearscr();
-        show_image( id, 0, 0, i);
-        updatescr();
-        SDL_Delay( 30);
-    }
-   
-    //SDL_Delay( 500);
-    wait_keypress();
-   
-    for( i=255; i>=0; i-=10) {
-        clearscr();
-        show_image( id, 0, 0, i);
-        updatescr();
-        SDL_Delay( 30);
-    }
-   
-    clearscr();
-}
-
 void clearscr() {
     SDL_Rect rect;
 
@@ -252,7 +259,7 @@ int font_get_metrics( unsigned int id, char ch, int* xp, int* wp) {
     int search_pos = 0, search_x = 0;
     Uint8 red, green, blue;
 
-    if( id > GR_COUNT) return 0;
+    if( id >= GR_COUNT) return 0;
 
     pos = toupper( ch) - ' '; /* ' ' = first character in font bitmap */
 
