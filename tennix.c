@@ -32,6 +32,18 @@
 
 SDL_Surface *screen;
 
+static const char* help_text[] = {
+    "keyboard controls:",
+    "player 1 moves with <w>, <s> and <d>",
+    "player 2 moves with <o>, <l> and <k>",
+    "switch court in game with <c>",
+};
+
+/* Number of lines in help_text */
+#define HELP_LINES 4
+/* Height (in pixels) of the help text scroller */
+#define HELP_PHASE 50
+
 int main( int argc, char** argv) {
     int i = 0;
     int mx, my;
@@ -44,6 +56,7 @@ int main( int argc, char** argv) {
     int highlight_y = 0;
     char copyright_line[100];
     int copyright_line_width;
+    int help, help_line_widths[HELP_LINES], help_line_height, help_offset;
 
     Point elektrons[ELEKTRONS];
     int el;
@@ -92,6 +105,10 @@ int main( int argc, char** argv) {
     init_graphics( datadir);
 
     copyright_line_width = font_get_string_width( GR_DKC2_FONT, copyright_line);
+    for( help=0; help<HELP_LINES; help++) {
+        help_line_widths[help] = font_get_string_width( GR_SMALLISH_FONT, help_text[help]);
+    }
+    help_line_height = get_image_height( GR_SMALLISH_FONT);
    
     while( 1) {
         SDL_PollEvent( &e);
@@ -171,6 +188,15 @@ int main( int argc, char** argv) {
 
         show_image( GR_MENU, WIDTH/2-get_image_width( GR_MENU)/2, 0, 255);
         font_draw_string( GR_DKC2_FONT, copyright_line, (WIDTH-copyright_line_width)/2, HEIGHT-35, i, ((i/150)%ANIMATION_COUNT));
+        for( help=0; help<HELP_LINES; help++) {
+            help_offset = (help_line_height*(HELP_LINES-help)+i/2)%HELP_PHASE;
+            font_draw_string_alpha( GR_SMALLISH_FONT, help_text[help],
+                                    (WIDTH-help_line_widths[help])/2,
+                                    HEIGHT/2+30-help_offset,
+                                    i, ANIMATION_NONE,
+                                    255.0*fabsf( sinf( help_offset/((float)HELP_PHASE)*M_PI))
+                                  );
+        }
         show_sprite( GR_RACKET, ((mb&SDL_BUTTON( SDL_BUTTON_LEFT))>0)+(((mb&SDL_BUTTON( SDL_BUTTON_RIGHT))>0)*2), 4, mx, my, 255);
         updatescr();
 

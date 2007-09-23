@@ -73,7 +73,14 @@ void init_graphics( const char *data_dir) {
             continue;
         }
 
-        data = SDL_DisplayFormatAlpha( tmp);
+        if( GRAPHICS_IS_FONT(i)) {
+            /* Convert to RGB w/ colorkey=black for opacity support */
+            SDL_SetColorKey( tmp, SDL_SRCCOLORKEY | SDL_RLEACCEL, SDL_MapRGB( tmp->format, 0, 0, 0));
+            data = SDL_ConvertSurface( tmp, screen->format, SDL_SRCCOLORKEY | SDL_RLEACCEL);
+        } else {
+            /* Convert to RGBA for alpha channel from PNG */
+            data = SDL_DisplayFormatAlpha( tmp);
+        }
         SDL_FreeSurface( tmp);
 
         if( !data) {
@@ -312,11 +319,17 @@ int font_draw_char( unsigned int id, char ch, int x_offset, int y_offset) {
     return src.w;
 }
 
-void font_draw_string( unsigned int id, char* s, int x_offset, int y_offset, int start, int animation) {
+void font_draw_string_alpha( unsigned int id, const char* s, int x_offset, int y_offset, int start, int animation, int opacity) {
     int y = y_offset;
     int x = x_offset;
     int i;
     float xw = 0.0, xw_diff;
+    SDL_Surface *bitmap;
+
+    if( id > GR_COUNT) return;
+
+    bitmap = images[id].data;
+    SDL_SetAlpha( bitmap, SDL_SRCALPHA | SDL_RLEACCEL, opacity);
 
     if( animation & ANIMATION_BUNGEE) {
         xw = (25.0*sinf( start/10.0));
@@ -347,7 +360,7 @@ void font_draw_string( unsigned int id, char* s, int x_offset, int y_offset, int
     }
 }
 
-int font_get_string_width( unsigned int id, char* s) {
+int font_get_string_width( unsigned int id, const char* s) {
     int w = 0, i;
 
     for( i=0; i<strlen(s); i++) {

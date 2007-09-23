@@ -203,7 +203,7 @@ bool step( GameState* s) {
         }
     }
 
-    if( !is_fading()) {
+    if( !is_fading() && !s->is_over) {
         if( s->player1.type == PLAYER_TYPE_HUMAN) {
            input_human( &s->player1, keys['w'], keys['s'], keys['d']);
         } else {
