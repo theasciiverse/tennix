@@ -29,6 +29,8 @@
 
 #define SETS_TO_WIN 3
 
+#define NGRAM_STEPS 6
+
 typedef unsigned char bool;
 enum {
     false,
@@ -97,6 +99,11 @@ typedef struct {
     int winner;
     bool is_over;
     unsigned int court_type;
+    unsigned int history[3];
+    unsigned int history_size;
+    bool history_is_locked;
+    unsigned char ngram[NGRAM_STEPS][NGRAM_STEPS][NGRAM_STEPS];
+    float ngram_prediction;
 } GameState;
 
 #define PI 3.1415
@@ -140,7 +147,7 @@ typedef struct {
 #define PLAYER_AREA_Y RACKET_Y_MID
 #define PLAYER_AREA_X RACKET_X_MID
 #define IS_NEAR_Y(py,by) (fabsf(py-by)<PLAYER_AREA_Y)
-#define IS_NEAR_Y_AI(py,by) (fabsf(py-by)<PLAYER_AREA_Y/2.5)
+#define IS_NEAR_Y_AI(py,by) (fabsf(py-by)<PLAYER_AREA_Y/3.5)
 #define IS_NEAR_X(px,bx) (fabsf(px-bx)<PLAYER_AREA_X)
 #define IS_NEAR_X_AI(px,bx) (fabsf(px-bx)<PLAYER_AREA_X*2)
 
@@ -156,8 +163,9 @@ void limit_value( float*, float, float);
 float get_phase( GameState*);
 float get_move_y( GameState*, unsigned char);
 void input_human( Player*, bool, bool, bool);
-void input_ai( Player*, Ball*, Player*);
+void input_ai( Player*, Ball*, Player*, GameState*);
 void game_setup_serve( GameState*);
+float ngram_predictor( GameState*);
 
 void score_game( GameState*, bool);
 char* format_sets( GameState*);

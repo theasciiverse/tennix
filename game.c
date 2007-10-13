@@ -47,7 +47,12 @@ void game( bool singleplayer) {
         0,
         WINNER_NONE,
         false,
-        GR_CTT_GRASS
+        GR_CTT_GRASS,
+        { 0 },
+        0,
+        false,
+        { { { 0 } } },
+        0.0
     };
 
     strcpy( s.game_score_str, format_game( &s));
@@ -59,6 +64,7 @@ void game( bool singleplayer) {
     Uint32 diff;
     Uint32 accumulator = 0;
     bool quit = false;
+    int x, y, z;
 
     if( singleplayer) {
 #ifdef DEBUG
@@ -69,6 +75,15 @@ void game( bool singleplayer) {
 
     game_setup_serve( &s);
     sound_audience();
+
+    /* smoothen n-gram */
+    for( x = 0; x<NGRAM_STEPS; x++) {
+        for( y = 0; y<NGRAM_STEPS; y++) {
+            for( z = 0; z<NGRAM_STEPS; z++) {
+                s.ngram[x][y][z] = 1;
+            }
+        }
+    }
    
     while( !quit) {
         nt = SDL_GetTicks();
@@ -152,9 +167,32 @@ bool step( GameState* s) {
             SDL_Delay( 500);
             start_fade();
             s->was_stopped = true;
+            s->history_size = 0;
+            s->history_is_locked = 0;
+            s->ngram_prediction = 0.0;
+            printf( "-- game reset --\n");
         }
     
         if( IS_OUT_X(s->ball.x)) {
+            if( !s->history_is_locked && s->referee != REFEREE_OUT) {
+                s->history[s->history_size] = (int)(NGRAM_STEPS*s->ball.y/HEIGHT);
+                /*if( s->ball.move_x < 0 || (s->ball.move_x == 0 && s->player1.responsible)) {
+                    printf( "P1\n");
+                } else {
+                    printf( "P2\n");
+                }
+                printf( "  Storing: %d (at %d)\n", s->history[s->history_size], s->history_size);*/
+                s->history_size++;
+                if( s->history_size == 3) {
+                    s->ngram[s->history[0]][s->history[1]][s->history[2]] += 10;
+                    printf( "history: %d, %d, %d\n", s->history[0], s->history[1], s->history[2]);
+                    s->ngram_prediction = ngram_predictor( s);
+                    s->history[0] = s->history[1];
+                    s->history[1] = s->history[2];
+                    s->history_size--;
+                }
+                s->history_is_locked = true;
+            }
             if( s->ball.move_x <= 0 && IS_NEAR_X( s->player1.x, s->ball.x) && IS_NEAR_Y( s->player1.y, s->ball.y) && s->player1.state && s->referee != REFEREE_OUT) {
                 s->ball.x = GAME_X_MIN;
                 if( s->player1.state == PLAYER_STATE_MAX) {
@@ -181,6 +219,8 @@ bool step( GameState* s) {
                 sound_racket();
             }
         }
+    } else {
+        s->history_is_locked = false;
     }
 
     /* Update ball_dest for debugging purposes */
@@ -207,13 +247,13 @@ bool step( GameState* s) {
         if( s->player1.type == PLAYER_TYPE_HUMAN) {
            input_human( &s->player1, keys['w'], keys['s'], keys['d']);
         } else {
-            input_ai( &s->player1, &s->ball, &s->player2);
+            input_ai( &s->player1, &s->ball, &s->player2, s);
         }
  
         if( s->player2.type == PLAYER_TYPE_HUMAN) {
             input_human( &s->player2, keys['o'], keys['l'], keys['k']);
         } else {
-            input_ai( &s->player2, &s->ball, &s->player1);
+            input_ai( &s->player2, &s->ball, &s->player1, s);
         }
     }
     
@@ -371,15 +411,15 @@ void input_human( Player* player, bool up, bool down, bool hit) {
     }
 }
 
-void input_ai( Player* player, Ball* ball, Player* opponent) {
-    float fact = 1.5;
+void input_ai( Player* player, Ball* ball, Player* opponent, GameState* s) {
+    float fact = 2.0;
     float target;
 
     if( fabsf( player->y - ball->y) > RACKET_Y_MID*5) {
-        fact = 4;
+        fact = 4.0;
     }
 
-    target = GAME_Y_MID + (opponent->ball_dest - GAME_Y_MID)/10;
+    target = GAME_Y_MID + (opponent->ball_dest - GAME_Y_MID)/5;
 
     if( player->responsible) {
         if( player->desire == DESIRE_NORMAL && !IS_NEAR_Y_AI( player->y, ball->y)) {
@@ -394,6 +434,17 @@ void input_ai( Player* player, Ball* ball, Player* opponent) {
             player->state = PLAYER_STATE_MAX;
         }
     } else if( ball->move_x == 0) {
+        if( player->desire == DESIRE_NORMAL && !IS_NEAR_Y_AI( player->y, target)) {
+            if( player->y < target) {
+                player->y += fmin( fact, (target-player->y)/40.0);
+            } else if( player->y > target) {
+                player->y -= fmin( fact, (player->y-target)/40.0);
+            }
+        }
+    } else if( s->ngram_prediction > 0.0) {
+        target = s->ngram_prediction*((float)HEIGHT)/((float)(NGRAM_STEPS));
+        target = GAME_Y_MID + (target-GAME_Y_MID)*1.5;
+
         if( player->desire == DESIRE_NORMAL && !IS_NEAR_Y_AI( player->y, target)) {
             if( player->y < target) {
                 player->y += fmin( fact, (target-player->y)/40.0);
@@ -427,6 +478,30 @@ void game_setup_serve( GameState* s) {
     }
 
     s->player2.responsible = !(s->player1.responsible);
+}
+
+float ngram_predictor( GameState* s) {
+    unsigned int count = 0;
+    unsigned long sum = 0;
+    int x, y, z;
+    float result;
+
+    if( s->history_size < 3) {
+        return 0.0;
+    }
+
+    x = s->history[1];
+    y = s->history[2];
+
+    for( z = 0; z<NGRAM_STEPS; z++) {
+        count += s->ngram[x][y][z];
+        sum += z * s->ngram[x][y][z];
+    }
+
+    result = ((float)(sum))/((float)(count));
+    printf( "predicting next = %.2f\n", result);
+
+    return result;
 }
 
 void score_game( GameState* s, bool player1_scored) {
