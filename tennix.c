@@ -36,7 +36,7 @@ static const char* help_text[] = {
     "keyboard controls:",
     "player 1 moves with <w>, <s> and <d>",
     "player 2 moves with <o>, <l> and <k>",
-    "switch court in game with <c>",
+    "switch court in game with <c>, pause with <p>",
 };
 
 /* Number of lines in help_text */

@@ -170,22 +170,20 @@ bool step( GameState* s) {
             s->history_size = 0;
             s->history_is_locked = 0;
             s->ngram_prediction = 0.0;
+#ifdef DEBUG
             printf( "-- game reset --\n");
+#endif
         }
     
         if( IS_OUT_X(s->ball.x)) {
             if( !s->history_is_locked && s->referee != REFEREE_OUT) {
                 s->history[s->history_size] = (int)(NGRAM_STEPS*s->ball.y/HEIGHT);
-                /*if( s->ball.move_x < 0 || (s->ball.move_x == 0 && s->player1.responsible)) {
-                    printf( "P1\n");
-                } else {
-                    printf( "P2\n");
-                }
-                printf( "  Storing: %d (at %d)\n", s->history[s->history_size], s->history_size);*/
                 s->history_size++;
                 if( s->history_size == 3) {
                     s->ngram[s->history[0]][s->history[1]][s->history[2]] += 10;
+#ifdef DEBUG
                     printf( "history: %d, %d, %d\n", s->history[0], s->history[1], s->history[2]);
+#endif
                     s->ngram_prediction = ngram_predictor( s);
                     s->history[0] = s->history[1];
                     s->history[1] = s->history[2];
@@ -259,6 +257,25 @@ bool step( GameState* s) {
     
     if( keys['f']) SDL_WM_ToggleFullScreen( screen);
     if( keys['y']) SDL_SaveBMP( screen, "screenshot.bmp");
+
+    if( keys['p']) {
+        while( keys['p']) {
+            SDL_PollEvent( &e);
+            keys = SDL_GetKeyState( NULL);
+            SDL_Delay( 10);
+        }
+        while( keys['p'] == 0) {
+            SDL_PollEvent( &e);
+            keys = SDL_GetKeyState( NULL);
+            SDL_Delay( 10);
+        }
+        while( keys['p']) {
+            SDL_PollEvent( &e);
+            keys = SDL_GetKeyState( NULL);
+            SDL_Delay( 10);
+        }
+        s->was_stopped = true;
+    }
      
     if( keys[SDLK_ESCAPE] || keys['q']) return true;
     
@@ -412,11 +429,11 @@ void input_human( Player* player, bool up, bool down, bool hit) {
 }
 
 void input_ai( Player* player, Ball* ball, Player* opponent, GameState* s) {
-    float fact = 2.0;
+    float fact = 1.7;
     float target;
 
     if( fabsf( player->y - ball->y) > RACKET_Y_MID*5) {
-        fact = 4.0;
+        fact = 3.5;
     }
 
     target = GAME_Y_MID + (opponent->ball_dest - GAME_Y_MID)/5;
@@ -499,7 +516,9 @@ float ngram_predictor( GameState* s) {
     }
 
     result = ((float)(sum))/((float)(count));
+#ifdef DEBUG
     printf( "predicting next = %.2f\n", result);
+#endif
 
     return result;
 }
