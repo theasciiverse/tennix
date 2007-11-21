@@ -25,6 +25,10 @@
 #include <time.h>
 #include <libgen.h>
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 #include "tennix.h"
 #include "game.h"
 #include "graphics.h"
@@ -44,8 +48,48 @@ static const char* help_text[] = {
 /* Height (in pixels) of the help text scroller */
 #define HELP_PHASE 50
 
+#ifdef WIN32
+
+/* IDs from the resource file */
+#define START_BUTTON 1
+#define CHECKBOX_FULLSCREEN 2
+#define QUIT_BUTTON 3
+
+BOOL CALLBACK ConfigDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    static int checkbox_is_checked;
+
+    switch (uMsg) {
+        case WM_CLOSE:
+            EndDialog(hwndDlg, IDCANCEL);
+            break;
+        case WM_COMMAND:
+            switch (wParam) {
+                case START_BUTTON:
+                    EndDialog(hwndDlg, (checkbox_is_checked)?(IDYES):(IDNO));
+                    break;
+                case QUIT_BUTTON:
+                    EndDialog(hwndDlg, IDCANCEL);
+                    break;
+                case CHECKBOX_FULLSCREEN:
+                    checkbox_is_checked ^= 1;
+                    break;
+            }
+            break;
+        default:
+            return FALSE;
+    }
+    return TRUE;
+}
+#endif
+
+#ifdef WIN32
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, 
+    LPSTR lpCmdLine, int nCmdShow) {
+#else
 int main( int argc, char** argv) {
-    int i = 0;
+#endif
+    int i;
     int mx, my;
     Uint8 *keys;
     Uint8 mb;
@@ -61,7 +105,43 @@ int main( int argc, char** argv) {
     Point elektrons[ELEKTRONS];
     int el;
 
+#ifdef WIN32
+    int mb_result;
+    mb_result = DialogBox(hInstance, "CONFIG", 0, (DLGPROC)ConfigDialogProc);
+
+    switch (mb_result) {
+        case IDYES:
+            sdl_flags |= SDL_FULLSCREEN;
+            break;
+        case IDCANCEL:
+            return 0;
+            break;
+        default:
+            break;
+    }
+#else
+    bool do_help = false;
+    i = 1;
+    while (i < argc) {
+        /* A poor/lazy man's getopt */
+        #define OPTION_SET(longopt,shortopt) \
+                (strcmp(argv[i], longopt)==0 || strcmp(argv[i], shortopt)==0)
+        if (OPTION_SET("--fullscreen", "-f")) {
+            sdl_flags |= SDL_FULLSCREEN;
+        }
+        if (OPTION_SET("--help", "-h")) {
+            do_help = true;
+        }
+        i++;
+    }
+
     fprintf( stderr, "Tennix %s\n%s\n%s\n\n", VERSION, COPYRIGHT, URL);
+
+    if (do_help == true) {
+        fprintf(stderr, "Usage: %s [--fullscreen|-f] [--help|-h]\n", argv[0]);
+        return 0;
+    }
+#endif
 
     sprintf( copyright_line, "Tennix %s -- %s", VERSION, COPYRIGHT);
 
@@ -110,6 +190,7 @@ int main( int argc, char** argv) {
     }
     help_line_height = get_image_height( GR_SMALLISH_FONT);
    
+    i = 0;
     while( 1) {
         SDL_PollEvent( &e);
         if( e.type == SDL_QUIT) {

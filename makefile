@@ -43,6 +43,9 @@ endif
 
 SRC = tennix.c game.c graphics.c input.c sound.c
 OBJ = tennix.o game.o graphics.o input.o sound.o
+ifeq ($(MSYSTEM),MINGW32)
+  OBJ += tennixres.o
+endif
 
 WIN32LIBS = *.dll
 OSXAPP = Tennix.app
@@ -73,6 +76,7 @@ data/graphics_data.c: data/*.png
 data/sounds_data.c: data/*.wav
 	make -C data sounds_data.c
 
+# Mac OS X-specific targets
 release-osx: tennix
 	mkdir -p $(OSXAPP)/Contents/{MacOS,/Resources}
 	cp -rpv tennix $(OSXAPP)/Contents/MacOS/Tennix
@@ -80,9 +84,21 @@ release-osx: tennix
 	cp -rpv osxapp.plist $(OSXAPP)/Contents/Info.plist
 	echo 'APPL????' >$(OSXAPP)/Contents/PkgInfo
 	zip -r tennix-$(RELEASE)-macosx.zip $(OSXAPP)
+# End Mac OS X-specific targets
 
+# Windows-specific targets
 release-win32: tennix
 	zip tennix-$(RELEASE)-win32.zip tennix.exe $(WIN32LIBS) $(DATAFILES)
+
+tennix-installer.iss: tennix-installer.iss.in
+	sed tennix-installer.iss.in -e 's/{version}/$(RELEASE)/g' >tennix-installer.iss
+
+release-win32-setup: tennix tennix-installer.iss
+	iscc tennix-installer.iss
+
+tennixres.o: tennix.res
+	windres tennix.res tennixres.o
+# End Windows-specific targets
 
 release-bin: tennix
 	tar czvf tennix-$(RELEASE)-bin.tar.gz tennix $(DATAFILES)
@@ -90,10 +106,11 @@ release-bin: tennix
 clean:
 	rm -f *.o tennix{,.exe}
 	rm -rf $(OSXAPP)
+	rm -f tennixres.o tennix-installer.iss tennix-*-win32-setup.exe
 	make -C data clean
 
 distclean: clean
 	rm -f tennix-$(RELEASE).zip tennix-$(RELEASE)-bin.tar.gz
 
-.PHONY: distclean clean release-bin release-win32 release-osx install
+.PHONY: distclean clean release-bin release-win32 release-win32-setup release-osx install
 
