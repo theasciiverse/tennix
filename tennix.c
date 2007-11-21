@@ -120,6 +120,8 @@ int main( int argc, char** argv) {
             break;
     }
 #else
+    fprintf( stderr, "Tennix %s\n%s\n%s\n\n", VERSION, COPYRIGHT, URL);
+
     bool do_help = false;
     i = 1;
     while (i < argc) {
@@ -129,13 +131,14 @@ int main( int argc, char** argv) {
         if (OPTION_SET("--fullscreen", "-f")) {
             sdl_flags |= SDL_FULLSCREEN;
         }
-        if (OPTION_SET("--help", "-h")) {
+        else if (OPTION_SET("--help", "-h")) {
             do_help = true;
+        }
+        else {
+            fprintf(stderr, "Ignoring unknown option: %s\n", argv[i]);
         }
         i++;
     }
-
-    fprintf( stderr, "Tennix %s\n%s\n%s\n\n", VERSION, COPYRIGHT, URL);
 
     if (do_help == true) {
         fprintf(stderr, "Usage: %s [--fullscreen|-f] [--help|-h]\n", argv[0]);
