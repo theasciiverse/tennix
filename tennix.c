@@ -94,9 +94,7 @@ int main( int argc, char** argv) {
     Uint8 *keys;
     Uint8 mb;
     SDL_Event e;
-    SDL_VideoInfo* vi;
     int sdl_flags = SDL_SWSURFACE | SDL_DOUBLEBUF;
-    char datadir[MAXPATHLEN];
     int highlight_y = 0;
     char copyright_line[100];
     int copyright_line_width;
@@ -128,6 +126,10 @@ int main( int argc, char** argv) {
         /* A poor/lazy man's getopt */
         #define OPTION_SET(longopt,shortopt) \
                 (strcmp(argv[i], longopt)==0 || strcmp(argv[i], shortopt)==0)
+        #define OPTION_VALUE \
+                ((i+1 < argc)?(argv[i+1]):(NULL))
+        #define OPTION_VALUE_PROCESSED \
+                (i++)
         if (OPTION_SET("--fullscreen", "-f")) {
             sdl_flags |= SDL_FULLSCREEN;
         }
@@ -171,10 +173,7 @@ int main( int argc, char** argv) {
         exit( 1);
     }
 
-    atexit( SDL_Quit);
-
-    vi = (SDL_VideoInfo*)SDL_GetVideoInfo();
-   
+    SDL_VideoInfo* vi = (SDL_VideoInfo*)SDL_GetVideoInfo();
     if( (screen = SDL_SetVideoMode( WIDTH, HEIGHT, vi->vfmt->BitsPerPixel, sdl_flags)) == NULL) {
         fprintf( stderr, "Can't set video mode: %s\n", SDL_GetError());
         exit( 1);
@@ -184,8 +183,10 @@ int main( int argc, char** argv) {
     SDL_ShowCursor( SDL_DISABLE);
     SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, 1);
 
-    init_sound( datadir);
-    init_graphics( datadir);
+    init_sound();
+    init_graphics();
+
+    play_sample_background(SOUND_BACKGROUND);
 
     copyright_line_width = font_get_string_width( GR_DKC2_FONT, copyright_line);
     for( help=0; help<HELP_LINES; help++) {
@@ -286,30 +287,37 @@ int main( int argc, char** argv) {
 
         if( mb & SDL_BUTTON( SDL_BUTTON_LEFT)) {
             if( M_POS_START_GAME(mx,my)) {
+                stop_sample(SOUND_BACKGROUND);
+                play_sample_loop(SOUND_AUDIENCE);
                 start_fade();
                 game( true);
                 SDL_Delay( 150);
                 start_fade();
                 while( SDL_PollEvent( &e));
-                fade_out( CH_AUDIENCE);
+                stop_sample(SOUND_AUDIENCE);
+                play_sample_background(SOUND_BACKGROUND);
             }   
             if( M_POS_START_MULTI(mx,my)) {
+                stop_sample(SOUND_BACKGROUND);
+                play_sample_loop(SOUND_AUDIENCE);
                 start_fade();
                 game( false);
                 SDL_Delay( 150);
                 start_fade();
                 while( SDL_PollEvent( &e));
-                fade_out( CH_AUDIENCE);
+                stop_sample(SOUND_AUDIENCE);
+                play_sample_background(SOUND_BACKGROUND);
             }
             if( M_POS_CREDITS(mx,my)) {
                 //introimage( "data/credits.bmp");
             }
             if( M_POS_QUIT(mx,my)) {
+                stop_sample(SOUND_BACKGROUND);
                 break;
             }
         }
         i++;
-        SDL_Delay( 10);
+        SDL_Delay( 4);
     }
 
     start_fade();

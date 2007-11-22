@@ -1,6 +1,6 @@
 
 GRAPHICS=$(wildcard *.png)
-SOUNDS=$(wildcard *.wav)
+SOUNDS=$(wildcard *.ogg)
 
 all: graphics_data.c sounds_data.c
 

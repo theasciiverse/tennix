@@ -26,6 +26,7 @@
 
 #include <math.h>
 #include "tennix.h"
+#include "sound.h"
 
 #define SETS_TO_WIN 3
 
@@ -104,6 +105,7 @@ typedef struct {
     bool history_is_locked;
     unsigned char ngram[NGRAM_STEPS][NGRAM_STEPS][NGRAM_STEPS];
     float ngram_prediction;
+    sound_id play_sound;
 } GameState;
 
 #define PI 3.1415

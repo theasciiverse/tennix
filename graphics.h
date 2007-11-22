@@ -41,6 +41,7 @@ typedef struct {
     SDL_Surface* data;
 } Image;
 
+typedef unsigned int image_id;
 enum {
     GR_COURT = 0,
     GR_SHADOW,
@@ -69,17 +70,17 @@ enum {
     ANIMATION_COUNT = 8
 };
 
-void init_graphics( const char*);
+void init_graphics();
 void uninit_graphics();
-int get_image_width( unsigned int);
-int get_image_height( unsigned int);
-int get_sprite_width( unsigned int, int);
-void show_sprite( unsigned int, int, int, int, int, int);
-void show_image( unsigned int, int, int, int);
+int get_image_width(image_id);
+int get_image_height(image_id);
+int get_sprite_width(image_id, int);
+void show_sprite(image_id, int, int, int, int, int);
+void show_image(image_id, int, int, int);
 void line_horiz( int y, Uint8 r, Uint8 g, Uint8 b);
 void line_vert( int x, Uint8 r, Uint8 g, Uint8 b);
 void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);
-void fill_image( unsigned int id, int x, int y, int w, int h);
+void fill_image(image_id id, int x, int y, int w, int h);
 void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
 void draw_button_text( char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
 void clearscr();
@@ -87,11 +88,11 @@ void updatescr();
 void start_fade();
 int is_fading();
 
-int font_get_metrics( unsigned int id, char ch, int* xp, int* wp);
-int font_draw_char( unsigned int id, char ch, int x_offset, int y_offset);
-void font_draw_string_alpha( unsigned int id, const char* s, int x_offset, int y_offset, int start, int animation, int opacity);
+int font_get_metrics( image_id id, char ch, int* xp, int* wp);
+int font_draw_char( image_id id, char ch, int x_offset, int y_offset);
+void font_draw_string_alpha( image_id id, const char* s, int x_offset, int y_offset, int start, int animation, int opacity);
 #define font_draw_string(id,s,x_offset,y_offset,start,animation) font_draw_string_alpha(id,s,x_offset,y_offset,start,animation,255)
-int font_get_string_width( unsigned int id, const char* s);
+int font_get_string_width( image_id id, const char* s);
 
 void draw_line_faded( int x1, int y1, int x2, int y2, int r, int g, int b, int r2, int g2, int b2);
 #define draw_line(x1,y1,x2,y2,r,g,b) draw_line_faded(x1,y1,x2,y2,r,g,b,r,g,b)

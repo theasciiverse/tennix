@@ -51,7 +51,7 @@ static const ResourceData graphics[] = {
     RESOURCE(ctt_grass)
 };
 
-void init_graphics( const char *data_dir) {
+void init_graphics() {
     int i;
     SDL_Surface* data;
     SDL_Surface* tmp;
@@ -111,19 +111,19 @@ void uninit_graphics() {
     free( images);
 }
 
-int get_image_width( unsigned int id) {
+int get_image_width( image_id id) {
     return images[id].data->w;
 }
 
-int get_image_height( unsigned int id) {
+int get_image_height( image_id id) {
     return images[id].data->h;
 }
 
-int get_sprite_width( unsigned int id, int items) {
+int get_sprite_width( image_id id, int items) {
     return images[id].data->w / items;
 }
 
-void show_sprite( unsigned int id, int pos, int items, int x_offset, int y_offset, int opacity) {
+void show_sprite( image_id id, int pos, int items, int x_offset, int y_offset, int opacity) {
     SDL_Surface *bitmap;
     SDL_Rect src, dst;
 
@@ -143,7 +143,7 @@ void show_sprite( unsigned int id, int pos, int items, int x_offset, int y_offse
     SDL_BlitSurface( bitmap, &src, screen, &dst);
 }
 
-void fill_image( unsigned int id, int x, int y, int w, int h) {
+void fill_image( image_id id, int x, int y, int w, int h) {
     SDL_Surface *bitmap;
     SDL_Rect src, dst;
     int dx = 0, dy = 0, cx, cy;
@@ -224,7 +224,7 @@ void draw_button_text( char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Ui
     font_draw_string( GR_SMALLISH_FONT, s, font_x, font_y, 0, 0);
 }
 
-void show_image( unsigned int id, int x_offset, int y_offset, int opacity) {
+void show_image( image_id id, int x_offset, int y_offset, int opacity) {
     show_sprite( id, 0, 1, x_offset, y_offset, opacity);
 }
 
@@ -260,7 +260,7 @@ int is_fading() {
     return SDL_GetTicks() < fading_start+FADE_DURATION;
 }
 
-int font_get_metrics( unsigned int id, char ch, int* xp, int* wp) {
+int font_get_metrics( image_id id, char ch, int* xp, int* wp) {
     SDL_Surface *bitmap;
     int pos, x = -1, w = 0;
     int search_pos = 0, search_x = 0;
@@ -297,7 +297,7 @@ int font_get_metrics( unsigned int id, char ch, int* xp, int* wp) {
     return w;
 }
 
-int font_draw_char( unsigned int id, char ch, int x_offset, int y_offset) {
+int font_draw_char( image_id id, char ch, int x_offset, int y_offset) {
     SDL_Surface *bitmap;
     SDL_Rect src, dst;
     int x = -1, w = 0;
@@ -319,7 +319,7 @@ int font_draw_char( unsigned int id, char ch, int x_offset, int y_offset) {
     return src.w;
 }
 
-void font_draw_string_alpha( unsigned int id, const char* s, int x_offset, int y_offset, int start, int animation, int opacity) {
+void font_draw_string_alpha( image_id id, const char* s, int x_offset, int y_offset, int start, int animation, int opacity) {
     int y = y_offset;
     int x = x_offset;
     int i;
@@ -360,7 +360,7 @@ void font_draw_string_alpha( unsigned int id, const char* s, int x_offset, int y
     }
 }
 
-int font_get_string_width( unsigned int id, const char* s) {
+int font_get_string_width( image_id id, const char* s) {
     int w = 0, i;
 
     for( i=0; i<strlen(s); i++) {

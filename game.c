@@ -52,7 +52,8 @@ void game( bool singleplayer) {
         0,
         false,
         { { { 0 } } },
-        0.0
+        0.0,
+        SOUND_MAX
     };
 
     strcpy( s.game_score_str, format_game( &s));
@@ -74,7 +75,6 @@ void game( bool singleplayer) {
     }
 
     game_setup_serve( &s);
-    sound_audience();
 
     /* smoothen n-gram */
     for( x = 0; x<NGRAM_STEPS; x++) {
@@ -117,12 +117,12 @@ bool step( GameState* s) {
    
     if( get_phase( s) < 1.0) {
         if( !s->ground.jump) {
-            sound_ground();
+            s->play_sound = SOUND_GROUND;
 
             if( IS_OUT_Y( s->ball.y)) {
                 /* out - responsibilities stay the same */
                 s->status = "out!";
-                sound_out();
+                s->play_sound = SOUND_OUT;
                 s->referee = REFEREE_OUT;
             } else {
                 /* not out - responsibilities change */
@@ -163,7 +163,7 @@ bool step( GameState* s) {
             }
 
             game_setup_serve( s);
-            sound_applause();
+            s->play_sound = SOUND_APPLAUSE;
             SDL_Delay( 500);
             start_fade();
             s->was_stopped = true;
@@ -201,8 +201,8 @@ bool step( GameState* s) {
                 s->ball.move_y = get_move_y( s, 1);
                 s->player2.responsible = !(s->player1.responsible = 1);
                 s->ball.jump += 1.0-2.0*(s->player1.state<5);
-                sound_applause_stop();
-                sound_racket();
+                s->play_sound = SOUND_RACKET;
+                pan_sample(SOUND_RACKET, 0.4);
             } else if( s->ball.move_x >= 0 && IS_NEAR_X( s->player2.x, s->ball.x) && IS_NEAR_Y( s->player2.y, s->ball.y) && s->player2.state && s->referee != REFEREE_OUT) {
                 s->ball.x = GAME_X_MAX;
                 if( s->player2.state == PLAYER_STATE_MAX) {
@@ -213,8 +213,8 @@ bool step( GameState* s) {
                 s->ball.move_y = get_move_y( s, 2);
                 s->player1.responsible = !(s->player2.responsible = 1);
                 s->ball.jump += 1.0-2.0*(s->player2.state<5);
-                sound_applause_stop();
-                sound_racket();
+                s->play_sound = SOUND_RACKET;
+                pan_sample(SOUND_RACKET, 0.6);
             }
         }
     } else {
@@ -287,6 +287,10 @@ bool step( GameState* s) {
 }
 
 void render( GameState* s) {
+    if (s->play_sound != SOUND_MAX) {
+        play_sample(s->play_sound);
+        s->play_sound = SOUND_MAX;
+    }
     if( s->winner != WINNER_NONE) {
         if( !s->is_over) {
             start_fade();

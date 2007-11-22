@@ -24,61 +24,72 @@
 #include "tennix.h"
 #include "sound.h"
 
-static char datadir[MAXPATHLEN];
+static Sound* sounds;
 
 #include "data/sounds_data.c"
+static const ResourceData samples[] = {
+    RESOURCE(racket1),
+    RESOURCE(racket2),
+    RESOURCE(ground1),
+    RESOURCE(ground2),
+    RESOURCE(audience),
+    RESOURCE(applause),
+    RESOURCE(out),
+    RESOURCE(background)
+};
 
-void init_sound( const char *data_dir) {
-    strcpy( datadir, data_dir);
+void init_sound() {
+    int i;
+    Mix_Chunk* data;
 
     if( Mix_OpenAudio( 44100, AUDIO_S16SYS, 2, 1024) < 0) {
         fprintf( stderr, "Error initializing SDL_mixer: %s\n", Mix_GetError());
     }
-}
 
-void play_sample( ResourceData sound, unsigned char channel, int loop) {
-    static Mix_Chunk* chunks[CH_MAX] = { 0 };
+    sounds = (Sound*)calloc(SOUND_MAX, sizeof(Sound));
 
-    if( chunks[channel] != NULL) {
-        Mix_FreeChunk( chunks[channel]);
-        chunks[channel] = NULL;
+    for( i=0; i<SOUND_MAX; i++) {
+        data = Mix_LoadWAV_RW(SDL_RWFromConstMem(samples[i].data, samples[i].size), 1);
+        if( !data) {
+            fprintf( stderr, "Error: %s\n", SDL_GetError());
+            continue;
+        }
+
+        sounds[i].data = data;
     }
 
-    chunks[channel] = Mix_LoadWAV_RW( SDL_RWFromConstMem( sound.data, sound.size), 1);
-    if( chunks[channel] != NULL) {
-        Mix_PlayChannel( channel, chunks[channel], loop);
+}
+
+void play_sample_n(sound_id id, int n)
+{
+    if (id >= SOUND_MAX) {
+        fprintf(stderr, "Cannot play sound #%d.\n", id);
+        return;
+    }
+
+    if (n == -2) {
+        Mix_FadeInChannel(id, sounds[id].data, -1, FADE_IN_MS);
     } else {
-        fprintf( stderr, "Error: %s\n", Mix_GetError());
+        Mix_PlayChannel(id, sounds[id].data, n);
+    }
+
+    if (id == SOUND_RACKET) {
+        stop_sample(SOUND_APPLAUSE);
     }
 }
 
-void fade_out( unsigned char channel) {
-    Mix_FadeOutChannel( channel, FADE_OUT_MS);
+void stop_sample(sound_id id)
+{
+    Mix_FadeOutChannel(id, FADE_OUT_MS);
 }
 
-void sound_ground() {
-    ResourceData sounds[] = { RESOURCE(ground1), RESOURCE(ground2) };
-    play_sample( sounds[rand()%2], CH_GROUND, 0);
-}
-
-void sound_racket() {
-    ResourceData sounds[] = { RESOURCE(racket1), RESOURCE(racket2) };
-    play_sample( sounds[rand()%2], CH_RACKET, 0);
-}
-
-void sound_audience() {
-    play_sample( RESOURCE(audience), CH_AUDIENCE, -1);
-}
-
-void sound_applause() {
-    play_sample( RESOURCE(applause), CH_APPLAUSE, 0);
-}
-
-void sound_applause_stop() {
-    fade_out( CH_APPLAUSE);
-}
-
-void sound_out() {
-    play_sample( RESOURCE(out), CH_OUT, 0);
+void pan_sample(sound_id id, float position)
+{
+    if (position == 0.5) {
+        Mix_SetPanning(id, 255, 255);
+    }
+    else {
+        Mix_SetPanning(id, 255*(1.0-position), 255*(position));
+    }
 }
 

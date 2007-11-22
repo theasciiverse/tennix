@@ -26,26 +26,42 @@
 
 #include "SDL_mixer.h"
 
-#define FADE_OUT_MS 1000
+#define FADE_OUT_MS 500
+#define FADE_IN_MS 3000
 
+typedef unsigned char sound_id;
 enum {
-    CH_RACKET = 0,
-    CH_GROUND,
-    CH_AUDIENCE,
-    CH_APPLAUSE,
-    CH_OUT,
-    CH_MAX,
+    SOUND_RACKET1 = 0,
+    SOUND_RACKET2,
+    SOUND_GROUND1,
+    SOUND_GROUND2,
+    SOUND_AUDIENCE,
+    SOUND_APPLAUSE,
+    SOUND_OUT,
+    SOUND_BACKGROUND,
+    SOUND_MAX,
 };
 
-void init_sound( const char *);
-void play_sample( ResourceData sound, unsigned char channel, int loop);
-void fade_out( unsigned char);
+#define SOUND_RACKET_FIRST SOUND_RACKET1
+#define SOUND_RACKET_LAST SOUND_RACKET2
+#define SOUND_GROUND_FIRST SOUND_GROUND1
+#define SOUND_GROUND_LAST SOUND_GROUND2
 
-void sound_ground();
-void sound_racket();
-void sound_audience();
-void sound_applause();
-void sound_applause_stop();
-void sound_out();
+#define SOUND_GROUND (SOUND_GROUND_FIRST + rand()%(SOUND_GROUND_LAST-SOUND_GROUND_FIRST))
+#define SOUND_RACKET (SOUND_RACKET_FIRST + rand()%(SOUND_RACKET_LAST-SOUND_RACKET_FIRST))
+
+typedef struct {
+    Mix_Chunk* data;
+} Sound;
+
+void init_sound();
+
+void play_sample_n(sound_id id, int n);
+#define play_sample(id) play_sample_n(id,0)
+#define play_sample_loop(id) play_sample_n(id,-1)
+#define play_sample_background(id) play_sample_n(id,-2)
+void stop_sample(sound_id id);
+void pan_sample(sound_id id, float position);
+#define unpan_sample(id) pan_sample(id,0.5)
 
 #endif

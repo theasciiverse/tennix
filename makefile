@@ -73,7 +73,7 @@ sound.o: sound.c sound.h tennix.h data/sounds_data.c
 data/graphics_data.c: data/*.png
 	make -C data graphics_data.c
 
-data/sounds_data.c: data/*.wav
+data/sounds_data.c: data/*.ogg
 	make -C data sounds_data.c
 
 # Mac OS X-specific targets
