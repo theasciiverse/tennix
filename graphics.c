@@ -27,7 +27,6 @@
 
 #include "tennix.h"
 #include "graphics.h"
-#include "input.h"
 
 static Image* images;
 

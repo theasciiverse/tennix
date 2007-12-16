@@ -33,20 +33,21 @@
 #include "game.h"
 #include "graphics.h"
 #include "sound.h"
+#include "input.h"
 
 SDL_Surface *screen;
 
 static const char* help_text[] = {
-    "keyboard controls:",
     "player 1 moves with <w>, <s> and <d>",
     "player 2 moves with <o>, <l> and <k>",
     "switch court in game with <c>, pause with <p>",
+    "" /* joystick help text comes here */,
 };
 
 /* Number of lines in help_text */
 #define HELP_LINES 4
 /* Height (in pixels) of the help text scroller */
-#define HELP_PHASE 50
+#define HELP_PHASE 85
 
 #ifdef WIN32
 
@@ -136,6 +137,24 @@ int main( int argc, char** argv) {
         else if (OPTION_SET("--help", "-h")) {
             do_help = true;
         }
+        else if (OPTION_SET("--list-joysticks", "-J")) {
+            SDL_Init(SDL_INIT_JOYSTICK);
+            joystick_list();
+            return 0;
+        }
+        else if (OPTION_SET("--joystick", "-j")) {
+            SDL_Init(SDL_INIT_JOYSTICK);
+            if (OPTION_VALUE == NULL) {
+                fprintf(stderr, "Error: You need to specify the name of the joystick as parameter.\n");
+                do_help = true;
+                break;
+            }
+            if (joystick_open(OPTION_VALUE)==0) {
+                fprintf(stderr, "Warning: Cannot find joystick \"%s\" - Ignored.\n", OPTION_VALUE);
+                break;
+            }
+            OPTION_VALUE_PROCESSED;
+        }
         else {
             fprintf(stderr, "Ignoring unknown option: %s\n", argv[i]);
         }
@@ -143,7 +162,7 @@ int main( int argc, char** argv) {
     }
 
     if (do_help == true) {
-        fprintf(stderr, "Usage: %s [--fullscreen|-f] [--help|-h]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [--fullscreen|-f] [--help|-h] [--list-joysticks|-J] [--joystick|-j] [joystick name]\n", argv[0]);
         return 0;
     }
 #endif
@@ -168,7 +187,7 @@ int main( int argc, char** argv) {
         elektrons[el].new_size = 5+rand()%10;
     }
    
-    if( SDL_Init( SDL_INIT_VIDEO) == -1) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) == -1) {
         fprintf( stderr, "Can't init SDL:  %s\n", SDL_GetError());
         exit( 1);
     }
@@ -185,6 +204,8 @@ int main( int argc, char** argv) {
 
     init_sound();
     init_graphics();
+    init_joystick();
+    help_text[3] = get_joystick_help();
 
     play_sample_background(SOUND_BACKGROUND);
 
@@ -274,10 +295,10 @@ int main( int argc, char** argv) {
         show_image( GR_MENU, WIDTH/2-get_image_width( GR_MENU)/2, 0, 255);
         font_draw_string( GR_DKC2_FONT, copyright_line, (WIDTH-copyright_line_width)/2, HEIGHT-35, i, ((i/150)%ANIMATION_COUNT));
         for( help=0; help<HELP_LINES; help++) {
-            help_offset = (help_line_height*(HELP_LINES-help)+i/2)%HELP_PHASE;
+            help_offset = (help_line_height*(HELP_LINES-help)+i/3)%HELP_PHASE;
             font_draw_string_alpha( GR_SMALLISH_FONT, help_text[help],
                                     (WIDTH-help_line_widths[help])/2,
-                                    HEIGHT/2+30-help_offset,
+                                    HEIGHT/2+45-help_offset,
                                     i, ANIMATION_NONE,
                                     255.0*fabsf( sinf( help_offset/((float)HELP_PHASE)*M_PI))
                                   );
@@ -328,6 +349,7 @@ int main( int argc, char** argv) {
     }
    
     uninit_graphics();
+    uninit_joystick();
 
     SDL_Quit();
     return 0;

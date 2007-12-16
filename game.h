@@ -106,6 +106,9 @@ typedef struct {
     unsigned char ngram[NGRAM_STEPS][NGRAM_STEPS][NGRAM_STEPS];
     float ngram_prediction;
     sound_id play_sound;
+    float joystick_y;
+    float joystick_x;
+    unsigned char joystick_a;
 } GameState;
 
 #define PI 3.1415
@@ -153,6 +156,7 @@ typedef struct {
 #define IS_NEAR_X(px,bx) (fabsf(px-bx)<PLAYER_AREA_X)
 #define IS_NEAR_X_AI(px,bx) (fabsf(px-bx)<PLAYER_AREA_X*2)
 
+#define PLAYER_MOVE_Y 6.0
 #define PLAYER_STATE_MAX 7
 #define PLAYER_POWERSHOT 6.2
 
@@ -164,7 +168,7 @@ bool step( GameState*);
 void limit_value( float*, float, float);
 float get_phase( GameState*);
 float get_move_y( GameState*, unsigned char);
-void input_human( Player*, bool, bool, bool);
+void input_human( Player*, bool, bool, bool, GameState*);
 void input_ai( Player*, Ball*, Player*, GameState*);
 void game_setup_serve( GameState*);
 float ngram_predictor( GameState*);

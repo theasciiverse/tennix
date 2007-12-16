@@ -53,7 +53,10 @@ void game( bool singleplayer) {
         false,
         { { { 0 } } },
         0.0,
-        SOUND_MAX
+        SOUND_MAX,
+        0.0,
+        0.0,
+        0
     };
 
     strcpy( s.game_score_str, format_game( &s));
@@ -233,6 +236,20 @@ bool step( GameState* s) {
 
     SDL_PollEvent( &e);
     keys = SDL_GetKeyState( NULL);
+    switch(e.type) {
+        case SDL_JOYAXISMOTION:
+            if (e.jaxis.axis == JOYSTICK_Y_AXIS) {
+                s->joystick_y = JOYSTICK_PERCENTIZE(e.jaxis.value);
+            } else if (e.jaxis.axis == JOYSTICK_X_AXIS) {
+                s->joystick_x = JOYSTICK_PERCENTIZE(e.jaxis.value);
+            }
+            break;
+        case SDL_JOYBUTTONUP: case SDL_JOYBUTTONDOWN:
+            if (e.jbutton.button == JOYSTICK_BUTTON_A) {
+                s->joystick_a = (e.jbutton.state == SDL_PRESSED);
+            }
+            break;
+    }
 
     if( keys['c'] && s->time%50==0) {
         s->court_type++;
@@ -243,13 +260,17 @@ bool step( GameState* s) {
 
     if( !is_fading() && !s->is_over) {
         if( s->player1.type == PLAYER_TYPE_HUMAN) {
-           input_human( &s->player1, keys['w'], keys['s'], keys['d']);
+           input_human( &s->player1,
+                   keys['w'] || keys[SDLK_UP] || s->joystick_y < -JOYSTICK_TRESHOLD,
+                   keys['s'] || keys[SDLK_DOWN] || s->joystick_y > JOYSTICK_TRESHOLD,
+                   keys['d'] || keys[SDLK_SPACE] || keys[SDLK_LCTRL] || s->joystick_a,
+                   s);
         } else {
             input_ai( &s->player1, &s->ball, &s->player2, s);
         }
  
         if( s->player2.type == PLAYER_TYPE_HUMAN) {
-            input_human( &s->player2, keys['o'], keys['l'], keys['k']);
+            input_human( &s->player2, keys['o'], keys['l'], keys['k'], s);
         } else {
             input_ai( &s->player2, &s->ball, &s->player1, s);
         }
@@ -413,13 +434,22 @@ float get_move_y( GameState* s, unsigned char player) {
     return (y_len*move_x)/(x_len);
 }
 
-void input_human( Player* player, bool up, bool down, bool hit) {
+void input_human( Player* player, bool up, bool down, bool hit, GameState* s) {
+    int diff = PLAYER_MOVE_Y;
+
+    if (fabsf(s->joystick_y) > JOYSTICK_TRESHOLD) {
+        diff = PLAYER_MOVE_Y*fabsf(s->joystick_y)/40.0;
+        if (diff > PLAYER_MOVE_Y) {
+            diff = PLAYER_MOVE_Y;
+        }
+    }
+
     if( up) {
-        player->y -= 6;
+        player->y -= diff;
     }
 
     if( down) {
-        player->y += 6;
+        player->y += diff;
     }
 
     if( hit) {

@@ -24,7 +24,23 @@
 #ifndef __INPUT_H
 #define __INPUT_H
 
+#define JOYSTICK_PERCENTIZE(x) ((float)(x)/(float)(32768)*100.0)
+
+#define JOYSTICK_X_AXIS 0
+#define JOYSTICK_Y_AXIS 1
+#define JOYSTICK_BUTTON_A 0
+
+#define JOYSTICK_TRESHOLD 5.0
+
 void wait_keypress();
+
+void init_joystick();
+void uninit_joystick();
+
+void joystick_list();
+int joystick_open(const char* name);
+
+char* get_joystick_help();
 
 #endif
 

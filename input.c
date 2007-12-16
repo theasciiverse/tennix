@@ -24,6 +24,8 @@
 #include "tennix.h"
 #include "input.h"
 
+static char joystick_help[100];
+
 void wait_keypress() {
     SDL_Event e;
     unsigned char done = 0;
@@ -39,6 +41,53 @@ void wait_keypress() {
         } else {
             SDL_Delay( 50);
         }
+    }
+}
+
+void init_joystick()
+{
+    SDL_JoystickEventState(SDL_ENABLE);
+}
+
+void uninit_joystick()
+{
+    SDL_JoystickEventState(SDL_IGNORE);
+}
+
+void joystick_list()
+{
+    int i, n;
+
+    n = SDL_NumJoysticks();
+
+    for (i=0; i<n; i++) {
+        printf("Joystick %d: %s (use with: --joystick \"%s\")\n", i+1, SDL_JoystickName(i), SDL_JoystickName(i));
+    }
+}
+
+int joystick_open(const char* name)
+{
+    int i, n;
+
+    n = SDL_NumJoysticks();
+
+    for (i=0; i<n; i++) {
+        if (strcmp(SDL_JoystickName(i), name) == 0) {
+            SDL_JoystickOpen(i);
+            sprintf(joystick_help, "joystick enabled: %s", name);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+char* get_joystick_help()
+{
+    if (strcmp(joystick_help, "") == 0) {
+        return "no joystick (enable with --joystick)";
+    }
+    else {
+        return joystick_help;
     }
 }
 
