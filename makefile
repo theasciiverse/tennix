@@ -25,6 +25,7 @@ RELEASE   =  0.4.2
 TARGET ?= default
 
 PREFIX ?= usr/local/
+BINARY_INSTALL_DIR ?= $(PREFIX)/bin
 
 LIBS =
 CFLAGS += -Wall -DVERSION=\"$(RELEASE)\"
@@ -60,8 +61,8 @@ tennix: $(OBJ)
 	test -f tennix.exe && upx tennix.exe || true 
 
 install: tennix
-	install -d $(DESTDIR)/$(PREFIX)/bin $(DESTDIR)/$(PREFIX)/share/pixmaps $(DESTDIR)/$(PREFIX)/share/applications
-	install -s tennix $(DESTDIR)/$(PREFIX)/bin/tennix
+	install -d $(DESTDIR)/$(BINARY_INSTALL_DIR) $(DESTDIR)/$(PREFIX)/share/pixmaps $(DESTDIR)/$(PREFIX)/share/applications
+	install -s tennix $(DESTDIR)/$(BINARY_INSTALL_DIR)/tennix
 	install -m644 data/icon.png $(DESTDIR)/$(PREFIX)/share/pixmaps/tennix.png
 	install -m644 tennix.desktop $(DESTDIR)/$(PREFIX)/share/applications/
 
@@ -104,8 +105,8 @@ release-bin: tennix
 	tar czvf tennix-$(RELEASE)-bin.tar.gz tennix $(DATAFILES)
 
 clean:
-	rm -f *.o tennix{,.exe}
-	rm -rf $(OSXAPP)
+	rm -f *.o tennix tennix.exe
+	rm -rf $(OSXAPP) tennix-*-macosx.zip
 	rm -f tennixres.o tennix-installer.iss tennix-*-win32-setup.exe
 	make -C data clean
 
