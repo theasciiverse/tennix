@@ -82,7 +82,7 @@ release-osx: tennix
 	mkdir -p $(OSXAPP)/Contents/{MacOS,/Resources}
 	cp -rpv tennix $(OSXAPP)/Contents/MacOS/Tennix
 	cp -rpv $(DATAFILES) $(OSXAPP)/Contents/Resources/
-	cp -rpv osxapp.plist $(OSXAPP)/Contents/Info.plist
+	sed -e 's/TENNIX_VERSION/$(RELEASE)/' osxapp.plist >$(OSXAPP)/Contents/Info.plist
 	echo 'APPL????' >$(OSXAPP)/Contents/PkgInfo
 	zip -r tennix-$(RELEASE)-macosx.zip $(OSXAPP)
 # End Mac OS X-specific targets
