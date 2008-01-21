@@ -28,6 +28,8 @@
 
 #include "SDL_image.h"
 
+#define RECT_UPDATE_CACHE 150
+
 #define FADE_DURATION 500
 #define BUTTON_HIGHLIGHT 0.4
 #define BUTTON_BORDER 2
@@ -83,7 +85,14 @@ void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);
 void fill_image(image_id id, int x, int y, int w, int h);
 void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
 void draw_button_text( char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
+
+void clear_screen();
+void store_screen();
+void reset_screen();
+
 void clearscr();
+void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h);
+#define update_rect2(r) (update_rect(r.x, r.y, r.w, r.h))
 void updatescr();
 void start_fade();
 int is_fading();

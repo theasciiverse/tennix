@@ -34,8 +34,8 @@ void game( bool singleplayer) {
     GameState s = {
         { 0, 0, 0.0, 0.0, 0.0 },
         { 0, 0, 0, 0, 0 },
-        { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, false },
-        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, false },
+        { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, false, 0, 0 },
+        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, false, 0, 0 },
         0,
         0,
         0,
@@ -48,6 +48,7 @@ void game( bool singleplayer) {
         WINNER_NONE,
         false,
         GR_CTT_GRASS,
+        -1,
         { 0 },
         0,
         false,
@@ -264,13 +265,14 @@ bool step( GameState* s) {
                    keys['w'] || keys[SDLK_UP] || s->joystick_y < -JOYSTICK_TRESHOLD,
                    keys['s'] || keys[SDLK_DOWN] || s->joystick_y > JOYSTICK_TRESHOLD,
                    keys['d'] || keys[SDLK_SPACE] || keys[SDLK_LCTRL] || s->joystick_a,
+                   ENABLE_MOUSE,
                    s);
         } else {
             input_ai( &s->player1, &s->ball, &s->player2, s);
         }
  
         if( s->player2.type == PLAYER_TYPE_HUMAN) {
-            input_human( &s->player2, keys['o'], keys['l'], keys['k'], s);
+            input_human( &s->player2, keys['o'], keys['l'], keys['k'], false, s);
         } else {
             input_ai( &s->player2, &s->ball, &s->player1, s);
         }
@@ -317,16 +319,21 @@ void render( GameState* s) {
             start_fade();
             s->is_over = true;
         }
-        clearscr();
+        clear_screen();
+        store_screen();
         show_sprite( GR_RACKET, 2*(s->winner-1), 4, WIDTH/2 - get_image_width( GR_RACKET)/8, HEIGHT/2 - get_image_height( GR_RACKET), 255);
         sprintf( s->game_score_str, "player %d wins the match with %s", s->winner, format_sets( s));
         font_draw_string( GR_DKC2_FONT, s->game_score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->game_score_str))/2, HEIGHT/2 + 30, s->time/20, ANIMATION_WAVE | ANIMATION_BUNGEE);
         updatescr();
         return;
     }
-    clearscr();
-    fill_image( s->court_type, 120, 120, 400, 250);
-    show_image( GR_COURT, 0, 0, 255);
+    if (s->old_court_type != s->court_type) {
+        clear_screen();
+        fill_image(s->court_type, 120, 120, 400, 250);
+        show_image(GR_COURT, 0, 0, 255);
+        s->old_court_type = s->court_type;
+        store_screen();
+    }
     show_sprite( GR_REFEREE, s->referee, 4, 250, 10, 255);
     show_image( GR_SHADOW, s->ball.x-BALL_X_MID, s->ball.y + get_phase( s) - BALL_Y_MID, 255);
     
@@ -434,8 +441,23 @@ float get_move_y( GameState* s, unsigned char player) {
     return (y_len*move_x)/(x_len);
 }
 
-void input_human( Player* player, bool up, bool down, bool hit, GameState* s) {
+void input_human( Player* player, bool up, bool down, bool hit, bool use_mouse, GameState* s) {
     int diff = PLAYER_MOVE_Y;
+    int mb;
+
+    if (use_mouse) {
+        mb = SDL_GetMouseState(&(player->mouse_x), &(player->mouse_y));
+        if (mb&SDL_BUTTON(SDL_BUTTON_LEFT)) {
+            hit = true;
+        }
+        if (player->mouse_y < player->y-RACKET_Y_MID-diff) {
+            down = false;
+            up = true;
+        } else if (player->mouse_y > player->y-RACKET_Y_MID+diff) {
+            up = false;
+            down = true;
+        }
+    }
 
     if (fabsf(s->joystick_y) > JOYSTICK_TRESHOLD) {
         diff = PLAYER_MOVE_Y*fabsf(s->joystick_y)/40.0;

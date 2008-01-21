@@ -71,6 +71,8 @@ typedef struct {
     bool state_locked; /* enabled when user keeps pressing the "hit" key */
     int game; /* score for the current game */
     int sets[SETS_TO_WIN*2]; /* score for each set */
+    int mouse_x; /* x position of mouse */
+    int mouse_y; /* y position of mouse */
 } Player;
 
 enum {
@@ -100,6 +102,7 @@ typedef struct {
     int winner;
     bool is_over;
     unsigned int court_type;
+    unsigned int old_court_type;
     unsigned int history[3];
     unsigned int history_size;
     bool history_is_locked;
@@ -162,13 +165,15 @@ typedef struct {
 
 #define MOVE_Y_SEED 3
 
+#define ENABLE_MOUSE false
+
 void game( bool);
 void render( GameState*);
 bool step( GameState*);
 void limit_value( float*, float, float);
 float get_phase( GameState*);
 float get_move_y( GameState*, unsigned char);
-void input_human( Player*, bool, bool, bool, GameState*);
+void input_human( Player*, bool, bool, bool, bool, GameState*);
 void input_ai( Player*, Ball*, Player*, GameState*);
 void game_setup_serve( GameState*);
 float ngram_predictor( GameState*);

@@ -31,6 +31,12 @@
 static Image* images;
 
 static SDL_Surface *buffer;
+static SDL_Surface *background;
+
+static SDL_Rect *rect_update_cache;
+static SDL_Rect *rect_update_old;
+static int rect_update_cache_current;
+static int rect_update_old_count;
 
 static Uint32 fading_start = 0;
 
@@ -63,6 +69,11 @@ void init_graphics() {
     }
 #endif
 
+    rect_update_cache = (SDL_Rect*)calloc(RECT_UPDATE_CACHE, sizeof(SDL_Rect));
+    rect_update_old = (SDL_Rect*)calloc(RECT_UPDATE_CACHE, sizeof(SDL_Rect));
+    rect_update_cache_current = 0;
+    rect_update_old_count = 0;
+
     images = (Image*)calloc( GR_COUNT, sizeof( Image));
 
     for( i=0; i<GR_COUNT; i++) {
@@ -89,7 +100,19 @@ void init_graphics() {
         images[i].data = data;
     }
 
-    buffer = SDL_CreateRGBSurface( SDL_HWSURFACE, WIDTH, HEIGHT, screen->format->BitsPerPixel, screen->format->Rmask, screen->format->Gmask, screen->format->Bmask, screen->format->Amask);
+    buffer = SDL_CreateRGBSurface(SDL_SWSURFACE, WIDTH, HEIGHT,
+                 screen->format->BitsPerPixel,
+                 screen->format->Rmask,
+                 screen->format->Gmask,
+                 screen->format->Bmask,
+                 screen->format->Amask);
+
+    background = SDL_CreateRGBSurface(SDL_SWSURFACE, WIDTH, HEIGHT,
+                     screen->format->BitsPerPixel,
+                     screen->format->Rmask,
+                     screen->format->Gmask,
+                     screen->format->Bmask,
+                     screen->format->Amask);
 
     if( buffer == NULL) {
         fprintf( stderr, "Cannot create buffer surface: %s\n", SDL_GetError());
@@ -107,7 +130,13 @@ void uninit_graphics() {
         SDL_FreeSurface( buffer);
     }
 
-    free( images);
+    if (background != NULL) {
+        SDL_FreeSurface(background);
+    }
+
+    free(rect_update_cache);
+    free(rect_update_old);
+    free(images);
 }
 
 int get_image_width( image_id id) {
@@ -140,6 +169,7 @@ void show_sprite( image_id id, int pos, int items, int x_offset, int y_offset, i
     dst.y = y_offset;
 
     SDL_BlitSurface( bitmap, &src, screen, &dst);
+    update_rect2(dst);
 }
 
 void fill_image( image_id id, int x, int y, int w, int h) {
@@ -162,6 +192,7 @@ void fill_image( image_id id, int x, int y, int w, int h) {
             dst.x = x+dx;
 
             SDL_BlitSurface( bitmap, &src, screen, &dst);
+            update_rect2(dst);
 
             dx += cx;
         }
@@ -171,27 +202,11 @@ void fill_image( image_id id, int x, int y, int w, int h) {
 }
 
 void line_horiz( int y, Uint8 r, Uint8 g, Uint8 b) {
-    Uint32 color = SDL_MapRGB( screen->format, r, g, b);
-    SDL_Rect rect;
-
-    rect.x = 0;
-    rect.w = screen->w;
-    rect.y = y;
-    rect.h = 1;
-
-    SDL_FillRect( screen, &rect, color);
+    rectangle(0, y, screen->w, 1, r, g, b);
 }
 
 void line_vert( int x, Uint8 r, Uint8 g, Uint8 b) {
-    Uint32 color = SDL_MapRGB( screen->format, r, g, b);
-    SDL_Rect rect;
-
-    rect.x = x;
-    rect.w = 1;
-    rect.y = 0;
-    rect.h = screen->h;
-
-    SDL_FillRect( screen, &rect, color);
+    rectangle(x, 0, 1, screen->h, r, g, b);
 }
 
 void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b) {
@@ -204,6 +219,7 @@ void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b) {
     rect.h = h;
 
     SDL_FillRect( screen, &rect, color);
+    update_rect(x, y, w, h);
 }
 
 void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed) {
@@ -227,27 +243,110 @@ void show_image( image_id id, int x_offset, int y_offset, int opacity) {
     show_sprite( id, 0, 1, x_offset, y_offset, opacity);
 }
 
-void clearscr() {
+void clear_screen()
+{
     SDL_Rect rect;
 
-    rect.x = 0;
-    rect.y = 0;
+    rect.x = rect.y = 0;
     rect.w = WIDTH;
     rect.h = HEIGHT;
 
-    SDL_FillRect( screen, &rect, SDL_MapRGB( screen->format, 0, 0, 0));
+    SDL_FillRect(screen, &rect, SDL_MapRGB(screen->format, 0, 0, 0));
+    store_screen();
 }
 
-void updatescr() {
-    int ticks = SDL_GetTicks();
+void store_screen()
+{
+    SDL_BlitSurface(screen, NULL, background, NULL);
+    rect_update_old[0].x = rect_update_old[0].y = 0;
+    rect_update_old[0].w = WIDTH;
+    rect_update_old[0].h = HEIGHT;
+    rect_update_old_count = 1;
+    rect_update_cache_current = 0;
+}
 
-    if( ticks < fading_start+FADE_DURATION) {
-        SDL_SetAlpha( buffer, SDL_SRCALPHA | SDL_RLEACCEL, 255-255*(ticks-fading_start)/FADE_DURATION);
-        SDL_BlitSurface( buffer, NULL, screen, NULL);
+void reset_screen()
+{
+    int i;
+    SDL_Rect* tmp;
+    SDL_BlitSurface(background, NULL, screen, NULL);
+
+    for (i=0; i<rect_update_cache_current; i++) {
+        SDL_BlitSurface(background, &rect_update_cache[i], screen, &rect_update_cache[i]);
     }
 
-    SDL_UpdateRect( screen, 0, 0, 0, 0);
-    SDL_Flip( screen);
+    /* Save rects I've just updated for redraw later */
+    tmp = rect_update_cache;
+    rect_update_cache = rect_update_old;
+    rect_update_old = tmp;
+    rect_update_old_count = rect_update_cache_current;
+    rect_update_cache_current = 0;
+}
+
+void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h)
+{
+    //rectangle(x, y, w, h, 50+rand()%200, 50+rand()%200 ,50+rand()%200);
+
+    if (x >= WIDTH || y >= HEIGHT || x+w <= 0 || y+h <= 0) {
+        return;
+    }
+
+    if (rect_update_cache_current == RECT_UPDATE_CACHE) {
+        fprintf(stderr, "Overflow\n");
+        rect_update_cache_current = 0;
+    }
+
+    SDL_Rect* u = &(rect_update_cache[rect_update_cache_current]);
+
+    if (x < 0 && x+w > 0) {
+        w += x;
+        x = 0;
+    }
+    if (y < 0 && y+h > 0) {
+        h += y;
+        y = 0;
+    }
+
+    if (x+w >= WIDTH) {
+        w -= (x+w-WIDTH+1);
+    }
+    
+    if (y+h >= HEIGHT) {
+        h -= (y+h-HEIGHT+1);
+    }
+
+    if (w==0 || h==0) {
+        return;
+    }
+
+    u->x = x;
+    u->y = y;
+    u->w = w;
+    u->h = h;
+
+    rect_update_cache_current++;
+}
+
+void updatescr()
+{
+    int ticks = SDL_GetTicks();
+
+    static int fading_last_time = 0;
+    int fading_now = is_fading();
+
+    if (fading_now) {
+        SDL_SetAlpha(buffer, SDL_SRCALPHA | SDL_RLEACCEL, 255-255*(ticks-fading_start)/FADE_DURATION);
+        SDL_BlitSurface(buffer, NULL, screen, NULL);
+        SDL_UpdateRect(screen, 0, 0, 0, 0);
+    } else if (fading_last_time && !fading_now) {
+        SDL_UpdateRect(screen, 0, 0, 0, 0);
+    } else {
+        SDL_UpdateRects(screen, rect_update_old_count, rect_update_old);
+        SDL_UpdateRects(screen, rect_update_cache_current, rect_update_cache);
+    }
+
+    reset_screen();
+    fading_last_time = fading_now;
 }
 
 void start_fade() {
@@ -321,7 +420,7 @@ int font_draw_char( image_id id, char ch, int x_offset, int y_offset) {
 void font_draw_string_alpha( image_id id, const char* s, int x_offset, int y_offset, int start, int animation, int opacity) {
     int y = y_offset;
     int x = x_offset;
-    int i;
+    int i, additional_x = 0, additional_y = 0;
     float xw = 0.0, xw_diff;
     SDL_Surface *bitmap;
 
@@ -338,6 +437,7 @@ void font_draw_string_alpha( image_id id, const char* s, int x_offset, int y_off
 
     if( animation & ANIMATION_PENDULUM) {
         x -= (int)(20.0*sinf( start/20.0));
+        additional_x += 21;
     }
 
     for( i=0; i<strlen(s); i++) {
@@ -357,6 +457,13 @@ void font_draw_string_alpha( image_id id, const char* s, int x_offset, int y_off
             }
         }
     }
+    if (animation & ANIMATION_WAVE) {
+        additional_y += 4;
+    }
+    if (animation & ANIMATION_BUNGEE) {
+        additional_x += 26;
+    }
+    update_rect(x_offset-additional_x, y_offset-additional_y, x-x_offset+additional_x*2, get_image_height(id)+additional_y*2);
 }
 
 int font_get_string_width( image_id id, const char* s) {

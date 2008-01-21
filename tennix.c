@@ -95,7 +95,7 @@ int main( int argc, char** argv) {
     Uint8 *keys;
     Uint8 mb;
     SDL_Event e;
-    int sdl_flags = SDL_SWSURFACE | SDL_DOUBLEBUF;
+    int sdl_flags = SDL_SWSURFACE;
     int highlight_y = 0;
     char copyright_line[100];
     int copyright_line_width;
@@ -214,6 +214,10 @@ int main( int argc, char** argv) {
         help_line_widths[help] = font_get_string_width( GR_SMALLISH_FONT, help_text[help]);
     }
     help_line_height = get_image_height( GR_SMALLISH_FONT);
+
+    clear_screen();
+    show_image(GR_MENU, WIDTH/2-get_image_width(GR_MENU)/2, 0, 255);
+    store_screen();
    
     i = 0;
     while( 1) {
@@ -232,7 +236,6 @@ int main( int argc, char** argv) {
             SDL_WM_ToggleFullScreen( screen);
         }
    
-        clearscr();
         if( highlight_y) {
             for( el=0; el<ELEKTRONS; el++) {
                 elektrons[el].new_x = WIDTH/2 - ELEKTRONS_WIDTH;
@@ -285,14 +288,13 @@ int main( int argc, char** argv) {
                 rectangle( elektrons[el].x, elektrons[el].y, elektrons[el].size, elektrons[el].size, elektrons[el].r, elektrons[el].g, elektrons[el].b);
                 if( elektrons[el].size > 4) {
                     if( highlight_y != 0 || rand()%10 == 0) {
-                        draw_line_faded( elektrons[el].x+elektrons[el].size/2, elektrons[el].y+elektrons[el].size/2, mx+15, my+24, elektrons[el].r/3, elektrons[el].g/3, 0, 0 ,0 ,0);
+                        //draw_line_faded( elektrons[el].x+elektrons[el].size/2, elektrons[el].y+elektrons[el].size/2, mx+15, my+24, elektrons[el].r/3, elektrons[el].g/3, 0, 0 ,0 ,0);
                     }
                     rectangle( elektrons[el].x+2, elektrons[el].y+2, elektrons[el].size-4, elektrons[el].size-4, 0, 0, 0);
                 }
             }
         }
 
-        show_image( GR_MENU, WIDTH/2-get_image_width( GR_MENU)/2, 0, 255);
         font_draw_string( GR_DKC2_FONT, copyright_line, (WIDTH-copyright_line_width)/2, HEIGHT-35, i, ((i/150)%ANIMATION_COUNT));
         for( help=0; help<HELP_LINES; help++) {
             help_offset = (help_line_height*(HELP_LINES-help)+i/3)%HELP_PHASE;
@@ -317,6 +319,9 @@ int main( int argc, char** argv) {
                 while( SDL_PollEvent( &e));
                 stop_sample(SOUND_AUDIENCE);
                 play_sample_background(SOUND_BACKGROUND);
+                clear_screen();
+                show_image(GR_MENU, WIDTH/2-get_image_width(GR_MENU)/2, 0, 255);
+                store_screen();
             }   
             if( M_POS_START_MULTI(mx,my)) {
                 stop_sample(SOUND_BACKGROUND);
@@ -328,6 +333,9 @@ int main( int argc, char** argv) {
                 while( SDL_PollEvent( &e));
                 stop_sample(SOUND_AUDIENCE);
                 play_sample_background(SOUND_BACKGROUND);
+                clear_screen();
+                show_image(GR_MENU, WIDTH/2-get_image_width(GR_MENU)/2, 0, 255);
+                store_screen();
             }
             if( M_POS_CREDITS(mx,my)) {
                 //introimage( "data/credits.bmp");
@@ -342,8 +350,9 @@ int main( int argc, char** argv) {
     }
 
     start_fade();
+    store_screen();
     while( is_fading()) {
-        clearscr();
+        clear_screen();
         updatescr();
         SDL_Delay( 10);
     }
