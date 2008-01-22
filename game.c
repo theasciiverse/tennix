@@ -71,6 +71,10 @@ void game( bool singleplayer) {
     bool quit = false;
     int x, y, z;
 
+#ifdef ENABLE_FPS_LIMIT
+    Uint32 ft, frames; /* frame timer and frames */
+#endif
+
     if( singleplayer) {
 #ifdef DEBUG
         s.player1.type = PLAYER_TYPE_AI;
@@ -88,7 +92,11 @@ void game( bool singleplayer) {
             }
         }
     }
-   
+
+#ifdef ENABLE_FPS_LIMIT
+    frames = 0;
+    ft = SDL_GetTicks();
+#endif
     while( !quit) {
         nt = SDL_GetTicks();
         diff = nt-ot;
@@ -109,6 +117,13 @@ void game( bool singleplayer) {
                 s.was_stopped = false;
             }
         }
+
+#ifdef ENABLE_FPS_LIMIT
+        while (frames*1000.0/((float)(SDL_GetTicks()-ft+1))>(float)(DEFAULT_FPS)) {
+            SDL_Delay(10);
+        }
+        frames++;
+#endif
 
         render( &s);
     }
@@ -450,12 +465,14 @@ void input_human( Player* player, bool up, bool down, bool hit, bool use_mouse, 
         if (mb&SDL_BUTTON(SDL_BUTTON_LEFT)) {
             hit = true;
         }
-        if (player->mouse_y < player->y-RACKET_Y_MID-diff) {
+        if (player->mouse_y < player->y) {
             down = false;
             up = true;
-        } else if (player->mouse_y > player->y-RACKET_Y_MID+diff) {
+            diff = (player->y-player->mouse_y<diff)?(player->y-player->mouse_y):(diff);
+        } else if (player->mouse_y > player->y) {
             up = false;
             down = true;
+            diff = (player->mouse_y-player->y<diff)?(player->mouse_y-player->y):(diff);
         }
     }
 

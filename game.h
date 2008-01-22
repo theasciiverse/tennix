@@ -123,7 +123,6 @@ typedef struct {
 
 #define BALL_JUMP_MIN 4
 #define BALL_JUMP_MAX 10
-#define BALL_DEFAULT_SPEED 3.0
 
 #define RACKET_X_MID 15
 #define RACKET_Y_MID 24
@@ -166,6 +165,10 @@ typedef struct {
 #define MOVE_Y_SEED 3
 
 #define ENABLE_MOUSE false
+
+/* Comment out the following #define to disable FPS limiting */
+#define ENABLE_FPS_LIMIT
+#define DEFAULT_FPS 33
 
 void game( bool);
 void render( GameState*);
