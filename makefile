@@ -20,7 +20,7 @@
 #
 
 CC        =  gcc
-RELEASE   =  0.5.0+git
+RELEASE   =  0.5.0
 
 TARGET ?= default
 
@@ -28,7 +28,7 @@ PREFIX ?= usr/local/
 BINARY_INSTALL_DIR ?= $(PREFIX)/bin
 
 LIBS =
-CFLAGS += -Wall -DVERSION=\"$(RELEASE)\" -g
+CFLAGS += -Wall -DVERSION=\"$(RELEASE)\"
 
 ifeq ($(DEBUG),1)
   CFLAGS += -DDEBUG
