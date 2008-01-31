@@ -17,3 +17,10 @@ Sounds:
 click reverb: http://freesound.iua.upf.edu/samplesViewSingle.php?id=34099
 hover clack: http://freesound.iua.upf.edu/samplesViewSingle.php?id=34099
 
+MAEMO TODO
+~~~~~~~~~~
+Main screen should look like all other maemo games
+Fix sounds (wav, mp3? - ogg doesn't seem to be supported)
+Widescreen support (??)
+Fix touchpad + D-Pad (d-pad doesn't work with mouse enabled)
+
