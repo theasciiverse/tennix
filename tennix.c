@@ -42,10 +42,18 @@ static const char* help_text[] = {
     "player 2 moves with <o>, <l> and <k>",
     "switch court in game with <c>, pause with <p>",
     "" /* joystick help text comes here */,
+#ifdef ENABLE_MOUSE
+    "press left mouse button to move racket",
+    "release left mouse button to swing racket",
+#endif
 };
 
 /* Number of lines in help_text */
-#define HELP_LINES 4
+#ifdef ENABLE_MOUSE
+  #define HELP_LINES 6
+#else
+  #define HELP_LINES 4
+#endif
 /* Height (in pixels) of the help text scroller */
 #define HELP_PHASE 85
 

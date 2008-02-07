@@ -74,6 +74,7 @@ typedef struct {
     int mouse_x; /* x position of mouse */
     int mouse_y; /* y position of mouse */
     float accelerate; /* a value [0..1] how fast the user accelerates */
+    bool mouse_locked; /* on start, ignore unpressed mouse state */
 } Player;
 
 enum {
@@ -167,9 +168,10 @@ typedef struct {
 
 #define MOVE_Y_SEED 3
 
-#define ENABLE_MOUSE false
+/* Comment out the following #define to enable mouse control */
+//#define ENABLE_MOUSE
 
-/* Comment out the following #define to disable FPS limiting */
+/* Comment the following #define to disable FPS limiting */
 #define ENABLE_FPS_LIMIT
 #define DEFAULT_FPS 33
 

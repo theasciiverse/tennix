@@ -34,8 +34,8 @@ void game( bool singleplayer) {
     GameState s = {
         { 0, 0, 0.0, 0.0, 0.0 },
         { 0, 0, 0, 0, 0 },
-        { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, false, 0, 0, PLAYER_ACCEL_DEFAULT },
-        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, false, 0, 0, PLAYER_ACCEL_DEFAULT },
+        { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
+        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
         0,
         0,
         0,
@@ -280,7 +280,11 @@ bool step( GameState* s) {
                    keys['w'] || keys[SDLK_UP] || s->joystick_y < -JOYSTICK_TRESHOLD,
                    keys['s'] || keys[SDLK_DOWN] || s->joystick_y > JOYSTICK_TRESHOLD,
                    keys['d'] || keys[SDLK_SPACE] || keys[SDLK_LCTRL] || s->joystick_a,
-                   ENABLE_MOUSE,
+#ifdef ENABLE_MOUSE
+                   true,
+#else
+                   false,
+#endif
                    s);
         } else {
             input_ai( &s->player1, &s->ball, &s->player2, s);
@@ -460,19 +464,26 @@ void input_human( Player* player, bool up, bool down, bool hit, bool use_mouse, 
     int diff = PLAYER_MOVE_Y;
     int mb;
 
-    if (use_mouse) {
+    /**
+     * Only use mouse control if the user isn't pressing any buttons
+     * this way, keyboard control still works when mouse control is
+     * enabled.
+     **/
+    if (use_mouse && !down && !up && !hit) {
         mb = SDL_GetMouseState(&(player->mouse_x), &(player->mouse_y));
         if (mb&SDL_BUTTON(SDL_BUTTON_LEFT)) {
+            if (player->mouse_y < player->y) {
+                down = false;
+                up = true;
+                diff = (player->y-player->mouse_y<diff)?(player->y-player->mouse_y):(diff);
+            } else if (player->mouse_y > player->y) {
+                up = false;
+                down = true;
+                diff = (player->mouse_y-player->y<diff)?(player->mouse_y-player->y):(diff);
+            }
+            player->mouse_locked = false;
+        } else if (!player->mouse_locked) {
             hit = true;
-        }
-        if (player->mouse_y < player->y) {
-            down = false;
-            up = true;
-            diff = (player->y-player->mouse_y<diff)?(player->y-player->mouse_y):(diff);
-        } else if (player->mouse_y > player->y) {
-            up = false;
-            down = true;
-            diff = (player->mouse_y-player->y<diff)?(player->mouse_y-player->y):(diff);
         }
     }
 
