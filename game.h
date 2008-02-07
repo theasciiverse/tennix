@@ -73,6 +73,7 @@ typedef struct {
     int sets[SETS_TO_WIN*2]; /* score for each set */
     int mouse_x; /* x position of mouse */
     int mouse_y; /* y position of mouse */
+    float accelerate; /* a value [0..1] how fast the user accelerates */
 } Player;
 
 enum {
@@ -158,7 +159,9 @@ typedef struct {
 #define IS_NEAR_X(px,bx) (fabsf(px-bx)<PLAYER_AREA_X)
 #define IS_NEAR_X_AI(px,bx) (fabsf(px-bx)<PLAYER_AREA_X*2)
 
-#define PLAYER_MOVE_Y 6.0
+#define PLAYER_MOVE_Y 5.0
+#define PLAYER_ACCEL_DEFAULT 0.2
+#define PLAYER_ACCEL_INCREASE 1.2
 #define PLAYER_STATE_MAX 7
 #define PLAYER_POWERSHOT 6.2
 

@@ -34,8 +34,8 @@ void game( bool singleplayer) {
     GameState s = {
         { 0, 0, 0.0, 0.0, 0.0 },
         { 0, 0, 0, 0, 0 },
-        { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, false, 0, 0 },
-        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, false, 0, 0 },
+        { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, false, 0, 0, PLAYER_ACCEL_DEFAULT },
+        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, false, 0, 0, PLAYER_ACCEL_DEFAULT },
         0,
         0,
         0,
@@ -483,12 +483,14 @@ void input_human( Player* player, bool up, bool down, bool hit, bool use_mouse, 
         }
     }
 
-    if( up) {
-        player->y -= diff;
-    }
-
-    if( down) {
-        player->y += diff;
+    if (up) {
+        player->y -= fminf(diff, diff*player->accelerate);
+        player->accelerate *= PLAYER_ACCEL_INCREASE;
+    } else if (down) {
+        player->y += fminf(diff, diff*player->accelerate);
+        player->accelerate *= PLAYER_ACCEL_INCREASE;
+    } else {
+        player->accelerate = PLAYER_ACCEL_DEFAULT;
     }
 
     if( hit) {
