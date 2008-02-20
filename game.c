@@ -240,16 +240,6 @@ bool step( GameState* s) {
         s->history_is_locked = false;
     }
 
-    /* Update ball_dest for debugging purposes */
-    get_move_y( s, 1);
-    get_move_y( s, 2);
-
-    s->ball.x += s->ball.move_x;
-    s->ball.y += s->ball.move_y;
-    
-    if( s->player1.state) s->player1.state--;
-    if( s->player2.state) s->player2.state--;
-
     SDL_PollEvent( &e);
     keys = SDL_GetKeyState( NULL);
     switch(e.type) {
@@ -325,6 +315,16 @@ bool step( GameState* s) {
     limit_value( &s->player2.y, PLAYER_Y_MIN, PLAYER_Y_MAX);
     limit_value( &s->ball.jump, BALL_JUMP_MIN, BALL_JUMP_MAX);
     
+    /* Update ball_dest for debugging purposes */
+    get_move_y(s, 1);
+    get_move_y(s, 2);
+
+    s->ball.x += s->ball.move_x;
+    s->ball.y += s->ball.move_y;
+
+    if(s->player1.state) s->player1.state--;
+    if(s->player2.state) s->player2.state--;
+
     return false;
 }
 
