@@ -65,6 +65,7 @@ install: tennix
 	install -s tennix $(DESTDIR)/$(BINARY_INSTALL_DIR)/tennix
 	install tennix.6 $(DESTDIR)/$(PREFIX)/share/man/man6/tennix.6
 	install -m644 data/icon.png $(DESTDIR)/$(PREFIX)/share/pixmaps/tennix.png
+	install -m644 data/icon.svg $(DESTDIR)/$(PREFIX)/share/icons/hicolor/scalable/apps/tennix.svg
 	install -m644 tennix.desktop $(DESTDIR)/$(PREFIX)/share/applications/
 
 tennix.o: tennix.c tennix.h game.h graphics.h input.h sound.h
