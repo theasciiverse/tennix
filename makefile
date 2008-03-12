@@ -60,6 +60,9 @@ tennix: $(OBJ)
 	$(CC) $(CFLAGS)   -o tennix $(OBJ) $(LIBS)
 	test -f tennix.exe && upx tennix.exe || true 
 
+ChangeLog:
+	git log >ChangeLog
+
 install: tennix
 	install -d $(DESTDIR)/$(BINARY_INSTALL_DIR) $(DESTDIR)/$(PREFIX)/share/pixmaps $(DESTDIR)/$(PREFIX)/share/applications $(DESTDIR)/$(PREFIX)/share/man/man6
 	install -s tennix $(DESTDIR)/$(BINARY_INSTALL_DIR)/tennix
@@ -80,31 +83,38 @@ data/sounds_data.c: data/*.ogg
 	make -C data sounds_data.c
 
 # Mac OS X-specific targets
-release-osx: tennix
+release-osx: tennix ChangeLog
 	mkdir -p $(OSXAPP)/Contents/{MacOS,/Resources}
 	cp -rpv tennix $(OSXAPP)/Contents/MacOS/Tennix
-	cp -rpv $(DATAFILES) $(OSXAPP)/Contents/Resources/
+	cp -rpv $(DATAFILES) ChangeLog $(OSXAPP)/Contents/Resources/
 	sed -e 's/TENNIX_VERSION/$(RELEASE)/' osxapp.plist >$(OSXAPP)/Contents/Info.plist
 	echo 'APPL????' >$(OSXAPP)/Contents/PkgInfo
 	zip -r tennix-$(RELEASE)-macosx.zip $(OSXAPP)
 # End Mac OS X-specific targets
 
 # Windows-specific targets
-release-win32: tennix
-	zip tennix-$(RELEASE)-win32.zip tennix.exe $(WIN32LIBS) $(DATAFILES)
+release-win32: tennix ChangeLog
+	zip tennix-$(RELEASE)-win32.zip tennix.exe $(WIN32LIBS) $(DATAFILES) ChangeLog
 
 tennix-installer.iss: tennix-installer.iss.in
 	sed tennix-installer.iss.in -e 's/{version}/$(RELEASE)/g' >tennix-installer.iss
 
-release-win32-setup: tennix tennix-installer.iss
+release-win32-setup: tennix ChangeLog tennix-installer.iss
 	iscc tennix-installer.iss
 
 tennixres.o: tennix.res
 	windres tennix.res tennixres.o
 # End Windows-specific targets
 
-release-bin: tennix
-	tar czvf tennix-$(RELEASE)-bin.tar.gz tennix $(DATAFILES)
+release-bin: tennix ChangeLog
+	tar czvf tennix-$(RELEASE)-bin.tar.gz tennix $(DATAFILES) ChangeLog
+
+release: distclean ChangeLog
+	mkdir -p .release-tmp/tennix-$(RELEASE)/
+	cp -rv * .release-tmp/tennix-$(RELEASE)/
+	rm -rf .release-tmp/tennix-$(RELEASE)/.git
+	tar czvf tennix-$(RELEASE).tar.gz -C .release-tmp tennix-$(RELEASE)
+	rm -rf .release-tmp
 
 clean:
 	rm -f *.o tennix tennix.exe
@@ -113,7 +123,7 @@ clean:
 	make -C data clean
 
 distclean: clean
-	rm -f tennix-$(RELEASE).zip tennix-$(RELEASE)-bin.tar.gz
+	rm -rf tennix-$(RELEASE).zip tennix-$(RELEASE)-bin.tar.gz ChangeLog .release-tmp tennix-$(RELEASE).tar.gz
 
 .PHONY: distclean clean release-bin release-win32 release-win32-setup release-osx install
 

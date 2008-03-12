@@ -31,6 +31,7 @@ Source: "SDL_image.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "SDL_mixer.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "libpng12.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "COPYING"; DestDir: "{app}"; Flags: ignoreversion
+Source: "ChangeLog"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README.win32"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
