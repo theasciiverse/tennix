@@ -9,7 +9,7 @@
 
                                            SDL Port
 
-        Copyright (C) 2003, 2007 Thomas Perl <thp@perli.net>
+     Copyright (C) 2003, 2007, 2008 Thomas Perl <thp@perli.net>
  
 
 
@@ -77,6 +77,9 @@ PLAYING TENNIX
    Move down                S              L
    Swing racket             D              K
                        ---------------------------
+
+   See the manpage, tennix(6) for more controls (especially alternative
+   keyboard controls and mouse control, which is new since 0.6.0).
 
    FUNCTION KEYS
 
