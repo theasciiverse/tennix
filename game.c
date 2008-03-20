@@ -371,6 +371,11 @@ void render( GameState* s) {
         show_sprite( GR_BALL, 0, 4, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
     }
 
+    /* Player 1's mouse rectangle */
+    if (!(s->player1.mouse_locked)) {
+        rectangle(s->player1.x-2+5, s->player1.mouse_y-2, 4, 4, 255, 255, 255);
+        rectangle(s->player1.x-1+5, s->player1.mouse_y-1, 2, 2, 0, 0, 0);
+    }
     
     font_draw_string( GR_DKC2_FONT, s->game_score_str, 14, 14, 0, ANIMATION_NONE);
     font_draw_string( GR_DKC2_FONT, s->sets_score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->sets_score_str))-14, 14, 0, ANIMATION_NONE);
@@ -469,6 +474,14 @@ void input_human( Player* player, bool up, bool down, bool hit, bool use_mouse, 
      * this way, keyboard control still works when mouse control is
      * enabled.
      **/
+    if (use_mouse && (down || up || hit)) {
+        /**
+         * this is here so if the user decides to play
+         * with keyboard controls, we will lock the 
+         * mouse and disable displaying the mouse cursor
+         **/
+        player->mouse_locked = true;
+    }
     if (use_mouse && !down && !up && !hit) {
         mb = SDL_GetMouseState(&(player->mouse_x), &(player->mouse_y));
         if (mb&SDL_BUTTON(SDL_BUTTON_LEFT)) {

@@ -169,7 +169,7 @@ typedef struct {
 #define MOVE_Y_SEED 3
 
 /* Comment out the following #define to enable mouse control */
-//#define ENABLE_MOUSE
+#define ENABLE_MOUSE
 
 /* Comment the following #define to disable FPS limiting */
 #define ENABLE_FPS_LIMIT
