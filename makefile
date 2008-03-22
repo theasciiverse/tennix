@@ -64,7 +64,7 @@ ChangeLog:
 	git log >ChangeLog
 
 install: tennix
-	install -d $(DESTDIR)/$(BINARY_INSTALL_DIR) $(DESTDIR)/$(PREFIX)/share/pixmaps $(DESTDIR)/$(PREFIX)/share/applications $(DESTDIR)/$(PREFIX)/share/man/man6
+	install -d $(DESTDIR)/$(BINARY_INSTALL_DIR) $(DESTDIR)/$(PREFIX)/share/pixmaps $(DESTDIR)/$(PREFIX)/share/applications $(DESTDIR)/$(PREFIX)/share/man/man6 $(DESTDIR)/$(PREFIX)/share/icons/hicolor/scalable/apps
 	install -s tennix $(DESTDIR)/$(BINARY_INSTALL_DIR)/tennix
 	install tennix.6 $(DESTDIR)/$(PREFIX)/share/man/man6/tennix.6
 	install -m644 data/icon.png $(DESTDIR)/$(PREFIX)/share/pixmaps/tennix.png
