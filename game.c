@@ -257,10 +257,21 @@ bool step( GameState* s) {
             break;
     }
 
-    if( keys['c'] && s->time%50==0) {
-        s->court_type++;
+    if( s->time%50==0) {
+        /**
+         * Maemo keys:
+         * F7 = "Decrease" key
+         * F8 = "Increase" key
+         **/
+        if (keys['c'] || keys[SDLK_F8]) {
+            s->court_type++;
+        } else if (keys[SDLK_F7]) {
+            s->court_type--;
+        }
         if( s->court_type > GR_CTT_LAST) {
             s->court_type = GR_CTT_FIRST;
+        } else if (s->court_type < GR_CTT_FIRST) {
+            s->court_type = GR_CTT_LAST;
         }
     }
 
@@ -269,7 +280,7 @@ bool step( GameState* s) {
            input_human( &s->player1,
                    keys['w'] || keys[SDLK_UP] || s->joystick_y < -JOYSTICK_TRESHOLD,
                    keys['s'] || keys[SDLK_DOWN] || s->joystick_y > JOYSTICK_TRESHOLD,
-                   keys['d'] || keys[SDLK_SPACE] || keys[SDLK_LCTRL] || s->joystick_a,
+                   keys['d'] || keys[SDLK_SPACE] || keys[SDLK_LCTRL] || keys[SDLK_RETURN] || s->joystick_a,
 #ifdef ENABLE_MOUSE
                    true,
 #else
@@ -287,21 +298,23 @@ bool step( GameState* s) {
         }
     }
     
-    if( keys['f']) SDL_WM_ToggleFullScreen( screen);
+    /* Maemo: The "F6" button is the "Fullscreen" button */
+    if( keys['f'] || keys[SDLK_F6]) SDL_WM_ToggleFullScreen( screen);
     if( keys['y']) SDL_SaveBMP( screen, "screenshot.bmp");
 
-    if( keys['p']) {
-        while( keys['p']) {
+    /* Maemo: The "F4" button is the "Open menu" button */
+    if( keys['p'] || keys[SDLK_F4]) {
+        while( keys['p'] || keys[SDLK_F4]) {
             SDL_PollEvent( &e);
             keys = SDL_GetKeyState( NULL);
             SDL_Delay( 10);
         }
-        while( keys['p'] == 0) {
+        while( (keys['p'] || keys[SDLK_F4]) == 0) {
             SDL_PollEvent( &e);
             keys = SDL_GetKeyState( NULL);
             SDL_Delay( 10);
         }
-        while( keys['p']) {
+        while( keys['p'] || keys[SDLK_F4]) {
             SDL_PollEvent( &e);
             keys = SDL_GetKeyState( NULL);
             SDL_Delay( 10);

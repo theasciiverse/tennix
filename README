@@ -57,7 +57,8 @@ INSTALLATION
    follow the instructions for your platform in the README.* files.
 
    Tennix is known to build on Debian GNU/Linux 4.0 (etch), 
-   Win32 (mingw32) and Mac OS X 10.4 (using XCode tools).
+   Win32 (mingw32), Mac OS X 10.4 (using XCode tools) and in
+   the Maemo 4.0 SDK (for Nokia Internet Tables, IT OS2008).
 
    Binaries of Tennix can be found on the webpage.
 

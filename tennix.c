@@ -40,7 +40,11 @@ SDL_Surface *screen;
 static const char* help_text[] = {
     "player 1 moves with <w>, <s> and <d>",
     "player 2 moves with <o>, <l> and <k>",
+#ifdef MAEMO
+    "switch court in game with <+/->, pause with <menu>",
+#else
     "switch court in game with <c>, pause with <p>",
+#endif
     "" /* joystick help text comes here */,
 #ifdef ENABLE_MOUSE
     "press left mouse button to move racket",
@@ -111,6 +115,10 @@ int main( int argc, char** argv) {
 
     Point elektrons[ELEKTRONS];
     int el;
+
+#ifdef MAEMO
+    sdl_flags |= SDL_FULLSCREEN;
+#endif
 
 #ifdef WIN32
     int mb_result;
@@ -225,6 +233,13 @@ int main( int argc, char** argv) {
 
     clear_screen();
     show_image(GR_MENU, WIDTH/2-get_image_width(GR_MENU)/2, 0, 255);
+#ifdef MAEMO
+    /**
+     * On Maemo, we hide the "Multi-Player" menu item by
+     * simply drawing a black rectangle over the text.
+     **/
+    rectangle(200, 170, 200, 30, 0, 0, 0);
+#endif
     store_screen();
    
     i = 0;
@@ -271,7 +286,9 @@ int main( int argc, char** argv) {
         if( M_POS_START_GAME(mx,my)) {
             highlight_y = HIGHLIGHT_START_GAME;
         } else if( M_POS_START_MULTI(mx,my)) {
+#ifndef MAEMO /* No Multiplayer on Maemo */
             highlight_y = HIGHLIGHT_START_MULTI;
+#endif
         /*} else if( M_POS_CREDITS(mx,my)) {
             highlight_y = HIGHLIGHT_CREDITS;
         */} else if( M_POS_QUIT(mx,my)) {
@@ -313,7 +330,14 @@ int main( int argc, char** argv) {
                                     255.0*fabsf( sinf( help_offset/((float)HELP_PHASE)*M_PI))
                                   );
         }
+#ifndef MAEMO /* No mouse cursor on Maemo (we have a touchscreen) */
         show_sprite( GR_RACKET, ((mb&SDL_BUTTON( SDL_BUTTON_LEFT))>0)+(((mb&SDL_BUTTON( SDL_BUTTON_RIGHT))>0)*2), 4, mx, my, 255);
+#endif
+
+#ifdef DEBUG
+        /* Draw the "real" mouse coordinates */
+        rectangle(mx-1, my-1, 2, 2, 255, 255, 255);
+#endif
         updatescr();
 
         if( mb & SDL_BUTTON( SDL_BUTTON_LEFT)) {
@@ -331,6 +355,7 @@ int main( int argc, char** argv) {
                 show_image(GR_MENU, WIDTH/2-get_image_width(GR_MENU)/2, 0, 255);
                 store_screen();
             }   
+#ifndef MAEMO /* No Multiplayer on Maemo */
             if( M_POS_START_MULTI(mx,my)) {
                 stop_sample(SOUND_BACKGROUND);
                 play_sample_loop(SOUND_AUDIENCE);
@@ -345,6 +370,7 @@ int main( int argc, char** argv) {
                 show_image(GR_MENU, WIDTH/2-get_image_width(GR_MENU)/2, 0, 255);
                 store_screen();
             }
+#endif
             if( M_POS_CREDITS(mx,my)) {
                 //introimage( "data/credits.bmp");
             }

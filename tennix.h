@@ -77,6 +77,11 @@ typedef struct {
 
 #define ELEKTRONS_WIDTH 65
 #define ELEKTRON_LAZYNESS 30.0
-#define ELEKTRONS 50
+
+#ifdef MAEMO
+    #define ELEKTRONS 10
+#else
+    #define ELEKTRONS 50
+#endif
 
 #endif

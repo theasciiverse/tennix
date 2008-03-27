@@ -34,6 +34,10 @@ ifeq ($(DEBUG),1)
   CFLAGS += -DDEBUG
 endif
 
+ifeq ($(MAEMO),1)
+  CFLAGS += -DMAEMO
+endif
+
 ifeq ($(TARGET),cocoa)
   LIBS += SDLmain.m -framework SDL -framework Cocoa -framework SDL_image -framework SDL_mixer
   CFLAGS += -I/Library/Frameworks/SDL.framework/Headers -I/Library/Frameworks/SDL_image.framework/Headers -I/Library/Frameworks/SDL_mixer.framework/Headers -DMACOSX
