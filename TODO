@@ -21,3 +21,18 @@ Main screen should look like all other maemo games
 Fix sounds (wav, mp3? - ogg doesn't seem to be supported)
 Widescreen support (??)
 
+
+Brainstorming
+~~~~~~~~~~~~~
+Make sound deactivatable (or sound volume settings?)
+Setting "sets to win" (2 or 3)
+Save game and continue game later on
+Highscore list
+Setting player names
+Select court type graphically before game
+Correct serve repeat when serving into the out
+Change between full screen and windowed mode in Windows
+Implement tie break
+Stadium commentator (needs voice actor)
+
+
