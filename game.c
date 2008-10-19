@@ -93,6 +93,8 @@ void game( bool singleplayer) {
         }
     }
 
+    play_sample_loop(SOUND_AUDIENCE);
+
 #ifdef ENABLE_FPS_LIMIT
     frames = 0;
     ft = SDL_GetTicks();
@@ -127,7 +129,8 @@ void game( bool singleplayer) {
 
         render( &s);
     }
-   
+
+    stop_sample(SOUND_AUDIENCE);
 }
 
 bool step( GameState* s) {

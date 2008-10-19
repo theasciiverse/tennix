@@ -35,19 +35,12 @@
 #define WIDTH 640
 #define HEIGHT 480
 
-#define M_POS_XPOS(x) (x>WIDTH/2-150&&x<WIDTH/2+150)
+#define M_POS_XPOS(x) (x>WIDTH-185)
 
-#define M_POS_START_GAME(x,y)  (M_POS_XPOS(x) && y>120 && y<160)
-#define M_POS_START_MULTI(x,y) (M_POS_XPOS(x) && y>170 && y<200)
-#define M_POS_CREDITS(x,y)     (M_POS_XPOS(x) && y>210 && y<250)
-#define M_POS_QUIT(x,y)        (M_POS_XPOS(x) && y>280 && y<320)
+#define M_POS_START_GAME(x,y)  (M_POS_XPOS(x) && y>150 && y<150+62)
+#define M_POS_START_MULTI(x,y) (M_POS_XPOS(x) && y>230 && y<230+62)
+#define M_POS_QUIT(x,y)        (M_POS_XPOS(x) && y>350 && y<350+62)
 
-#define HIGHLIGHT_X 420
-
-#define HIGHLIGHT_START_GAME 145
-#define HIGHLIGHT_START_MULTI 190
-#define HIGHLIGHT_CREDITS 235
-#define HIGHLIGHT_QUIT 305
 
 extern SDL_Surface *screen;
 
@@ -74,14 +67,5 @@ typedef struct {
     int size;
     int new_size;
 } Point;
-
-#define ELEKTRONS_WIDTH 65
-#define ELEKTRON_LAZYNESS 30.0
-
-#ifdef MAEMO
-    #define ELEKTRONS 10
-#else
-    #define ELEKTRONS 50
-#endif
 
 #endif

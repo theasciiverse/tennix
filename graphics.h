@@ -50,13 +50,17 @@ enum {
     GR_RACKET,
     GR_GROUND,
     GR_BALL,
-    GR_MENU,
     GR_SMALLISH_FONT,
     GR_DKC2_FONT,
     GR_REFEREE,
     GR_CTT_HARD,
     GR_CTT_CLAY,
     GR_CTT_GRASS,
+    GR_SIDEBAR,
+    GR_TENNIXLOGO,
+    GR_BTN_PLAY,
+    GR_BTN_OPTIONS,
+    GR_BTN_QUIT,
     GR_COUNT
 };
 
@@ -78,7 +82,7 @@ int get_image_width(image_id);
 int get_image_height(image_id);
 int get_sprite_width(image_id, int);
 void show_sprite(image_id, int, int, int, int, int);
-void show_image(image_id, int, int, int);
+#define show_image(id, x_offset, y_offset, opacity) show_sprite(id, 0, 1, x_offset, y_offset, opacity)
 void line_horiz( int y, Uint8 r, Uint8 g, Uint8 b);
 void line_vert( int x, Uint8 r, Uint8 g, Uint8 b);
 void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);

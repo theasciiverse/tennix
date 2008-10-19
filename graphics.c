@@ -47,13 +47,17 @@ static const ResourceData graphics[] = {
     RESOURCE(player_racket),
     RESOURCE(ground),
     RESOURCE(ball),
-    RESOURCE(menu),
     RESOURCE(smallish_font),
     RESOURCE(dkc2),
     RESOURCE(referee),
     RESOURCE(ctt_hard),
     RESOURCE(ctt_clay),
-    RESOURCE(ctt_grass)
+    RESOURCE(ctt_grass),
+    RESOURCE(sidebar),
+    RESOURCE(tennixlogo),
+    RESOURCE(btnplay),
+    RESOURCE(btnoptions),
+    RESOURCE(btnquit)
 };
 
 void init_graphics() {
@@ -237,10 +241,6 @@ void draw_button_text( char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Ui
     font_x = x + w/2 - font_get_string_width( GR_SMALLISH_FONT, s)/2 + pressed*BUTTON_BORDER;
     font_y = y + h/2 - get_image_height( GR_SMALLISH_FONT)/2 + pressed*BUTTON_BORDER;
     font_draw_string( GR_SMALLISH_FONT, s, font_x, font_y, 0, 0);
-}
-
-void show_image( image_id id, int x_offset, int y_offset, int opacity) {
-    show_sprite( id, 0, 1, x_offset, y_offset, opacity);
 }
 
 void clear_screen()

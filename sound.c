@@ -35,7 +35,9 @@ static const ResourceData samples[] = {
     RESOURCE(audience),
     RESOURCE(applause),
     RESOURCE(out),
-    RESOURCE(background)
+    RESOURCE(background),
+    RESOURCE(mouseover),
+    RESOURCE(mouseclick)
 };
 
 void init_sound() {
@@ -68,9 +70,9 @@ void play_sample_n(sound_id id, int n)
     }
 
     if (n == -2) {
-        Mix_FadeInChannel(id, sounds[id].data, -1, FADE_IN_MS);
+        Mix_FadeInChannel(id%8, sounds[id].data, -1, FADE_IN_MS);
     } else {
-        Mix_PlayChannel(id, sounds[id].data, n);
+        Mix_PlayChannel(id%8, sounds[id].data, n);
     }
 
     if (id == SOUND_RACKET) {
@@ -80,16 +82,16 @@ void play_sample_n(sound_id id, int n)
 
 void stop_sample(sound_id id)
 {
-    Mix_FadeOutChannel(id, FADE_OUT_MS);
+    Mix_FadeOutChannel(id%8, FADE_OUT_MS);
 }
 
 void pan_sample(sound_id id, float position)
 {
     if (position == 0.5) {
-        Mix_SetPanning(id, 255, 255);
+        Mix_SetPanning(id%8, 255, 255);
     }
     else {
-        Mix_SetPanning(id, 255*(1.0-position), 255*(position));
+        Mix_SetPanning(id%8, 255*(1.0-position), 255*(position));
     }
 }
 

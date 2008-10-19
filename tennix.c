@@ -37,30 +37,6 @@
 
 SDL_Surface *screen;
 
-static const char* help_text[] = {
-    "player 1 moves with <w>, <s> and <d>",
-    "player 2 moves with <o>, <l> and <k>",
-#ifdef MAEMO
-    "switch court in game with <+/->, pause with <menu>",
-#else
-    "switch court in game with <c>, pause with <p>",
-#endif
-    "" /* joystick help text comes here */,
-#ifdef ENABLE_MOUSE
-    "press left mouse button to move racket",
-    "release left mouse button to swing racket",
-#endif
-};
-
-/* Number of lines in help_text */
-#ifdef ENABLE_MOUSE
-  #define HELP_LINES 6
-#else
-  #define HELP_LINES 4
-#endif
-/* Height (in pixels) of the help text scroller */
-#define HELP_PHASE 85
-
 #ifdef WIN32
 
 /* IDs from the resource file */
@@ -102,19 +78,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 #else
 int main( int argc, char** argv) {
 #endif
-    int i;
+    int i, slide, slide_direction = -1;
+    int ticks;
     int mx, my;
     Uint8 *keys;
     Uint8 mb;
     SDL_Event e;
     int sdl_flags = SDL_SWSURFACE;
-    int highlight_y = 0;
-    char copyright_line[100];
     int copyright_line_width;
-    int help, help_line_widths[HELP_LINES], help_line_height, help_offset;
-
-    Point elektrons[ELEKTRONS];
-    int el;
+    int btn_offset;
+    int btn_hovering = 0;
+    int slide_start;
 
 #ifdef MAEMO
     sdl_flags |= SDL_FULLSCREEN;
@@ -183,26 +157,8 @@ int main( int argc, char** argv) {
     }
 #endif
 
-    sprintf( copyright_line, "Tennix %s -- %s", VERSION, COPYRIGHT);
-
     srand( (unsigned)time( NULL));
 
-    for( el=0; el<ELEKTRONS; el++) {
-        elektrons[el].x = elektrons[el].y = 0;
-        elektrons[el].w = 50+(rand()%120);
-        elektrons[el].h = 10+(rand()%10);
-        elektrons[el].current_x = WIDTH/2;
-        elektrons[el].current_y = HEIGHT/2;
-        elektrons[el].new_x = rand()%WIDTH;
-        elektrons[el].new_y = rand()%HEIGHT;
-        elektrons[el].phase = 4*2*PI*((rand()%1000)/1000.0);
-        elektrons[el].r = 100+rand()%155;
-        elektrons[el].g = 100+rand()%155;
-        elektrons[el].b = 0;
-        elektrons[el].size = 0;
-        elektrons[el].new_size = 5+rand()%10;
-    }
-   
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) == -1) {
         fprintf( stderr, "Can't init SDL:  %s\n", SDL_GetError());
         exit( 1);
@@ -214,36 +170,46 @@ int main( int argc, char** argv) {
         exit( 1);
     }   
 
-    SDL_WM_SetCaption( "Tennix! SDL", "Tennix");
+    SDL_WM_SetCaption( "Tennix " VERSION, "Tennix");
     SDL_ShowCursor( SDL_DISABLE);
     SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, 1);
 
     init_sound();
     init_graphics();
     init_joystick();
-    help_text[3] = get_joystick_help();
 
     play_sample_background(SOUND_BACKGROUND);
 
-    copyright_line_width = font_get_string_width( GR_DKC2_FONT, copyright_line);
-    for( help=0; help<HELP_LINES; help++) {
-        help_line_widths[help] = font_get_string_width( GR_SMALLISH_FONT, help_text[help]);
-    }
-    help_line_height = get_image_height( GR_SMALLISH_FONT);
+    copyright_line_width = font_get_string_width( GR_DKC2_FONT, COPYRIGHT);
 
     clear_screen();
-    show_image(GR_MENU, WIDTH/2-get_image_width(GR_MENU)/2, 0, 255);
-#ifdef MAEMO
-    /**
-     * On Maemo, we hide the "Multi-Player" menu item by
-     * simply drawing a black rectangle over the text.
-     **/
-    rectangle(200, 170, 200, 30, 0, 0, 0);
-#endif
-    store_screen();
-   
+    start_fade();
+
     i = 0;
+    ticks = SDL_GetTicks();
+    slide_start = get_image_width(GR_SIDEBAR);
+    slide = slide_start;
     while( 1) {
+        if (SDL_GetTicks() > ticks + 20) {
+            if (slide > 0 && slide <= slide_start) {
+                slide += slide_direction*(1+slide/25);
+            } else if (slide >= slide_start) {
+                slide = slide_start;
+                slide_direction = 0;
+            } else {
+                slide = 0;
+                slide_direction = 1;
+            }
+            ticks = SDL_GetTicks();
+        }
+        clear_screen();
+        btn_offset = slide/7;
+        show_image(GR_SIDEBAR, WIDTH-get_image_width(GR_SIDEBAR)+slide, 0, 255);
+        show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10+slide/2, 20, 255);
+        show_image(GR_BTN_PLAY, WIDTH-get_image_width(GR_BTN_PLAY)+slide+btn_offset+3-(3*(btn_hovering==1)), 150, 255);
+        show_image(GR_BTN_OPTIONS, WIDTH-get_image_width(GR_BTN_OPTIONS)+slide+btn_offset+3-(3*(btn_hovering==2)), 230, 255);
+        show_image(GR_BTN_QUIT, WIDTH-get_image_width(GR_BTN_QUIT)+slide+btn_offset+3-(3*(btn_hovering==3)), 350, 255);
+
         SDL_PollEvent( &e);
         if( e.type == SDL_QUIT) {
             break;
@@ -259,120 +225,53 @@ int main( int argc, char** argv) {
             SDL_WM_ToggleFullScreen( screen);
         }
    
-        if( highlight_y) {
-            for( el=0; el<ELEKTRONS; el++) {
-                elektrons[el].new_x = WIDTH/2 - ELEKTRONS_WIDTH;
-                elektrons[el].new_y = highlight_y;
-                if( elektrons[el].new_size >= 5) {
-                    elektrons[el].new_size = 1+rand()%4;
-                }
-            }
-        }
-        
-        for( el=0; el<ELEKTRONS; el++) {
-            elektrons[el].current_x += (1.0*(elektrons[el].new_x-elektrons[el].current_x)/ELEKTRON_LAZYNESS);
-            elektrons[el].current_y += (1.0*(elektrons[el].new_y-elektrons[el].current_y)/ELEKTRON_LAZYNESS);
-            if( i%4==0 && elektrons[el].size < elektrons[el].new_size) {
-                elektrons[el].size++;
-            }
-            if( i%4==0 && elektrons[el].size > elektrons[el].new_size) {
-                elektrons[el].size--;
-            }
-            elektrons[el].phase += 0.02+(rand()%20/100.0);
-            elektrons[el].x = elektrons[el].current_x + ELEKTRONS_WIDTH + elektrons[el].w*cosf(elektrons[el].phase/4);
-            elektrons[el].y = elektrons[el].current_y + elektrons[el].h*sinf(elektrons[el].phase);
-        }
-
         if( M_POS_START_GAME(mx,my)) {
-            highlight_y = HIGHLIGHT_START_GAME;
+            if (btn_hovering != 1) play_sample(SOUND_MOUSEOVER);
+            btn_hovering = 1;
         } else if( M_POS_START_MULTI(mx,my)) {
-#ifndef MAEMO /* No Multiplayer on Maemo */
-            highlight_y = HIGHLIGHT_START_MULTI;
-#endif
-        /*} else if( M_POS_CREDITS(mx,my)) {
-            highlight_y = HIGHLIGHT_CREDITS;
-        */} else if( M_POS_QUIT(mx,my)) {
-            highlight_y = HIGHLIGHT_QUIT;
-        } else if( highlight_y == 0) {
-            if( i%20 == 0) {
-                for( el=0; el<ELEKTRONS; el++) {
-                    elektrons[el].new_size = 5+rand()%10;
-                }
-            }
+            if (btn_hovering != 2) play_sample(SOUND_MOUSEOVER);
+            btn_hovering = 2;
+        } else if( M_POS_QUIT(mx,my)) {
+            if (btn_hovering != 3) play_sample(SOUND_MOUSEOVER);
+            btn_hovering = 3;
         } else {
-            for( el=0; el<ELEKTRONS; el++) {
-                elektrons[el].new_x = rand()%(WIDTH-ELEKTRONS_WIDTH-elektrons[el].w/2);
-                elektrons[el].new_y = rand()%HEIGHT;
-                elektrons[el].new_size = 5+rand()%10;
-            }
-            highlight_y = 0;
+            btn_hovering = 0;
         }
 
-        for( el=0; el<ELEKTRONS; el++) {
-            if( elektrons[el].size > 0) {
-                rectangle( elektrons[el].x, elektrons[el].y, elektrons[el].size, elektrons[el].size, elektrons[el].r, elektrons[el].g, elektrons[el].b);
-                if( elektrons[el].size > 4) {
-                    if( highlight_y != 0 || rand()%10 == 0) {
-                        //draw_line_faded( elektrons[el].x+elektrons[el].size/2, elektrons[el].y+elektrons[el].size/2, mx+15, my+24, elektrons[el].r/3, elektrons[el].g/3, 0, 0 ,0 ,0);
-                    }
-                    rectangle( elektrons[el].x+2, elektrons[el].y+2, elektrons[el].size-4, elektrons[el].size-4, 0, 0, 0);
-                }
-            }
-        }
-
-        font_draw_string( GR_DKC2_FONT, copyright_line, (WIDTH-copyright_line_width)/2, HEIGHT-35, i, ((i/150)%ANIMATION_COUNT));
-        for( help=0; help<HELP_LINES; help++) {
-            help_offset = (help_line_height*(HELP_LINES-help)+i/3)%HELP_PHASE;
-            font_draw_string_alpha( GR_SMALLISH_FONT, help_text[help],
-                                    (WIDTH-help_line_widths[help])/2,
-                                    HEIGHT/2+45-help_offset,
-                                    i, ANIMATION_NONE,
-                                    255.0*fabsf( sinf( help_offset/((float)HELP_PHASE)*M_PI))
-                                  );
-        }
+        font_draw_string( GR_SMALLISH_FONT, COPYRIGHT, (WIDTH-copyright_line_width)/2-80, HEIGHT-35, i*3, (((i*3)/150)%ANIMATION_COUNT));
 #ifndef MAEMO /* No mouse cursor on Maemo (we have a touchscreen) */
         show_sprite( GR_RACKET, ((mb&SDL_BUTTON( SDL_BUTTON_LEFT))>0)+(((mb&SDL_BUTTON( SDL_BUTTON_RIGHT))>0)*2), 4, mx, my, 255);
 #endif
+        font_draw_string( GR_SMALLISH_FONT, "FYI: Currently, the options menu is the two-player mode :)", 10, 10, 0, 0);
 
 #ifdef DEBUG
         /* Draw the "real" mouse coordinates */
         rectangle(mx-1, my-1, 2, 2, 255, 255, 255);
 #endif
+        store_screen();
         updatescr();
 
         if( mb & SDL_BUTTON( SDL_BUTTON_LEFT)) {
+            play_sample(SOUND_MOUSECLICK);
             if( M_POS_START_GAME(mx,my)) {
                 stop_sample(SOUND_BACKGROUND);
-                play_sample_loop(SOUND_AUDIENCE);
                 start_fade();
                 game( true);
                 SDL_Delay( 150);
                 start_fade();
                 while( SDL_PollEvent( &e));
-                stop_sample(SOUND_AUDIENCE);
                 play_sample_background(SOUND_BACKGROUND);
-                clear_screen();
-                show_image(GR_MENU, WIDTH/2-get_image_width(GR_MENU)/2, 0, 255);
-                store_screen();
+                slide = slide_start;
+                slide_direction = -1;
             }   
-#ifndef MAEMO /* No Multiplayer on Maemo */
             if( M_POS_START_MULTI(mx,my)) {
                 stop_sample(SOUND_BACKGROUND);
-                play_sample_loop(SOUND_AUDIENCE);
                 start_fade();
                 game( false);
                 SDL_Delay( 150);
                 start_fade();
                 while( SDL_PollEvent( &e));
-                stop_sample(SOUND_AUDIENCE);
                 play_sample_background(SOUND_BACKGROUND);
-                clear_screen();
-                show_image(GR_MENU, WIDTH/2-get_image_width(GR_MENU)/2, 0, 255);
-                store_screen();
-            }
-#endif
-            if( M_POS_CREDITS(mx,my)) {
-                //introimage( "data/credits.bmp");
             }
             if( M_POS_QUIT(mx,my)) {
                 stop_sample(SOUND_BACKGROUND);
@@ -380,7 +279,7 @@ int main( int argc, char** argv) {
             }
         }
         i++;
-        SDL_Delay( 4);
+        SDL_Delay(10);
     }
 
     start_fade();
