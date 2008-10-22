@@ -1,6 +1,14 @@
 Todo and Idea List for Tennix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Effects/weather:
+ * Fog (overlay semi-transparent fog surfaces)
+ * Rain (using Line function?)
+ * Wind (modifies the ball movement)
+ * Sunshine (=current, normal behaviour)
+ * Snow (christmas edition?)
+
+
 For the next UI clean-up, use "Wild plastic" as music from:
 http://www.melodyloops.com/music-loops/free-music-loops-3.html
 
