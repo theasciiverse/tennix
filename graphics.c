@@ -188,6 +188,14 @@ void fill_image_offset( image_id id, int x, int y, int w, int h, int offset_x, i
 
     bitmap = images[id].data;
 
+    /* Make negative offsets positive */
+    if (offset_x < 0) {
+        offset_x = (offset_x%bitmap->w)+bitmap->w;
+    }
+    if (offset_y < 0) {
+        offset_y = (offset_y%bitmap->h)+bitmap->h;
+    }
+
     src.y = offset_y % bitmap->h;
     while( dy < h) {
         src.h = dst.h = cy = (h-dy > bitmap->h-src.y)?(bitmap->h-src.y):(h-dy);
