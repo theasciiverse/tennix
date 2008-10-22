@@ -92,6 +92,10 @@ int main( int argc, char** argv) {
     bool quit = false;
     GameState *s = NULL;
 
+#ifdef ENABLE_FPS_LIMIT
+    Uint32 ft, frames; /* frame timer and frames */
+#endif
+
 #ifdef MAEMO
     sdl_flags |= SDL_FULLSCREEN;
 #endif
@@ -180,6 +184,11 @@ int main( int argc, char** argv) {
     init_graphics();
     init_joystick();
 
+#ifdef ENABLE_FPS_LIMIT
+    frames = 0;
+    ft = SDL_GetTicks();
+#endif
+
     /*play_sample_background(SOUND_BACKGROUND);*/
 
     i = 0;
@@ -234,11 +243,12 @@ int main( int argc, char** argv) {
         show_sprite( GR_RACKET, ((mb&SDL_BUTTON( SDL_BUTTON_LEFT))>0)+(((mb&SDL_BUTTON( SDL_BUTTON_RIGHT))>0)*2), 4, mx, my, 255);
 #endif
 
-#ifdef DEBUG
         /* Draw the "real" mouse coordinates */
-        rectangle(mx-1, my-1, 2, 2, 255, 255, 255);
-#endif
+        /*rectangle(mx-1, my-1, 2, 2, 255, 255, 255);*/
+
+        /* Store the screen, because we are fading after this screen update */
         if (!(mb & SDL_BUTTON(SDL_BUTTON_LEFT)) && btn_hovering != MENU_NONE && is_clicked == true) store_screen();
+
         updatescr();
 
         if( mb & SDL_BUTTON( SDL_BUTTON_LEFT)) {
@@ -269,7 +279,12 @@ int main( int argc, char** argv) {
             is_clicked = false;
         }
         i++;
-        SDL_Delay(10);
+#ifdef ENABLE_FPS_LIMIT
+        while (frames*1000.0/((float)(SDL_GetTicks()-ft+1))>(float)(DEFAULT_FPS)) {
+            SDL_Delay(10);
+        }
+        frames++;
+#endif
     }
 
     start_fade();

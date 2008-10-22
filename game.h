@@ -171,10 +171,6 @@ typedef struct {
 /* Comment out the following #define to enable mouse control */
 #define ENABLE_MOUSE
 
-/* Comment the following #define to disable FPS limiting */
-#define ENABLE_FPS_LIMIT
-#define DEFAULT_FPS 33
-
 /* GameState handling*/
 GameState *gamestate_new();
 

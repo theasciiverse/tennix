@@ -57,6 +57,11 @@ enum {
 #define M_POS_DECODE(x,y) (M_POS_XPOS(x)?((M_POS_START(y))?(MENU_START):((M_POS_QUIT(y))?(MENU_QUIT):((M_POS_RESUME(y))?(MENU_RESUME):(MENU_NONE)))):(MENU_NONE))
 
 
+/* Comment the following #define to disable FPS limiting */
+#define ENABLE_FPS_LIMIT
+#define DEFAULT_FPS 33
+
+
 extern SDL_Surface *screen;
 
 typedef struct {
