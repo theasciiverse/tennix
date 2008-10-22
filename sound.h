@@ -33,6 +33,7 @@ typedef unsigned char sound_id;
 enum {
     SOUND_RACKET1 = 0,
     SOUND_RACKET2,
+    SOUND_RAIN,
     SOUND_GROUND1,
     SOUND_GROUND2,
     SOUND_AUDIENCE,

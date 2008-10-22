@@ -30,6 +30,7 @@ static Sound* sounds;
 static const ResourceData samples[] = {
     RESOURCE(racket1),
     RESOURCE(racket2),
+    RESOURCE(rain),
     RESOURCE(ground1),
     RESOURCE(ground2),
     RESOURCE(audience),

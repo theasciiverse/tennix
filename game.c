@@ -102,6 +102,9 @@ void gameloop(GameState *s) {
     Uint32 ft, frames; /* frame timer and frames */
 #endif
 
+    if (s->rain > 0) {
+        play_sample_background(SOUND_RAIN);
+    }
     play_sample_loop(SOUND_AUDIENCE);
     /* Reset the court type, so it is redrawn on first display */
     s->old_court_type = -1;
@@ -145,6 +148,7 @@ void gameloop(GameState *s) {
     store_screen();
 
     stop_sample(SOUND_AUDIENCE);
+    stop_sample(SOUND_RAIN);
 }
 
 bool step( GameState* s) {
@@ -285,6 +289,9 @@ bool step( GameState* s) {
             s->court_type--;
         }
         if (keys['r']) {
+            if (s->rain == 0) {
+                play_sample_background(SOUND_RAIN);
+            }
             s->rain += 10;
         }
         if (keys['t']) {
