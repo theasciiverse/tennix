@@ -295,6 +295,10 @@ int main( int argc, char** argv) {
                 gameloop(current_game);
                 SDL_Delay(150);
                 while(SDL_PollEvent(&e));
+#ifdef ENABLE_FPS_LIMIT
+                frames = 0;
+                ft = SDL_GetTicks();
+#endif
                 start_fade();
                 state = MENU_STATE_SLIDE_TO_MAINMENU;
                 break;
@@ -328,6 +332,11 @@ int main( int argc, char** argv) {
         }
 
         /* Graphics */
+#ifdef DEBUG
+        if (state != MENU_STATE_OPTIONS) {
+            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, -i, 0);
+        }
+#endif
         show_image(GR_SIDEBAR, WIDTH-get_image_width(GR_SIDEBAR)+slide, 0, 255);
         show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20-slide, 255);
         if (state != MENU_STATE_OPTIONS) {
