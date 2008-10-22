@@ -30,12 +30,16 @@
 #include "input.h"
 #include "sound.h"
 
-void game( bool singleplayer) {
-    GameState s = {
+
+GameState *gamestate_new() {
+    int x, y, z;
+    GameState *s;
+
+    GameState template = {
         { 0, 0, 0.0, 0.0, 0.0 },
         { 0, 0, 0, 0, 0 },
         { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
-        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
+        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
         0,
         0,
         0,
@@ -60,8 +64,29 @@ void game( bool singleplayer) {
         0
     };
 
-    strcpy( s.game_score_str, format_game( &s));
-    strcpy( s.sets_score_str, format_sets( &s));
+    s = (GameState*)malloc(sizeof(GameState));
+    if (s == NULL) abort();
+
+    memcpy(s, &template, sizeof(GameState));
+
+    game_setup_serve(s);
+
+    /* smoothen n-gram */
+    for( x = 0; x<NGRAM_STEPS; x++) {
+        for( y = 0; y<NGRAM_STEPS; y++) {
+            for( z = 0; z<NGRAM_STEPS; z++) {
+                s->ngram[x][y][z] = 1;
+            }
+        }
+    }
+
+    return s;
+}
+
+
+void gameloop(GameState *s) {
+    strcpy(s->game_score_str, format_game(s));
+    strcpy(s->sets_score_str, format_sets(s));
 
     Uint32 ot = SDL_GetTicks();
     Uint32 nt;
@@ -69,31 +94,14 @@ void game( bool singleplayer) {
     Uint32 diff;
     Uint32 accumulator = 0;
     bool quit = false;
-    int x, y, z;
 
 #ifdef ENABLE_FPS_LIMIT
     Uint32 ft, frames; /* frame timer and frames */
 #endif
 
-    if( singleplayer) {
-#ifdef DEBUG
-        s.player1.type = PLAYER_TYPE_AI;
-#endif
-        s.player2.type = PLAYER_TYPE_AI;
-    }
-
-    game_setup_serve( &s);
-
-    /* smoothen n-gram */
-    for( x = 0; x<NGRAM_STEPS; x++) {
-        for( y = 0; y<NGRAM_STEPS; y++) {
-            for( z = 0; z<NGRAM_STEPS; z++) {
-                s.ngram[x][y][z] = 1;
-            }
-        }
-    }
-
     play_sample_loop(SOUND_AUDIENCE);
+    /* Reset the court type, so it is redrawn on first display */
+    s->old_court_type = -1;
 
 #ifdef ENABLE_FPS_LIMIT
     frames = 0;
@@ -110,13 +118,13 @@ void game( bool singleplayer) {
         ot = nt;
 
         while( accumulator >= dt) {
-            quit = step( &s);
-            s.time += dt;
+            quit = step(s);
+            s->time += dt;
             accumulator -= dt;
 
-            if( s.was_stopped) {
+            if( s->was_stopped) {
                 ot = SDL_GetTicks();
-                s.was_stopped = false;
+                s->was_stopped = false;
             }
         }
 
@@ -127,7 +135,7 @@ void game( bool singleplayer) {
         frames++;
 #endif
 
-        render( &s);
+        render(s);
     }
 
     clear_screen();

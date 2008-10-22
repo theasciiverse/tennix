@@ -49,9 +49,9 @@
 
 enum {
     MENU_NONE = 0,
-    MENU_START,
-    MENU_OPTIONS,
-    MENU_QUIT
+    MENU_START = 1,
+    MENU_OPTIONS = 2,
+    MENU_QUIT = 4
 };
 
 #define M_POS_DECODE(x,y) (M_POS_XPOS(x)?((M_POS_START(y))?(MENU_START):((M_POS_QUIT(y))?(MENU_QUIT):((M_POS_OPTIONS(y))?(MENU_OPTIONS):(MENU_NONE)))):(MENU_NONE))

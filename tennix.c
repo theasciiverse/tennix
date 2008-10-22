@@ -90,6 +90,7 @@ int main( int argc, char** argv) {
     int slide_start;
     bool is_clicked = false;
     bool quit = false;
+    GameState *s = NULL;
 
 #ifdef MAEMO
     sdl_flags |= SDL_FULLSCREEN;
@@ -202,7 +203,7 @@ int main( int argc, char** argv) {
         show_image(GR_SIDEBAR, WIDTH-get_image_width(GR_SIDEBAR)+slide, 0, 255);
         show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20-slide, 255);
         show_image(GR_BTN_PLAY, WIDTH-get_image_width(GR_BTN_PLAY)+slide+btn_offset+3-(3*(btn_hovering==MENU_START)), 150, 255);
-        show_image(GR_BTN_OPTIONS, WIDTH-get_image_width(GR_BTN_OPTIONS)+slide+btn_offset+3-(3*(btn_hovering==MENU_OPTIONS)), 230, 255);
+        if (s != NULL) show_image(GR_BTN_OPTIONS, WIDTH-get_image_width(GR_BTN_OPTIONS)+slide+btn_offset+3-(3*(btn_hovering==MENU_OPTIONS)), 230, 255);
         show_image(GR_BTN_QUIT, WIDTH-get_image_width(GR_BTN_QUIT)+slide+btn_offset+3-(3*(btn_hovering==MENU_QUIT)), 350, 255);
 
         SDL_PollEvent( &e);
@@ -214,6 +215,9 @@ int main( int argc, char** argv) {
 
         btn_hovering_old = btn_hovering;
         btn_hovering = M_POS_DECODE(mx, my);
+        if (s == NULL) {
+            btn_hovering &= ~MENU_OPTIONS;
+        }
         if (btn_hovering_old != btn_hovering && btn_hovering != 0) {
             play_sample(SOUND_MOUSEOVER);
         }
@@ -245,7 +249,11 @@ int main( int argc, char** argv) {
                 case MENU_START: case MENU_OPTIONS:
                     stop_sample(SOUND_BACKGROUND);
                     start_fade();
-                    game(btn_hovering == MENU_START);
+                    if (s == NULL || btn_hovering == MENU_START) {
+                        free(s);
+                        s = gamestate_new();
+                    }
+                    gameloop(s);
                     SDL_Delay(150);
                     start_fade();
                     while( SDL_PollEvent( &e));

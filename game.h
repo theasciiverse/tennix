@@ -175,7 +175,12 @@ typedef struct {
 #define ENABLE_FPS_LIMIT
 #define DEFAULT_FPS 33
 
-void game( bool);
+/* GameState handling*/
+GameState *gamestate_new();
+
+
+/* Game module functions */
+void gameloop(GameState*);
 void render( GameState*);
 bool step( GameState*);
 void limit_value( float*, float, float);
