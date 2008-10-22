@@ -48,7 +48,6 @@ enum {
     GR_COURT = 0,
     GR_SHADOW,
     GR_RACKET,
-    GR_GROUND,
     GR_BALL,
     GR_SMALLISH_FONT,
     GR_DKC2_FONT,

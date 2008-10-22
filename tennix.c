@@ -89,6 +89,7 @@ int main( int argc, char** argv) {
     int btn_offset;
     int btn_hovering = 0;
     int slide_start;
+    bool is_clicked = false;
 
 #ifdef MAEMO
     sdl_flags |= SDL_FULLSCREEN;
@@ -178,12 +179,9 @@ int main( int argc, char** argv) {
     init_graphics();
     init_joystick();
 
-    play_sample_background(SOUND_BACKGROUND);
+    /*play_sample_background(SOUND_BACKGROUND);*/
 
     copyright_line_width = font_get_string_width( GR_DKC2_FONT, COPYRIGHT);
-
-    clear_screen();
-    start_fade();
 
     i = 0;
     ticks = SDL_GetTicks();
@@ -202,7 +200,6 @@ int main( int argc, char** argv) {
             }
             ticks = SDL_GetTicks();
         }
-        clear_screen();
         btn_offset = slide/7;
         show_image(GR_SIDEBAR, WIDTH-get_image_width(GR_SIDEBAR)+slide, 0, 255);
         show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10+slide/2, 20, 255);
@@ -238,45 +235,38 @@ int main( int argc, char** argv) {
             btn_hovering = 0;
         }
 
-        font_draw_string( GR_SMALLISH_FONT, COPYRIGHT, (WIDTH-copyright_line_width)/2-80, HEIGHT-35, i*3, (((i*3)/150)%ANIMATION_COUNT));
+        /*font_draw_string( GR_SMALLISH_FONT, COPYRIGHT, (WIDTH-copyright_line_width)/2-80, HEIGHT-35, i*3, (((i*3)/150)%ANIMATION_COUNT));*/
 #ifndef MAEMO /* No mouse cursor on Maemo (we have a touchscreen) */
         show_sprite( GR_RACKET, ((mb&SDL_BUTTON( SDL_BUTTON_LEFT))>0)+(((mb&SDL_BUTTON( SDL_BUTTON_RIGHT))>0)*2), 4, mx, my, 255);
 #endif
-        font_draw_string( GR_SMALLISH_FONT, "FYI: Currently, the options menu is the two-player mode :)", 10, 10, 0, 0);
+        /*font_draw_string( GR_SMALLISH_FONT, "FYI: Currently, the options menu is the two-player mode :)", 10, 10, 0, 0);*/
 
 #ifdef DEBUG
         /* Draw the "real" mouse coordinates */
         rectangle(mx-1, my-1, 2, 2, 255, 255, 255);
 #endif
-        store_screen();
+        if (mb & SDL_BUTTON(SDL_BUTTON_LEFT) && M_POS_QUIT(mx,my) && is_clicked == false) store_screen();
         updatescr();
 
         if( mb & SDL_BUTTON( SDL_BUTTON_LEFT)) {
+            is_clicked = true;
+        } else if (is_clicked == true) {
             play_sample(SOUND_MOUSECLICK);
-            if( M_POS_START_GAME(mx,my)) {
+            if( M_POS_START_GAME(mx,my) || M_POS_START_MULTI(mx, my)) {
                 stop_sample(SOUND_BACKGROUND);
                 start_fade();
-                game( true);
+                game(M_POS_START_GAME(mx, my));
                 SDL_Delay( 150);
                 start_fade();
                 while( SDL_PollEvent( &e));
-                play_sample_background(SOUND_BACKGROUND);
+                /*play_sample_background(SOUND_BACKGROUND);*/
                 slide = slide_start;
                 slide_direction = -1;
-            }   
-            if( M_POS_START_MULTI(mx,my)) {
-                stop_sample(SOUND_BACKGROUND);
-                start_fade();
-                game( false);
-                SDL_Delay( 150);
-                start_fade();
-                while( SDL_PollEvent( &e));
-                play_sample_background(SOUND_BACKGROUND);
-            }
-            if( M_POS_QUIT(mx,my)) {
+            } else if( M_POS_QUIT(mx,my)) {
                 stop_sample(SOUND_BACKGROUND);
                 break;
             }
+            is_clicked = false;
         }
         i++;
         SDL_Delay(10);

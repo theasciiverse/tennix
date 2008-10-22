@@ -45,7 +45,6 @@ static const ResourceData graphics[] = {
     RESOURCE(court),
     RESOURCE(shadow),
     RESOURCE(player_racket),
-    RESOURCE(ground),
     RESOURCE(ball),
     RESOURCE(smallish_font),
     RESOURCE(dkc2),
@@ -252,7 +251,6 @@ void clear_screen()
     rect.h = HEIGHT;
 
     SDL_FillRect(screen, &rect, SDL_MapRGB(screen->format, 0, 0, 0));
-    store_screen();
 }
 
 void store_screen()
@@ -285,9 +283,13 @@ void reset_screen()
 
 void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h)
 {
-    //rectangle(x, y, w, h, 50+rand()%200, 50+rand()%200 ,50+rand()%200);
+    static int inside = 0;
+    if (inside) return;
+    inside = 1;
+    /*rectangle(x, y, w, h, 50+rand()%200, 50+rand()%200 ,50+rand()%200);*/
 
-    if (x >= WIDTH || y >= HEIGHT || x+w <= 0 || y+h <= 0) {
+    if ((x >= WIDTH) | (y >= HEIGHT) | (x+w <= 0) | (y+h <= 0) | (!w) | (!h)) {
+        inside = 0;
         return;
     }
 
@@ -298,11 +300,11 @@ void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h)
 
     SDL_Rect* u = &(rect_update_cache[rect_update_cache_current]);
 
-    if (x < 0 && x+w > 0) {
+    if (x < 0/* && x+w > 0*/) {
         w += x;
         x = 0;
     }
-    if (y < 0 && y+h > 0) {
+    if (y < 0/* && y+h > 0*/) {
         h += y;
         y = 0;
     }
@@ -316,6 +318,7 @@ void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h)
     }
 
     if (w==0 || h==0) {
+        inside = 0;
         return;
     }
 
@@ -325,11 +328,15 @@ void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h)
     u->h = h;
 
     rect_update_cache_current++;
+
+    inside = 0;
 }
 
 void updatescr()
 {
     int ticks = SDL_GetTicks();
+    SDL_Rect *r_current = NULL, *end_current = NULL;
+    SDL_Rect *r_old = NULL;
 
     static int fading_last_time = 0;
     int fading_now = is_fading();
@@ -341,8 +348,29 @@ void updatescr()
     } else if (fading_last_time && !fading_now) {
         SDL_UpdateRect(screen, 0, 0, 0, 0);
     } else {
-        SDL_UpdateRects(screen, rect_update_old_count, rect_update_old);
-        SDL_UpdateRects(screen, rect_update_cache_current, rect_update_cache);
+        if (rect_update_old_count == rect_update_cache_current) {
+            /* Merge rects into one single rect list */
+            r_old = rect_update_old;
+            r_current = rect_update_cache;
+            end_current = rect_update_cache + rect_update_cache_current;
+            while (r_current != end_current) {
+                r_old->w = MAX(r_current->x+r_current->w, r_old->x+r_old->w);
+                r_old->h = MAX(r_current->y+r_current->h, r_old->y+r_old->h);
+                r_old->x = MIN(r_current->x, r_old->x);
+                r_old->y = MIN(r_current->y, r_old->y);
+                r_old->w -= r_old->x;
+                r_old->h -= r_old->y;
+
+                r_current++;
+                r_old++;
+            }
+            SDL_UpdateRects(screen, rect_update_old_count, rect_update_old);
+        } else {
+            fprintf(stderr, "Update %d old, %d new rects.\n", rect_update_old_count,
+                    rect_update_cache_current);
+            SDL_UpdateRects(screen, rect_update_old_count, rect_update_old);
+            SDL_UpdateRects(screen, rect_update_cache_current, rect_update_cache);
+        }
     }
 
     reset_screen();

@@ -130,6 +130,9 @@ void game( bool singleplayer) {
         render( &s);
     }
 
+    clear_screen();
+    store_screen();
+
     stop_sample(SOUND_AUDIENCE);
 }
 
@@ -375,10 +378,6 @@ void render( GameState* s) {
     show_sprite( GR_RACKET, (!s->player1.state), 4, s->player1.x-RACKET_X_MID, s->player1.y-RACKET_Y_MID, 255);
     show_sprite( GR_RACKET, (!s->player2.state)+2, 4, s->player2.x-RACKET_X_MID, s->player2.y-RACKET_Y_MID, 255);
     
-    if( s->ground.jump) {
-        show_sprite( GR_GROUND, s->ground.jump-1, 3, s->ground.x - BALL_X_MID, s->ground.y - BALL_Y_MID, 128);
-    }
-
     if( s->ball.move_x > 0) {
         show_sprite( GR_BALL, (s->time/500)%4, 4, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
     } else if( s->ball.move_x < 0) {
