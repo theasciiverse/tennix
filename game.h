@@ -114,6 +114,7 @@ typedef struct {
     float joystick_y;
     float joystick_x;
     unsigned char joystick_a;
+    unsigned int rain;
 } GameState;
 
 #define PI 3.1415

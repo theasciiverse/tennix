@@ -61,6 +61,7 @@ GameState *gamestate_new() {
         SOUND_MAX,
         0.0,
         0.0,
+        0,
         0
     };
 
@@ -281,6 +282,9 @@ bool step( GameState* s) {
         } else if (keys[SDLK_F7]) {
             s->court_type--;
         }
+        if (keys['r']) {
+            s->rain += 10;
+        }
         if( s->court_type > GR_CTT_LAST) {
             s->court_type = GR_CTT_FIRST;
         } else if (s->court_type < GR_CTT_FIRST) {
@@ -355,6 +359,7 @@ bool step( GameState* s) {
 }
 
 void render( GameState* s) {
+    int i, x, y;
     if (s->play_sound != SOUND_MAX) {
         play_sample(s->play_sound);
         s->play_sound = SOUND_MAX;
@@ -403,6 +408,19 @@ void render( GameState* s) {
     font_draw_string( GR_DKC2_FONT, s->sets_score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->sets_score_str))-14, 14, 0, ANIMATION_NONE);
 
     font_draw_string( GR_DKC2_FONT, s->status, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->status))/2, HEIGHT-50, s->time/30, ANIMATION_WAVE);
+
+    for (i=0; i<s->rain; i++) {
+        x = rand()%WIDTH;
+        y = rand()%HEIGHT;
+        draw_line_faded(x, y, x+10, y+30, 0, 0, 255, 100, 200, 255);
+    }
+    if (s->rain) {
+        /**
+         * Cheap-ish update of the whole screen. This can
+         * probably be optimized.
+         **/
+        update_rect(0, 0, WIDTH, HEIGHT);
+    }
 
 #ifdef DEBUG
     line_horiz( s->player1.y, 255, 0, 0);
