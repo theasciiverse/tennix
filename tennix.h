@@ -57,7 +57,9 @@ enum {
     MENU_START = 1,
     MENU_RESUME = 2,
     MENU_COURT_CHANGE = 4,
-    MENU_QUIT = 8
+    MENU_PLAYER1 = 8,
+    MENU_PLAYER2 = 16,
+    MENU_QUIT = 32
 };
 
 #define M_POS_DECODE(x,y) (M_POS_XPOS(x)?((M_POS_START(y))?(MENU_START):((M_POS_QUIT(y))?(MENU_QUIT):((M_POS_RESUME(y))?(MENU_RESUME):(MENU_NONE)))):(MENU_NONE))

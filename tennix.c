@@ -112,6 +112,20 @@ int main( int argc, char** argv) {
         50, MENU_OPTIONS_BUTTON_HEIGHT,
         100, 100, 100
     };
+    MenuButton btn_player1 = {
+        NULL,
+        380,
+        180,
+        MENU_OPTIONS_BUTTON_WIDTH, MENU_OPTIONS_BUTTON_HEIGHT,
+        50, 50, 255
+    };
+    MenuButton btn_player2 = {
+        NULL,
+        380,
+        180+MENU_OPTIONS_BORDER*2+MENU_OPTIONS_BUTTON_HEIGHT,
+        MENU_OPTIONS_BUTTON_WIDTH, MENU_OPTIONS_BUTTON_HEIGHT,
+        255, 50, 50
+    };
 
     int state = MENU_STATE_STARTED;
 
@@ -253,6 +267,8 @@ int main( int argc, char** argv) {
                 /* Prepare a new game */
                 if (prepared_game == NULL) {
                     prepared_game = gamestate_new();
+                    btn_player1.text = "Keyboard (W-S-D)";
+                    btn_player2.text = "Computer (AI)";
                 }
                 break;
             case MENU_STATE_SLIDE_TO_GAME:
@@ -344,11 +360,7 @@ int main( int argc, char** argv) {
             show_image(GR_BTN_PLAY, WIDTH-get_image_width(GR_BTN_PLAY)+slide+(slide/7)+3-(3*(btn_hovering==MENU_START)), 150, 255);
             if (current_game != NULL) {
                 show_image(GR_BTN_RESUME, WIDTH-get_image_width(GR_BTN_RESUME)+slide+(slide/7)+3-(3*(btn_hovering==MENU_RESUME)), 230, 255);
-                if (current_game->player2.type == PLAYER_TYPE_AI) {
-                    font_draw_string(GR_DKC2_FONT, "Game Against The Computer", 10, 10, 0, 0);
-                } else {
-                    font_draw_string(GR_DKC2_FONT, "Multiplayer Versus Game", 10, 10, 0, 0);
-                }
+                font_draw_string(GR_DKC2_FONT, "current match:", 10, 10, 0, 0);
                 font_draw_string(GR_DKC2_FONT, current_game->sets_score_str, 10, 40, 0, 0);
             }
             show_image(GR_BTN_QUIT, WIDTH-get_image_width(GR_BTN_QUIT)+slide+(slide/7)+3-(3*(btn_hovering==MENU_QUIT)), 350, 255);
@@ -362,6 +374,10 @@ int main( int argc, char** argv) {
                 show_image(GR_STADIUM, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*2, 255);
                 draw_button_object(btn_court_change, mx, my);
                 font_draw_string(GR_DKC2_FONT, "Location", MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER, 0, 0);
+                draw_button_object(btn_player1, mx, my);
+                draw_button_object(btn_player2, mx, my);
+                font_draw_string(GR_DKC2_FONT, "Player 1", btn_player1.x, btn_player1.y-MENU_OPTIONS_BORDER, 0, 0);
+                font_draw_string(GR_DKC2_FONT, "Player 2", btn_player2.x, btn_player2.y-MENU_OPTIONS_BORDER, 0, 0);
             }
         }
 
@@ -387,6 +403,10 @@ int main( int argc, char** argv) {
                 btn_hovering = MENU_START;
             } else if (M_POS_BUTTON(btn_court_change, mx, my)) {
                 btn_hovering = MENU_COURT_CHANGE;
+            } else if (M_POS_BUTTON(btn_player1, mx, my)) {
+                btn_hovering = MENU_PLAYER1;
+            } else if (M_POS_BUTTON(btn_player2, mx, my)) {
+                btn_hovering = MENU_PLAYER2;
             } else {
                 btn_hovering = 0;
             }
@@ -452,6 +472,30 @@ int main( int argc, char** argv) {
                         prepared_game->court_type++;
                         if (prepared_game->court_type > GR_CTT_LAST) {
                             prepared_game->court_type = GR_CTT_FIRST;
+                        }
+                        break;
+                    case MENU_PLAYER1:
+                        switch (prepared_game->player1.type) {
+                            case PLAYER_TYPE_HUMAN:
+                                prepared_game->player1.type = PLAYER_TYPE_AI;
+                                btn_player1.text = "Computer (AI)";
+                                break;
+                            case PLAYER_TYPE_AI:
+                                prepared_game->player1.type = PLAYER_TYPE_HUMAN;
+                                btn_player1.text = "Keyboard (W-S-D)";
+                                break;
+                        }
+                        break;
+                    case MENU_PLAYER2:
+                        switch (prepared_game->player2.type) {
+                            case PLAYER_TYPE_HUMAN:
+                                prepared_game->player2.type = PLAYER_TYPE_AI;
+                                btn_player2.text = "Computer (AI)";
+                                break;
+                            case PLAYER_TYPE_AI:
+                                prepared_game->player2.type = PLAYER_TYPE_HUMAN;
+                                btn_player2.text = "Keyboard (O-L-K)";
+                                break;
                         }
                         break;
                 }
