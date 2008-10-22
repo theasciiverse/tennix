@@ -35,11 +35,26 @@
 #define WIDTH 640
 #define HEIGHT 480
 
-#define M_POS_XPOS(x) (x>WIDTH-185)
+#define MENU_BUTTON_HEIGHT 62
+#define MENU_BUTTON_WIDTH 185
 
-#define M_POS_START_GAME(x,y)  (M_POS_XPOS(x) && y>150 && y<150+62)
-#define M_POS_START_MULTI(x,y) (M_POS_XPOS(x) && y>230 && y<230+62)
-#define M_POS_QUIT(x,y)        (M_POS_XPOS(x) && y>350 && y<350+62)
+#define MENU_START_YPOS 150
+#define MENU_OPTIONS_YPOS 230
+#define MENU_QUIT_YPOS 350
+
+#define M_POS_XPOS(x)    (x>WIDTH-MENU_BUTTON_WIDTH)
+#define M_POS_START(y)   (y>MENU_START_YPOS && y<MENU_START_YPOS+MENU_BUTTON_HEIGHT)
+#define M_POS_OPTIONS(y) (y>MENU_OPTIONS_YPOS && y<MENU_OPTIONS_YPOS+MENU_BUTTON_HEIGHT)
+#define M_POS_QUIT(y)    (y>MENU_QUIT_YPOS && y<MENU_QUIT_YPOS+MENU_BUTTON_HEIGHT)
+
+enum {
+    MENU_NONE = 0,
+    MENU_START,
+    MENU_OPTIONS,
+    MENU_QUIT
+};
+
+#define M_POS_DECODE(x,y) (M_POS_XPOS(x)?((M_POS_START(y))?(MENU_START):((M_POS_QUIT(y))?(MENU_QUIT):((M_POS_OPTIONS(y))?(MENU_OPTIONS):(MENU_NONE)))):(MENU_NONE))
 
 
 extern SDL_Surface *screen;

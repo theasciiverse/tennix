@@ -366,8 +366,6 @@ void updatescr()
             }
             SDL_UpdateRects(screen, rect_update_old_count, rect_update_old);
         } else {
-            fprintf(stderr, "Update %d old, %d new rects.\n", rect_update_old_count,
-                    rect_update_cache_current);
             SDL_UpdateRects(screen, rect_update_old_count, rect_update_old);
             SDL_UpdateRects(screen, rect_update_cache_current, rect_update_cache);
         }
