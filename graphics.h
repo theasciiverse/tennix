@@ -60,6 +60,7 @@ enum {
     GR_BTN_PLAY,
     GR_BTN_RESUME,
     GR_BTN_QUIT,
+    GR_STADIUM,
     GR_COUNT
 };
 
@@ -88,6 +89,7 @@ void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);
 void fill_image(image_id id, int x, int y, int w, int h);
 void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
 void draw_button_text( char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
+#define draw_button_object(button,mx,my) (draw_button_text(button.text, button.x, button.y, button.w, button.h, button.r, button.g, button.b, M_POS_BUTTON(button, mx, my)))
 
 void clear_screen();
 void store_screen();

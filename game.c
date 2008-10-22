@@ -198,7 +198,6 @@ bool step( GameState* s) {
             game_setup_serve( s);
             s->play_sound = SOUND_APPLAUSE;
             SDL_Delay( 500);
-            start_fade();
             s->was_stopped = true;
             s->history_size = 0;
             s->history_is_locked = 0;

@@ -47,15 +47,40 @@
 #define M_POS_RESUME(y) (y>MENU_RESUME_YPOS && y<MENU_RESUME_YPOS+MENU_BUTTON_HEIGHT)
 #define M_POS_QUIT(y)    (y>MENU_QUIT_YPOS && y<MENU_QUIT_YPOS+MENU_BUTTON_HEIGHT)
 
+#define MENU_OPTIONS_BORDER 20
+#define MENU_OPTIONS_BUTTON_HEIGHT 50
+#define MENU_OPTIONS_BUTTON_WIDTH 150
+
+/* Menu items */
 enum {
     MENU_NONE = 0,
     MENU_START = 1,
     MENU_RESUME = 2,
-    MENU_QUIT = 4
+    MENU_COURT_CHANGE = 4,
+    MENU_QUIT = 8
 };
 
 #define M_POS_DECODE(x,y) (M_POS_XPOS(x)?((M_POS_START(y))?(MENU_START):((M_POS_QUIT(y))?(MENU_QUIT):((M_POS_RESUME(y))?(MENU_RESUME):(MENU_NONE)))):(MENU_NONE))
 
+/* Menu states */
+enum {
+    MENU_STATE_STARTED = 0,
+    MENU_STATE_SLIDE_TO_MAINMENU,
+    MENU_STATE_SLIDE_TO_MAINMENU_IN_PROGRESS,
+    MENU_STATE_MAINMENU,
+    MENU_STATE_SLIDE_TO_OPTIONS,
+    MENU_STATE_SLIDE_TO_OPTIONS_IN_PROGRESS,
+    MENU_STATE_OPTIONS,
+    MENU_STATE_SLIDE_TO_GAME,
+    MENU_STATE_SLIDE_TO_GAME_IN_PROGRESS,
+    MENU_STATE_GAME,
+    MENU_STATE_SLIDE_TO_RESUME,
+    MENU_STATE_SLIDE_TO_RESUME_IN_PROGRESS,
+    MENU_STATE_RESUME,
+    MENU_STATE_SLIDE_TO_QUIT,
+    MENU_STATE_SLIDE_TO_QUIT_IN_PROGRESS,
+    MENU_STATE_QUIT
+};
 
 /* Comment the following #define to disable FPS limiting */
 #define ENABLE_FPS_LIMIT
@@ -72,20 +97,16 @@ typedef struct {
 #define RESOURCE(x) ((ResourceData){ x, sizeof( x) })
 
 typedef struct {
+    char *text;
     int x;
     int y;
-    float current_x;
-    float current_y;
-    int new_x;
-    int new_y;
     int w;
     int h;
-    float phase;
-    int r;
-    int g;
-    int b;
-    int size;
-    int new_size;
-} Point;
+    Uint8 r;
+    Uint8 g;
+    Uint8 b;
+} MenuButton;
+
+#define M_POS_BUTTON(button,mx,my) (mx>=button.x && mx<=button.x+button.w && my>=button.y && my<=button.y+button.h)
 
 #endif

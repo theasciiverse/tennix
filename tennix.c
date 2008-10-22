@@ -78,19 +78,42 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 #else
 int main( int argc, char** argv) {
 #endif
-    int i, slide, slide_direction = -1;
+    int i, slide, slide_direction;
     int ticks;
     int mx, my;
     Uint8 *keys;
     Uint8 mb;
     SDL_Event e;
     int sdl_flags = SDL_SWSURFACE;
-    int btn_offset;
     int btn_hovering = 0, btn_hovering_old = 0;
     int slide_start;
-    bool is_clicked = false;
+    bool mouse_pressed = false;
     bool quit = false;
-    GameState *s = NULL;
+    GameState *current_game = NULL, *prepared_game = NULL;
+
+    MenuButton btn_back = {
+        "Back to main menu",
+        MENU_OPTIONS_BORDER,
+        HEIGHT-(MENU_OPTIONS_BORDER+MENU_OPTIONS_BUTTON_HEIGHT),
+        MENU_OPTIONS_BUTTON_WIDTH, MENU_OPTIONS_BUTTON_HEIGHT,
+        255, 0, 0
+    };
+    MenuButton btn_start = {
+        "Start new game",
+        WIDTH-(MENU_OPTIONS_BORDER+MENU_OPTIONS_BUTTON_WIDTH),
+        HEIGHT-(MENU_OPTIONS_BORDER+MENU_OPTIONS_BUTTON_HEIGHT),
+        MENU_OPTIONS_BUTTON_WIDTH, MENU_OPTIONS_BUTTON_HEIGHT,
+        0, 255, 0
+    };
+    MenuButton btn_court_change = {
+        "change",
+        240,
+        40,
+        50, MENU_OPTIONS_BUTTON_HEIGHT,
+        100, 100, 100
+    };
+
+    int state = MENU_STATE_STARTED;
 
 #ifdef ENABLE_FPS_LIMIT
     Uint32 ft, frames; /* frame timer and frames */
@@ -189,49 +212,185 @@ int main( int argc, char** argv) {
     ft = SDL_GetTicks();
 #endif
 
-    /*play_sample_background(SOUND_BACKGROUND);*/
-
     i = 0;
+    /* Sliding initialization */
     ticks = SDL_GetTicks();
-    slide_start = get_image_width(GR_SIDEBAR);
-    slide = slide_start;
+    slide = slide_start = get_image_width(GR_SIDEBAR);
+    slide_direction = 0;
     while(!quit) {
-        if (SDL_GetTicks() > ticks + 20) {
-            if (slide > 0 && slide <= slide_start) {
-                slide += slide_direction+(slide_direction*slide/(sqrt(2*slide)));
-            } else if (slide >= slide_start) {
+        /* State transitions */
+        switch (state) {
+            case MENU_STATE_STARTED:
+                state = MENU_STATE_SLIDE_TO_MAINMENU;
+                break;
+            case MENU_STATE_SLIDE_TO_MAINMENU:
                 slide = slide_start;
+                slide_direction = -1;
+                state = MENU_STATE_SLIDE_TO_MAINMENU_IN_PROGRESS;
+                break;
+            case MENU_STATE_SLIDE_TO_MAINMENU_IN_PROGRESS:
+                if (slide == 0) {
+                    slide_direction = 0;
+                    state = MENU_STATE_MAINMENU;
+                }
+                break;
+            case MENU_STATE_MAINMENU:
+                free(prepared_game);
+                prepared_game = NULL;
+                break;
+            case MENU_STATE_SLIDE_TO_OPTIONS:
+                slide = 1;
+                slide_direction = 3;
+                state = MENU_STATE_SLIDE_TO_OPTIONS_IN_PROGRESS;
+                break;
+            case MENU_STATE_SLIDE_TO_OPTIONS_IN_PROGRESS:
+                if (slide == slide_start) {
+                    start_fade();
+                    state = MENU_STATE_OPTIONS;
+                }
+                break;
+            case MENU_STATE_OPTIONS:
+                /* Prepare a new game */
+                if (prepared_game == NULL) {
+                    prepared_game = gamestate_new();
+                }
+                break;
+            case MENU_STATE_SLIDE_TO_GAME:
+                /*slide = 1;
+                slide_direction = 2;
+                state = MENU_STATE_SLIDE_TO_GAME_IN_PROGRESS;
+                break;
+            case MENU_STATE_SLIDE_TO_GAME_IN_PROGRESS:
+                if (slide == slide_start) {
+                    state = MENU_STATE_GAME;
+                }*/
+                state = MENU_STATE_GAME;
+                break;
+            case MENU_STATE_SLIDE_TO_RESUME:
+                slide = 1;
+                slide_direction = 2;
+                state = MENU_STATE_SLIDE_TO_RESUME_IN_PROGRESS;
+                break;
+            case MENU_STATE_SLIDE_TO_RESUME_IN_PROGRESS:
+                if (slide == slide_start) {
+                    state = MENU_STATE_RESUME;
+                }
+                break;
+            case MENU_STATE_GAME:
+                if (prepared_game == NULL) {
+                    fprintf(stderr, "Game not yet prepared!\n");
+                    exit(EXIT_FAILURE);
+                }
+                /* Cancel a possibly started game */
+                free(current_game);
+                current_game = prepared_game;
+                prepared_game = NULL;
+                /* no break - we are continuing with "resume" */
+            case MENU_STATE_RESUME:
+                if (current_game == NULL) {
+                    fprintf(stderr, "Cannot resume game!\n");
+                    exit(EXIT_FAILURE);
+                }
+                start_fade();
+                gameloop(current_game);
+                SDL_Delay(150);
+                while(SDL_PollEvent(&e));
+                start_fade();
+                state = MENU_STATE_SLIDE_TO_MAINMENU;
+                break;
+            case MENU_STATE_SLIDE_TO_QUIT:
+                slide = 1;
+                slide_direction = 3;
+                state = MENU_STATE_SLIDE_TO_QUIT_IN_PROGRESS;
+                break;
+            case MENU_STATE_SLIDE_TO_QUIT_IN_PROGRESS:
+                if (slide == slide_start) {
+                    state = MENU_STATE_QUIT;
+                }
+                break;
+            case MENU_STATE_QUIT:
+                quit = true;
+                break;
+            default:
+                fprintf(stderr, "State error: %d\n", state);
+                exit(EXIT_FAILURE);
+        }
+
+        /* Sliding */
+        if (SDL_GetTicks() > ticks + 20) {
+            if (slide >= 1 && slide <= slide_start) {
+                slide += slide_direction+(slide_direction*slide/(sqrt(2*slide)));
+                slide = MAX(0, MIN(slide_start, slide));
+            } else if (slide_direction != 0) {
                 slide_direction = 0;
-            } else {
-                slide = 0;
-                slide_direction = 1;
             }
             ticks = SDL_GetTicks();
         }
-        btn_offset = slide/7;
+
+        /* Graphics */
         show_image(GR_SIDEBAR, WIDTH-get_image_width(GR_SIDEBAR)+slide, 0, 255);
         show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20-slide, 255);
-        show_image(GR_BTN_PLAY, WIDTH-get_image_width(GR_BTN_PLAY)+slide+btn_offset+3-(3*(btn_hovering==MENU_START)), 150, 255);
-        if (s != NULL) show_image(GR_BTN_RESUME, WIDTH-get_image_width(GR_BTN_RESUME)+slide+btn_offset+3-(3*(btn_hovering==MENU_RESUME)), 230, 255);
-        show_image(GR_BTN_QUIT, WIDTH-get_image_width(GR_BTN_QUIT)+slide+btn_offset+3-(3*(btn_hovering==MENU_QUIT)), 350, 255);
+        if (state != MENU_STATE_OPTIONS) {
+            /* Main Menu */
+            show_image(GR_BTN_PLAY, WIDTH-get_image_width(GR_BTN_PLAY)+slide+(slide/7)+3-(3*(btn_hovering==MENU_START)), 150, 255);
+            if (current_game != NULL) {
+                show_image(GR_BTN_RESUME, WIDTH-get_image_width(GR_BTN_RESUME)+slide+(slide/7)+3-(3*(btn_hovering==MENU_RESUME)), 230, 255);
+                if (current_game->player2.type == PLAYER_TYPE_AI) {
+                    font_draw_string(GR_DKC2_FONT, "Game Against The Computer", 10, 10, 0, 0);
+                } else {
+                    font_draw_string(GR_DKC2_FONT, "Multiplayer Versus Game", 10, 10, 0, 0);
+                }
+                font_draw_string(GR_DKC2_FONT, current_game->sets_score_str, 10, 40, 0, 0);
+            }
+            show_image(GR_BTN_QUIT, WIDTH-get_image_width(GR_BTN_QUIT)+slide+(slide/7)+3-(3*(btn_hovering==MENU_QUIT)), 350, 255);
+        } else {
+            /* Options screen */
+            show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20, 255);
+            draw_button_object(btn_back, mx, my);
+            draw_button_object(btn_start, mx, my);
+            if (prepared_game != NULL) {
+                fill_image(prepared_game->court_type, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*2, get_image_width(GR_STADIUM), get_image_height(GR_STADIUM));
+                show_image(GR_STADIUM, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*2, 255);
+                draw_button_object(btn_court_change, mx, my);
+                font_draw_string(GR_DKC2_FONT, "Location", MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER, 0, 0);
+            }
+        }
 
         SDL_PollEvent( &e);
         if( e.type == SDL_QUIT) {
-            break;
+            state = MENU_STATE_SLIDE_TO_QUIT;
+            /*break;*/
         }
+
         keys = SDL_GetKeyState( NULL);
         mb = SDL_GetMouseState( &mx, &my);
 
         btn_hovering_old = btn_hovering;
-        btn_hovering = M_POS_DECODE(mx, my);
-        if (s == NULL) {
-            btn_hovering &= ~MENU_RESUME;
+        if (state == MENU_STATE_MAINMENU) {
+            btn_hovering = M_POS_DECODE(mx, my);
+            if (current_game == NULL) {
+                btn_hovering &= ~MENU_RESUME;
+            }
+        } else if (state == MENU_STATE_OPTIONS) {
+            if (M_POS_BUTTON(btn_back, mx, my)) {
+                btn_hovering = MENU_QUIT;
+            } else if (M_POS_BUTTON(btn_start, mx, my)) {
+                btn_hovering = MENU_START;
+            } else if (M_POS_BUTTON(btn_court_change, mx, my)) {
+                btn_hovering = MENU_COURT_CHANGE;
+            } else {
+                btn_hovering = 0;
+            }
+        } else {
+            /* No menu screen - no hovering. */
+            btn_hovering = 0;
         }
         if (btn_hovering_old != btn_hovering && btn_hovering != 0) {
             play_sample(SOUND_MOUSEOVER);
         }
    
         if( keys[SDLK_ESCAPE] || keys['q']) {
+            /* FIXME: do the state thingie! */
             break;
         }
 
@@ -240,43 +399,55 @@ int main( int argc, char** argv) {
         }
    
 #ifndef MAEMO /* No mouse cursor on Maemo (we have a touchscreen) */
-        show_sprite( GR_RACKET, ((mb&SDL_BUTTON( SDL_BUTTON_LEFT))>0)+(((mb&SDL_BUTTON( SDL_BUTTON_RIGHT))>0)*2), 4, mx, my, 255);
+        if (state == MENU_STATE_MAINMENU || state == MENU_STATE_OPTIONS) {
+            show_sprite( GR_RACKET, ((mb&SDL_BUTTON( SDL_BUTTON_LEFT))>0)+(((mb&SDL_BUTTON( SDL_BUTTON_RIGHT))>0)*2), 4, mx, my, 255);
+        }
 #endif
 
         /* Draw the "real" mouse coordinates */
         /*rectangle(mx-1, my-1, 2, 2, 255, 255, 255);*/
 
         /* Store the screen, because we are fading after this screen update */
-        if (!(mb & SDL_BUTTON(SDL_BUTTON_LEFT)) && btn_hovering != MENU_NONE && is_clicked == true) store_screen();
+        /*if (!(mb & SDL_BUTTON(SDL_BUTTON_LEFT)) && btn_hovering != MENU_NONE && mouse_pressed == true) store_screen();*/
 
         updatescr();
 
-        if( mb & SDL_BUTTON( SDL_BUTTON_LEFT)) {
-            is_clicked = true;
-        } else if (is_clicked == true) {
-            play_sample(SOUND_MOUSECLICK);
-            switch (btn_hovering) {
-                case MENU_START: case MENU_RESUME:
-                    stop_sample(SOUND_BACKGROUND);
-                    start_fade();
-                    if (s == NULL || btn_hovering == MENU_START) {
-                        free(s);
-                        s = gamestate_new();
-                    }
-                    gameloop(s);
-                    SDL_Delay(150);
-                    start_fade();
-                    while( SDL_PollEvent( &e));
-                    /*play_sample_background(SOUND_BACKGROUND);*/
-                    slide = slide_start;
-                    slide_direction = -1;
-                    break;
-                case MENU_QUIT:
-                    stop_sample(SOUND_BACKGROUND);
-                    quit = true;
-                    break;
+        if( mb & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+            mouse_pressed = true;
+        } else if (mouse_pressed == true) {
+            /* Mouse button released */
+            if (state == MENU_STATE_MAINMENU || state == MENU_STATE_OPTIONS) {
+                play_sample(SOUND_MOUSECLICK);
             }
-            is_clicked = false;
+            if (state == MENU_STATE_MAINMENU) {
+                switch (btn_hovering) {
+                    case MENU_START:
+                        state = MENU_STATE_SLIDE_TO_OPTIONS;
+                        break;
+                    case MENU_RESUME:
+                        state = MENU_STATE_SLIDE_TO_RESUME;
+                        break;
+                    case MENU_QUIT:
+                        state = MENU_STATE_SLIDE_TO_QUIT;
+                        break;
+                }
+            } else if (state == MENU_STATE_OPTIONS) {
+                switch (btn_hovering) {
+                    case MENU_START:
+                        state = MENU_STATE_SLIDE_TO_GAME;
+                        break;
+                    case MENU_QUIT:
+                        state = MENU_STATE_SLIDE_TO_MAINMENU;
+                        break;
+                    case MENU_COURT_CHANGE:
+                        prepared_game->court_type++;
+                        if (prepared_game->court_type > GR_CTT_LAST) {
+                            prepared_game->court_type = GR_CTT_FIRST;
+                        }
+                        break;
+                }
+            }
+            mouse_pressed = false;
         }
         i++;
 #ifdef ENABLE_FPS_LIMIT
@@ -287,14 +458,6 @@ int main( int argc, char** argv) {
 #endif
     }
 
-    start_fade();
-    store_screen();
-    while( is_fading()) {
-        clear_screen();
-        updatescr();
-        SDL_Delay( 10);
-    }
-   
     uninit_graphics();
     uninit_joystick();
 
