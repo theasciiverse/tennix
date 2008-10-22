@@ -63,6 +63,7 @@ enum {
     GR_STADIUM,
     GR_FOG,
     GR_FOG2,
+    GR_NIGHT,
     GR_COUNT
 };
 

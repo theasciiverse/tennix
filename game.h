@@ -116,6 +116,7 @@ typedef struct {
     unsigned char joystick_a;
     unsigned int rain;
     unsigned int fog;
+    bool night;
 } GameState;
 
 #define PI 3.1415

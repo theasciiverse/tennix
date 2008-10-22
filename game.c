@@ -63,7 +63,8 @@ GameState *gamestate_new() {
         0.0,
         0,
         0,
-        0
+        0,
+        false
     };
 
     s = (GameState*)malloc(sizeof(GameState));
@@ -289,6 +290,9 @@ bool step( GameState* s) {
         if (keys['t']) {
             s->fog++;
         }
+        if (keys['n']) {
+            s->night = 1 - s->night;
+        }
         if( s->court_type > GR_CTT_LAST) {
             s->court_type = GR_CTT_FIRST;
         } else if (s->court_type < GR_CTT_FIRST) {
@@ -453,6 +457,9 @@ void render( GameState* s) {
             fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, s->time/200, 0);
         case 0:
             break;
+    }
+    if (s->night) {
+        show_image(GR_NIGHT, 0, 0, 255);
     }
 
     updatescr();

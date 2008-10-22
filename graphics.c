@@ -59,7 +59,8 @@ static const ResourceData graphics[] = {
     RESOURCE(btnquit),
     RESOURCE(stadium),
     RESOURCE(fog),
-    RESOURCE(fog2)
+    RESOURCE(fog2),
+    RESOURCE(night)
 };
 
 void init_graphics() {
