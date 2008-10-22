@@ -57,7 +57,9 @@ static const ResourceData graphics[] = {
     RESOURCE(btnplay),
     RESOURCE(btnresume),
     RESOURCE(btnquit),
-    RESOURCE(stadium)
+    RESOURCE(stadium),
+    RESOURCE(fog),
+    RESOURCE(fog2)
 };
 
 void init_graphics() {
@@ -176,7 +178,7 @@ void show_sprite( image_id id, int pos, int items, int x_offset, int y_offset, i
     update_rect2(dst);
 }
 
-void fill_image( image_id id, int x, int y, int w, int h) {
+void fill_image_offset( image_id id, int x, int y, int w, int h, int offset_x, int offset_y) {
     SDL_Surface *bitmap;
     SDL_Rect src, dst;
     int dx = 0, dy = 0, cx, cy;
@@ -184,24 +186,27 @@ void fill_image( image_id id, int x, int y, int w, int h) {
     if( id >= GR_COUNT) return;
 
     bitmap = images[id].data;
-    src.x = src.y = 0;
 
+    src.y = offset_y % bitmap->h;
     while( dy < h) {
-        src.h = dst.h = cy = (h-dy > bitmap->h)?(bitmap->h):(h-dy);
+        src.h = dst.h = cy = (h-dy > bitmap->h-src.y)?(bitmap->h-src.y):(h-dy);
         dst.y = y+dy;
 
         dx = 0;
+        src.x = offset_x % bitmap->w;
         while( dx < w) {
-            src.w = dst.w = cx = (w-dx > bitmap->w)?(bitmap->w):(w-dx);
+            src.w = dst.w = cx = (w-dx > bitmap->w-src.x)?(bitmap->w-src.x):(w-dx);
             dst.x = x+dx;
 
             SDL_BlitSurface( bitmap, &src, screen, &dst);
             update_rect2(dst);
 
             dx += cx;
+            src.x = 0;
         }
 
         dy += cy;
+        src.y = 0;
     }
 }
 

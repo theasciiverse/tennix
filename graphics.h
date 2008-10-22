@@ -61,6 +61,8 @@ enum {
     GR_BTN_RESUME,
     GR_BTN_QUIT,
     GR_STADIUM,
+    GR_FOG,
+    GR_FOG2,
     GR_COUNT
 };
 
@@ -86,7 +88,8 @@ void show_sprite(image_id, int, int, int, int, int);
 void line_horiz( int y, Uint8 r, Uint8 g, Uint8 b);
 void line_vert( int x, Uint8 r, Uint8 g, Uint8 b);
 void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);
-void fill_image(image_id id, int x, int y, int w, int h);
+void fill_image_offset(image_id id, int x, int y, int w, int h, int offset_x, int offset_y);
+#define fill_image(id, x, y, w, h) fill_image_offset(id, x, y, w, h, 0, 0)
 void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
 void draw_button_text( char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
 #define draw_button_object(button,mx,my) (draw_button_text(button.text, button.x, button.y, button.w, button.h, button.r, button.g, button.b, M_POS_BUTTON(button, mx, my)))

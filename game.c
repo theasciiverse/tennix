@@ -62,6 +62,7 @@ GameState *gamestate_new() {
         0.0,
         0.0,
         0,
+        0,
         0
     };
 
@@ -285,6 +286,9 @@ bool step( GameState* s) {
         if (keys['r']) {
             s->rain += 10;
         }
+        if (keys['t']) {
+            s->fog++;
+        }
         if( s->court_type > GR_CTT_LAST) {
             s->court_type = GR_CTT_FIRST;
         } else if (s->court_type < GR_CTT_FIRST) {
@@ -437,6 +441,19 @@ void render( GameState* s) {
     line_horiz( GAME_Y_MIN, 100, 100, 100);
     line_horiz( GAME_Y_MAX, 100, 100, 100);
 #endif
+    switch (s->fog) {
+        default:
+        case 4:
+            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -s->time/150, 0);
+        case 3:
+            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, -s->time/100, 20);
+        case 2:
+            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -s->time/180, 80);
+        case 1:
+            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, s->time/200, 0);
+        case 0:
+            break;
+    }
 
     updatescr();
 }
