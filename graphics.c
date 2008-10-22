@@ -55,7 +55,7 @@ static const ResourceData graphics[] = {
     RESOURCE(sidebar),
     RESOURCE(tennixlogo),
     RESOURCE(btnplay),
-    RESOURCE(btnoptions),
+    RESOURCE(btnresume),
     RESOURCE(btnquit)
 };
 

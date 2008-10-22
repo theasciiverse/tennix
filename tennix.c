@@ -203,7 +203,7 @@ int main( int argc, char** argv) {
         show_image(GR_SIDEBAR, WIDTH-get_image_width(GR_SIDEBAR)+slide, 0, 255);
         show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20-slide, 255);
         show_image(GR_BTN_PLAY, WIDTH-get_image_width(GR_BTN_PLAY)+slide+btn_offset+3-(3*(btn_hovering==MENU_START)), 150, 255);
-        if (s != NULL) show_image(GR_BTN_OPTIONS, WIDTH-get_image_width(GR_BTN_OPTIONS)+slide+btn_offset+3-(3*(btn_hovering==MENU_OPTIONS)), 230, 255);
+        if (s != NULL) show_image(GR_BTN_RESUME, WIDTH-get_image_width(GR_BTN_RESUME)+slide+btn_offset+3-(3*(btn_hovering==MENU_RESUME)), 230, 255);
         show_image(GR_BTN_QUIT, WIDTH-get_image_width(GR_BTN_QUIT)+slide+btn_offset+3-(3*(btn_hovering==MENU_QUIT)), 350, 255);
 
         SDL_PollEvent( &e);
@@ -216,7 +216,7 @@ int main( int argc, char** argv) {
         btn_hovering_old = btn_hovering;
         btn_hovering = M_POS_DECODE(mx, my);
         if (s == NULL) {
-            btn_hovering &= ~MENU_OPTIONS;
+            btn_hovering &= ~MENU_RESUME;
         }
         if (btn_hovering_old != btn_hovering && btn_hovering != 0) {
             play_sample(SOUND_MOUSEOVER);
@@ -246,7 +246,7 @@ int main( int argc, char** argv) {
         } else if (is_clicked == true) {
             play_sample(SOUND_MOUSECLICK);
             switch (btn_hovering) {
-                case MENU_START: case MENU_OPTIONS:
+                case MENU_START: case MENU_RESUME:
                     stop_sample(SOUND_BACKGROUND);
                     start_fade();
                     if (s == NULL || btn_hovering == MENU_START) {

@@ -58,7 +58,7 @@ enum {
     GR_SIDEBAR,
     GR_TENNIXLOGO,
     GR_BTN_PLAY,
-    GR_BTN_OPTIONS,
+    GR_BTN_RESUME,
     GR_BTN_QUIT,
     GR_COUNT
 };
