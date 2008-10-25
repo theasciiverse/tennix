@@ -76,7 +76,8 @@ void play_sample_n(sound_id id, int n)
         Mix_PlayChannel(id%8, sounds[id].data, n);
     }
 
-    if (id == SOUND_RACKET) {
+    /* Audience stops clapping when ball is served */
+    if (id >= SOUND_RACKET_FIRST && id <= SOUND_RACKET_LAST) {
         stop_sample(SOUND_APPLAUSE);
     }
 }
