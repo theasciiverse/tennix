@@ -2,12 +2,17 @@ Todo and Idea List for Tennix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Effects/weather:
- * Fog (overlay semi-transparent fog surfaces)
- * Rain (using Line function?)
  * Wind (modifies the ball movement)
- * Sunshine (=current, normal behaviour)
  * Snow (christmas edition?)
+ * Sunshine (=current, normal behaviour)
 
+To save RAM, don't put data into tennix binary, but have a separate
+"tennix.dat" file that has all data files inside, and then on startup
+load this file and load all sounds and images. After that, close the
+file, so we do not have to keep the data files in memory during the
+whole lifetime of the tennix process. Should save some RAM, probably.
+ \
+  --> Open questions: file format? encryption/obfuscation?
 
 For the next UI clean-up, use "Wild plastic" as music from:
 http://www.melodyloops.com/music-loops/free-music-loops-3.html
