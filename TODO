@@ -5,6 +5,12 @@ Ideas/suggestions from our Debian maintainer:
  -> Make options menu same style as main menu
  -> add picture to left side of main menu
 
+basic user experience testing results:
+ * Fix "hit area" for racket -> make outside areas also hit the ball or
+                                add a sound to make it audible that the
+                                ball hit the edge area of the racket.
+ * Give a visual clue where the ball goes when serving
+
 Effects/weather:
  * Wind (modifies the ball movement)
  * Snow (christmas edition?)
@@ -55,5 +61,5 @@ Correct serve repeat when serving into the out
 Change between full screen and windowed mode in Windows
 Implement tie break
 Stadium commentator (needs voice actor)
-
+Implement "hit in the right area on serving"
 
