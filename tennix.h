@@ -33,6 +33,8 @@
 #  define EXTENDED_REFEREE
 #endif
 
+#define ARCHIVE_FILE "tennix.tnx"
+
 #define COPYRIGHT "Copyright 2003, 2007, 2008 Thomas Perl"
 #define URL "http://icculus.org/tennix/"
 
@@ -94,13 +96,6 @@ enum {
 
 
 extern SDL_Surface *screen;
-
-typedef struct {
-    const char* data;
-    unsigned int size;
-} ResourceData;
-
-#define RESOURCE(x) ((ResourceData){ x, sizeof( x) })
 
 typedef struct {
     char *text;

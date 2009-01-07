@@ -27,6 +27,7 @@
 
 #include "tennix.h"
 #include "graphics.h"
+#include "archive.h"
 
 static Image* images;
 
@@ -40,42 +41,34 @@ static int rect_update_old_count;
 
 static Uint32 fading_start = 0;
 
-#include "data/graphics_data.c"
-static const ResourceData graphics[] = {
-    RESOURCE(court),
-    RESOURCE(shadow),
-    RESOURCE(player_racket),
-    RESOURCE(ball),
-    RESOURCE(smallish_font),
-    RESOURCE(dkc2),
-    RESOURCE(referee),
-    RESOURCE(ctt_hard),
-    RESOURCE(ctt_clay),
-    RESOURCE(ctt_grass),
-    RESOURCE(sidebar),
-    RESOURCE(tennixlogo),
-    RESOURCE(btnplay),
-    RESOURCE(btnresume),
-    RESOURCE(btnquit),
-    RESOURCE(stadium),
-    RESOURCE(fog),
-    RESOURCE(fog2),
-    RESOURCE(night),
-    RESOURCE(talk)
+static char* graphics[] = {
+    "court.png",
+    "shadow.png",
+    "player-racket.png",
+    "ball.png",
+    "smallish-font.png",
+    "dkc2.png",
+    "referee.png",
+    "ctt_hard.png",
+    "ctt_clay.png",
+    "ctt_grass.png",
+    "sidebar.png",
+    "tennixlogo.png",
+    "btnplay.png",
+    "btnresume.png",
+    "btnquit.png",
+    "stadium.png",
+    "fog.png",
+    "fog2.png",
+    "night.png",
+    "talk.png"
 };
 
 void init_graphics() {
     int i;
     SDL_Surface* data;
     SDL_Surface* tmp;
-
-#ifndef MACOSX
-    tmp = IMG_Load_RW( SDL_RWFromConstMem( icon, sizeof(icon)), 1);
-    if( tmp != NULL) {
-        SDL_WM_SetIcon( tmp, NULL);
-        SDL_FreeSurface( tmp);
-    }
-#endif
+    TennixArchive *tnxar;
 
     rect_update_cache = (SDL_Rect*)calloc(RECT_UPDATE_CACHE, sizeof(SDL_Rect));
     rect_update_old = (SDL_Rect*)calloc(RECT_UPDATE_CACHE, sizeof(SDL_Rect));
@@ -84,8 +77,15 @@ void init_graphics() {
 
     images = (Image*)calloc( GR_COUNT, sizeof( Image));
 
+    tnxar = tnxar_open(ARCHIVE_FILE);
+
     for( i=0; i<GR_COUNT; i++) {
-        tmp = IMG_Load_RW( SDL_RWFromConstMem( graphics[i].data, graphics[i].size), 1);
+        if (tnxar_set_current_filename(tnxar, graphics[i]) != 0) {
+            tmp = IMG_Load_RW(SDL_RWFromMem(tnxar_read_current(tnxar), tnxar_size_current(tnxar)), 1);
+        } else {
+            fprintf(stderr, "Cannot find file: %s\n", graphics[i]);
+            exit(EXIT_FAILURE);
+        }
         if( !tmp) {
             fprintf( stderr, "Error: %s\n", SDL_GetError());
             continue;
@@ -107,6 +107,7 @@ void init_graphics() {
         }
         images[i].data = data;
     }
+    tnxar_close(tnxar);
 
     buffer = SDL_CreateRGBSurface(SDL_SWSURFACE, WIDTH, HEIGHT,
                  screen->format->BitsPerPixel,

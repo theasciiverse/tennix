@@ -23,79 +23,79 @@
 
 #include "tennix.h"
 #include "sound.h"
+#include "archive.h"
 
 #include <stdarg.h>
 
 static Sound* sounds;
 
-#include "data/sounds_data.c"
-static const ResourceData samples[] = {
-    RESOURCE(racket1),
-    RESOURCE(racket2),
-    RESOURCE(rain),
-    RESOURCE(ground1),
-    RESOURCE(ground2),
-    RESOURCE(audience),
-    RESOURCE(applause),
-    RESOURCE(out),
-    RESOURCE(background),
-    RESOURCE(mouseover),
-    RESOURCE(mouseclick),
+static char* samples[] = {
+    "racket1.ogg",
+    "racket2.ogg",
+    "rain.ogg",
+    "ground1.ogg",
+    "ground2.ogg",
+    "audience.ogg",
+    "applause.ogg",
+    "out.ogg",
+    "background.ogg",
+    "mouseover.ogg",
+    "mouseclick.ogg",
 
 #ifdef HAVE_VOICE_FILES
-    RESOURCE(to),
-    RESOURCE(all),
-    RESOURCE(love_in),
-    RESOURCE(love_out),
-    RESOURCE(fifteen_in),
-    RESOURCE(fifteen_out),
-    RESOURCE(thirty_in),
-    RESOURCE(thirty_out),
-    RESOURCE(forty_in),
-    RESOURCE(forty_out),
-    RESOURCE(deuce),
-    RESOURCE(advantage_player_one),
-    RESOURCE(advantage_player_two),
+    "to.ogg",
+    "all.ogg",
+    "love-in.ogg",
+    "love-out.ogg",
+    "fifteen-in.ogg",
+    "fifteen-out.ogg",
+    "thirty-in.ogg",
+    "thirty-out.ogg",
+    "forty-in.ogg",
+    "forty-out.ogg",
+    "deuce.ogg",
+    "advantage-player-one.ogg",
+    "advantage-player-two.ogg",
 
-    RESOURCE(zero_in),
-    RESOURCE(zero_out),
-    RESOURCE(one_in),
-    RESOURCE(one_out),
-    RESOURCE(two_in),
-    RESOURCE(two_out),
-    RESOURCE(three_in),
-    RESOURCE(three_out),
-    RESOURCE(four_in),
-    RESOURCE(four_out),
-    RESOURCE(five_in),
-    RESOURCE(five_out),
-    RESOURCE(six_in),
-    RESOURCE(six_out),
-    RESOURCE(seven_in),
-    RESOURCE(seven_out),
+    "zero-in.ogg",
+    "zero-out.ogg",
+    "one-in.ogg",
+    "one-out.ogg",
+    "two-in.ogg",
+    "two-out.ogg",
+    "three-in.ogg",
+    "three-out.ogg",
+    "four-in.ogg",
+    "four-out.ogg",
+    "five-in.ogg",
+    "five-out.ogg",
+    "six-in.ogg",
+    "six-out.ogg",
+    "seven-in.ogg",
+    "seven-out.ogg",
 
-    RESOURCE(in_the_first_set),
-    RESOURCE(in_the_second_set),
-    RESOURCE(in_the_third_set),
-    RESOURCE(in_the_fourth_set),
-    RESOURCE(in_the_fifth_set),
+    "in-the-first-set.ogg",
+    "in-the-second-set.ogg",
+    "in-the-third-set.ogg",
+    "in-the-fourth-set.ogg",
+    "in-the-fifth-set.ogg",
 
-    RESOURCE(quit_it1),
-    RESOURCE(quit_it2),
-    RESOURCE(quit_it3),
-    RESOURCE(quit_it4),
+    "quit-it1.ogg",
+    "quit-it2.ogg",
+    "quit-it3.ogg",
+    "quit-it4.ogg",
 
-    RESOURCE(new_game1),
-    RESOURCE(new_game2),
-    RESOURCE(new_game3),
-    RESOURCE(new_game4),
-    RESOURCE(new_game5),
-    RESOURCE(new_game6),
+    "new-game1.ogg",
+    "new-game2.ogg",
+    "new-game3.ogg",
+    "new-game4.ogg",
+    "new-game5.ogg",
+    "new-game6.ogg",
 
-    RESOURCE(lets_go1),
-    RESOURCE(lets_go2),
-    RESOURCE(lets_go3),
-    RESOURCE(lets_go4),
+    "lets-go1.ogg",
+    "lets-go2.ogg",
+    "lets-go3.ogg",
+    "lets-go4.ogg",
 #endif
 };
 
@@ -108,6 +108,7 @@ int voice_finished_flag = 1;
 void init_sound() {
     int i;
     Mix_Chunk* data;
+    TennixArchive* tnxar;
 
     if( Mix_OpenAudio( 44100, AUDIO_S16SYS, 2, 1024) < 0) {
         fprintf( stderr, "Error initializing SDL_mixer: %s\n", Mix_GetError());
@@ -115,8 +116,15 @@ void init_sound() {
 
     sounds = (Sound*)calloc(SOUND_MAX, sizeof(Sound));
 
+    tnxar = tnxar_open(ARCHIVE_FILE);
+
     for( i=0; i<SOUND_MAX; i++) {
-        data = Mix_LoadWAV_RW(SDL_RWFromConstMem(samples[i].data, samples[i].size), 1);
+        if (tnxar_set_current_filename(tnxar, samples[i]) != 0) {
+            data = Mix_LoadWAV_RW(SDL_RWFromMem(tnxar_read_current(tnxar), tnxar_size_current(tnxar)), 1);
+        } else {
+            fprintf(stderr, "Cannot find %s\n", samples[i]);
+            exit(EXIT_FAILURE);
+        }
         if( !data) {
             fprintf( stderr, "Error: %s\n", SDL_GetError());
             continue;
@@ -124,6 +132,8 @@ void init_sound() {
 
         sounds[i].data = data;
     }
+
+    tnxar_close(tnxar);
 
     /* for Voice Queue processing */
     Mix_ChannelFinished(voice_channel_finished);

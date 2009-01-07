@@ -51,10 +51,12 @@ else
 endif
 
 SRC = tennix.c game.c graphics.c input.c sound.c
-OBJ = tennix.o game.o graphics.o input.o sound.o
+OBJ = tennix.o game.o graphics.o input.o sound.o archive-lib.o
 ifeq ($(MSYSTEM),MINGW32)
   OBJ += tennixres.o
 endif
+
+TOARCHIVE=$(wildcard data/*.ogg wildcard data/*.png voice/*.ogg)
 
 WIN32LIBS = *.dll
 OSXAPP = Tennix.app
@@ -64,7 +66,7 @@ ifeq ($(TARGET),cocoa)
   DATAFILES += data/Tennix.icns
 endif
 
-tennix: $(OBJ)
+tennix: $(OBJ) tennix.tnx
 	$(CC) $(CFLAGS)   -o tennix $(OBJ) $(LIBS)
 	test -f tennix.exe && upx tennix.exe || true 
 
@@ -80,15 +82,24 @@ install: tennix
 	install -m644 tennix.desktop $(DESTDIR)/$(PREFIX)/share/applications/
 
 tennix.o: tennix.c tennix.h game.h graphics.h input.h sound.h
-graphics.o: graphics.c graphics.h tennix.h data/graphics_data.c
+graphics.o: graphics.c graphics.h tennix.h archive.h
 game.o: game.c game.h graphics.h tennix.h sound.h input.h
-sound.o: sound.c sound.h tennix.h data/sounds_data.c
+sound.o: sound.c sound.h tennix.h archive.h
 
-data/graphics_data.c: data/*.png
-	make -C data graphics_data.c
+archive-lib.o: archive.c archive.h
+	$(CC) -c -o $@ $<
 
-data/sounds_data.c: data/*.ogg
-	make -C data sounds_data.c
+tennixar: archive dump
+
+archive.o: archive.c archive.h
+	$(CC) -DTENNIXAR_STANDALONE -c -o $@ $<
+
+dump: archive
+	ln -s archive dump
+
+tennix.tnx: archive $(TOARCHIVE)
+	rm -f tennix.tnx
+	./archive $@ $(TOARCHIVE)
 
 # Mac OS X-specific targets
 release-osx: tennix ChangeLog
@@ -125,13 +136,13 @@ release: distclean ChangeLog
 	rm -rf .release-tmp
 
 clean:
-	rm -f *.o tennix tennix.exe
+	rm -f *.o tennix tennix.exe archive archive.exe dump dump.exe
 	rm -rf $(OSXAPP) tennix-*-macosx.zip
 	rm -f tennixres.o tennix-installer.iss tennix-*-win32-setup.exe
-	make -C data clean
+	rm -f tennix.tnx
 
 distclean: clean
 	rm -rf tennix-$(RELEASE).zip tennix-$(RELEASE)-bin.tar.gz ChangeLog .release-tmp tennix-$(RELEASE).tar.gz
 
-.PHONY: distclean clean release-bin release-win32 release-win32-setup release-osx install
+.PHONY: distclean clean release-bin release-win32 release-win32-setup release-osx install tennixar
 
