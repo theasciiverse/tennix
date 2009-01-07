@@ -30,6 +30,10 @@ BINARY_INSTALL_DIR ?= $(PREFIX)/bin
 LIBS =
 CFLAGS += -Wall -DVERSION=\"$(RELEASE)\" -O2
 
+ifeq ($(DELUXE),1)
+  CFLAGS += -DDELUXE_EDITION
+endif
+
 ifeq ($(DEBUG),1)
   CFLAGS += -DDEBUG
 endif

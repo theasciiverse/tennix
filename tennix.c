@@ -415,7 +415,17 @@ int main( int argc, char** argv) {
             btn_hovering = 0;
         }
         if (btn_hovering_old != btn_hovering && btn_hovering != 0) {
+#ifdef HAVE_VOICE_FILES
+            if (btn_hovering == MENU_QUIT) {
+                play_sample(VOICE_QUIT_IT);
+            } else if (btn_hovering == MENU_START) {
+                play_sample(VOICE_NEW_GAME);
+            } else {
+                play_sample(SOUND_MOUSEOVER);
+            }
+#else
             play_sample(SOUND_MOUSEOVER);
+#endif
         }
    
         if( keys[SDLK_ESCAPE] || keys['q']) {
@@ -446,7 +456,15 @@ int main( int argc, char** argv) {
         } else if (mouse_pressed == true) {
             /* Mouse button released */
             if (state == MENU_STATE_MAINMENU || state == MENU_STATE_OPTIONS) {
+#ifdef HAVE_VOICE_FILES
+                if (btn_hovering == MENU_START) {
+                    play_sample(VOICE_LETS_GO);
+                } else {
+                    play_sample(SOUND_MOUSECLICK);
+                }
+#else
                 play_sample(SOUND_MOUSECLICK);
+#endif
             }
             if (state == MENU_STATE_MAINMENU) {
                 switch (btn_hovering) {

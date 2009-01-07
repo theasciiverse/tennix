@@ -38,12 +38,21 @@ enum {
     true
 };
 
+#ifdef EXTENDED_REFEREE
+enum {
+    REFEREE_NORMAL,
+    REFEREE_OUT,
+    REFEREE_PLAYER1,
+    REFEREE_PLAYER2
+};
+#else
 enum {
     REFEREE_NORMAL,
     REFEREE_PLAYER1,
     REFEREE_OUT,
     REFEREE_PLAYER2
 };
+#endif
 
 enum {
     WINNER_NONE,
@@ -117,6 +126,8 @@ typedef struct {
     unsigned int rain;
     unsigned int fog;
     bool night;
+    int wind;
+    unsigned int windtime;
 } GameState;
 
 #define PI 3.1415

@@ -64,7 +64,9 @@ GameState *gamestate_new() {
         0,
         0,
         0,
-        false
+        false,
+        0,
+        0
     };
 
     s = (GameState*)malloc(sizeof(GameState));
@@ -126,6 +128,7 @@ void gameloop(GameState *s) {
         while( accumulator >= dt) {
             quit = step(s);
             s->time += dt;
+            s->windtime += s->wind*dt;
             accumulator -= dt;
 
             if( s->was_stopped) {
@@ -297,6 +300,12 @@ bool step( GameState* s) {
         if (keys['t']) {
             s->fog++;
         }
+        if (keys['1']) {
+            s->wind++;
+        }
+        if (keys['2']) {
+            s->wind--;
+        }
         if (keys['n']) {
             s->night = 1 - s->night;
         }
@@ -364,6 +373,12 @@ bool step( GameState* s) {
     get_move_y(s, 1);
     get_move_y(s, 2);
 
+    if (s->ball.move_x > 0 && s->wind > 0) {
+        s->ball.x += fabsf(s->wind)/2;
+    } else if (s->ball.move_x < 0 && s->wind < 0) {
+        s->ball.x -= fabsf(s->wind)/2;
+    }
+
     s->ball.x += s->ball.move_x;
     s->ball.y += s->ball.move_y;
 
@@ -375,6 +390,9 @@ bool step( GameState* s) {
 
 void render( GameState* s) {
     int i, x, y;
+#ifdef EXTENDED_REFEREE
+    int t=1000;
+#endif
     if (s->play_sound != SOUND_MAX) {
         play_sample(s->play_sound);
         s->play_sound = SOUND_MAX;
@@ -399,7 +417,41 @@ void render( GameState* s) {
         s->old_court_type = s->court_type;
         store_screen();
     }
+#ifdef EXTENDED_REFEREE
+    switch (s->referee) {
+        case REFEREE_NORMAL:
+            t = 1000;
+            break;
+        case REFEREE_OUT:
+            t = 200;
+            break;
+        case REFEREE_PLAYER1:
+        case REFEREE_PLAYER2:
+            t = 400;
+            break;
+    }
+    t = (s->time/t)%4;
+    switch (t) {
+        case 0:
+            t=0;
+            break;
+        case 1:
+            t=1;
+            break;
+        case 2:
+            t=0;
+            break;
+        case 3:
+            t=2;
+            break;
+    }
+    show_sprite( GR_REFEREE, s->referee*3+t, 12, 250, 10, 255);
+#else
     show_sprite( GR_REFEREE, s->referee, 4, 250, 10, 255);
+#endif
+    if (voice_finished_flag == 0) {
+        show_sprite(GR_TALK, (s->time/150)%2, 2, 280, 45, 255);
+    }
     show_image( GR_SHADOW, s->ball.x-BALL_X_MID, s->ball.y + get_phase( s) - BALL_Y_MID, 255);
     
     show_sprite( GR_RACKET, (!s->player1.state), 4, s->player1.x-RACKET_X_MID, s->player1.y-RACKET_Y_MID, 255);
@@ -427,7 +479,7 @@ void render( GameState* s) {
     for (i=0; i<s->rain; i++) {
         x = rand()%WIDTH;
         y = rand()%HEIGHT;
-        draw_line_faded(x, y, x+10, y+30, 0, 0, 255, 100, 200, 255);
+        draw_line_faded(x, y, x+10+s->wind*5, y+30, 0, 0, 255, 100, 200, 255);
     }
     if (s->rain) {
         /**
@@ -455,13 +507,13 @@ void render( GameState* s) {
     switch (s->fog) {
         default:
         case 4:
-            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -s->time/150, 0);
+            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -s->time/150-s->windtime/200, 0);
         case 3:
-            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, -s->time/100, 20);
+            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, -s->time/100-s->windtime/150, 20);
         case 2:
-            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -s->time/180, 80);
+            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -s->time/180-s->windtime/180, 80);
         case 1:
-            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, s->time/200, 0);
+            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, s->time/200-s->windtime/100, 0);
         case 0:
             break;
     }
@@ -617,7 +669,7 @@ void input_ai( Player* player, Ball* ball, Player* opponent, GameState* s) {
             }
         }
 
-        if( (ball->move_x != 0 || IS_NEAR_Y_AI( player->y, ball->y)) && IS_NEAR_X_AI( player->x, ball->x) && !player->state && rand()%4) {
+        if( (ball->move_x != 0 || IS_NEAR_Y_AI( player->y, ball->y)) && IS_NEAR_X_AI( player->x, ball->x) && !player->state && rand()%4==0) {
             player->state = PLAYER_STATE_MAX;
         }
     } else if( ball->move_x == 0) {
@@ -706,6 +758,12 @@ void score_game( GameState* s, bool player1_scored) {
         if( winner->game >= 4) {
             winner->game = loser->game = 0;
             winner->sets[s->current_set]++;
+
+#ifdef HAVE_VOICE_FILES
+            /* speak the current score */
+            voice_say_list(4, VOICE_ZERO_IN + (s->player1.sets[s->current_set])*2, VOICE_TO, VOICE_ZERO_OUT + (s->player2.sets[s->current_set])*2, VOICE_IN_THE_FIRST_SET+s->current_set);
+#endif
+
             /* scoring the set.. */
             if( (winner->sets[s->current_set] == 6 && loser->sets[s->current_set] < 5) ||
                 winner->sets[s->current_set] == 7) {
@@ -741,12 +799,30 @@ char* format_game( GameState* s) {
     static const int game_scoring[] = { 0, 15, 30, 40 };
 
     if( s->player1.game < 4 && s->player2.game < 4) {
+#ifdef HAVE_VOICE_FILES
+        if (s->player1.game > 0 || s->player2.game > 0) {
+            if (s->player1.game == s->player2.game) {
+                voice_say_list(2, VOICE_LOVE_IN + 2*(s->player1.game), VOICE_ALL);
+            } else {
+                voice_say_list(2, VOICE_LOVE_IN + 2*(s->player1.game), VOICE_LOVE_OUT + 2*(s->player2.game));
+            }
+        }
+#endif
         sprintf( game, "%d - %d", game_scoring[s->player1.game], game_scoring[s->player2.game]);
     } else if( s->player1.game > s->player2.game) {
+#ifdef HAVE_VOICE_FILES
+        voice_say_list(1, VOICE_ADVANTAGE_PLAYER_ONE);
+#endif
         strcpy( game, "advantage player 1");
     } else if( s->player1.game < s->player2.game) {
+#ifdef HAVE_VOICE_FILES
+        voice_say_list(1, VOICE_ADVANTAGE_PLAYER_TWO);
+#endif
         strcpy( game, "advantage player 2");
     } else {
+#ifdef HAVE_VOICE_FILES
+        voice_say_list(1, VOICE_DEUCE);
+#endif
         strcpy( game, "deuce");
     }
 

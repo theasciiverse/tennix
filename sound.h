@@ -29,6 +29,10 @@
 #define FADE_OUT_MS 500
 #define FADE_IN_MS 3000
 
+#define VOICE_QUEUE_MAX 10
+
+extern int voice_finished_flag;
+
 typedef unsigned char sound_id;
 enum {
     SOUND_RACKET1 = 0,
@@ -42,16 +46,90 @@ enum {
     SOUND_BACKGROUND,
     SOUND_MOUSEOVER,
     SOUND_MOUSECLICK,
+
+#ifdef HAVE_VOICE_FILES
+    VOICE_TO,
+    VOICE_ALL,
+    VOICE_LOVE_IN,
+    VOICE_LOVE_OUT,
+    VOICE_FIFTEEN_IN,
+    VOICE_FIFTEEN_OUT,
+    VOICE_THIRTY_IN,
+    VOICE_THIRTY_OUT,
+    VOICE_FORTY_IN,
+    VOICE_FORTY_OUT,
+    VOICE_DEUCE,
+    VOICE_ADVANTAGE_PLAYER_ONE,
+    VOICE_ADVANTAGE_PLAYER_TWO,
+
+    VOICE_ZERO_IN,
+    VOICE_ZERO_OUT,
+    VOICE_ONE_IN,
+    VOICE_ONE_OUT,
+    VOICE_TWO_IN,
+    VOICE_TWO_OUT,
+    VOICE_THREE_IN,
+    VOICE_THREE_OUT,
+    VOICE_FOUR_IN,
+    VOICE_FOUR_OUT,
+    VOICE_FIVE_IN,
+    VOICE_FIVE_OUT,
+    VOICE_SIX_IN,
+    VOICE_SIX_OUT,
+    VOICE_SEVEN_IN,
+    VOICE_SEVEN_OUT,
+
+    VOICE_IN_THE_FIRST_SET,
+    VOICE_IN_THE_SECOND_SET,
+    VOICE_IN_THE_THIRD_SET,
+    VOICE_IN_THE_FOURTH_SET,
+    VOICE_IN_THE_FIFTH_SET,
+
+    VOICE_QUIT_IT1,
+    VOICE_QUIT_IT2,
+    VOICE_QUIT_IT3,
+    VOICE_QUIT_IT4,
+
+    VOICE_NEW_GAME1,
+    VOICE_NEW_GAME2,
+    VOICE_NEW_GAME3,
+    VOICE_NEW_GAME4,
+    VOICE_NEW_GAME5,
+    VOICE_NEW_GAME6,
+
+    VOICE_LETS_GO1,
+    VOICE_LETS_GO2,
+    VOICE_LETS_GO3,
+    VOICE_LETS_GO4,
+#endif
+
     SOUND_MAX,
 };
+
+/* Channel by id gives: 1-7 (of 0-7) */
+#define CHANNEL_BY_ID(id) ((id)%7+1)
+#define CHANNEL_VOICE 0
 
 #define SOUND_RACKET_FIRST SOUND_RACKET1
 #define SOUND_RACKET_LAST SOUND_RACKET2
 #define SOUND_GROUND_FIRST SOUND_GROUND1
 #define SOUND_GROUND_LAST SOUND_GROUND2
+#ifdef HAVE_VOICE_FILES
+#  define VOICE_QUIT_IT_FIRST VOICE_QUIT_IT1
+#  define VOICE_QUIT_IT_LAST VOICE_QUIT_IT4
+#  define VOICE_NEW_GAME_FIRST VOICE_NEW_GAME1
+#  define VOICE_NEW_GAME_LAST VOICE_NEW_GAME6
+#  define VOICE_LETS_GO_FIRST VOICE_LETS_GO1
+#  define VOICE_LETS_GO_LAST VOICE_LETS_GO4
+#endif
 
 #define SOUND_GROUND (SOUND_GROUND_FIRST + rand()%(SOUND_GROUND_LAST-SOUND_GROUND_FIRST+1))
 #define SOUND_RACKET (SOUND_RACKET_FIRST + rand()%(SOUND_RACKET_LAST-SOUND_RACKET_FIRST+1))
+#ifdef HAVE_VOICE_FILES
+#  define VOICE_QUIT_IT (VOICE_QUIT_IT_FIRST + rand()%(VOICE_QUIT_IT_LAST-VOICE_QUIT_IT_FIRST+1))
+#  define VOICE_NEW_GAME (VOICE_NEW_GAME_FIRST + rand()%(VOICE_NEW_GAME_LAST-VOICE_NEW_GAME_FIRST+1))
+#  define VOICE_LETS_GO (VOICE_LETS_GO_FIRST + rand()%(VOICE_LETS_GO_LAST-VOICE_LETS_GO_FIRST+1))
+#endif
 
 typedef struct {
     Mix_Chunk* data;
@@ -66,5 +144,11 @@ void play_sample_n(sound_id id, int n);
 void stop_sample(sound_id id);
 void pan_sample(sound_id id, float position);
 #define unpan_sample(id) pan_sample(id,0.5)
+
+void voice_clear();
+void voice_enqueue(sound_id id);
+void voice_say();
+void voice_say_list(int n, ...);
+void voice_channel_finished(int channel);
 
 #endif

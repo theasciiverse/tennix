@@ -28,6 +28,10 @@
 
 #include "SDL.h"
 
+#ifdef DELUXE_EDITION
+#  define HAVE_VOICE_FILES
+#  define EXTENDED_REFEREE
+#endif
 
 #define COPYRIGHT "Copyright 2003, 2007, 2008 Thomas Perl"
 #define URL "http://icculus.org/tennix/"
