@@ -24,10 +24,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 
 #include "tennix.h"
 #include "graphics.h"
 #include "archive.h"
+#include "sound.h"
 
 static Image* images;
 
@@ -77,7 +79,29 @@ void init_graphics() {
 
     images = (Image*)calloc( GR_COUNT, sizeof( Image));
 
+    buffer = SDL_CreateRGBSurface(SDL_SWSURFACE, WIDTH, HEIGHT,
+                 screen->format->BitsPerPixel,
+                 screen->format->Rmask,
+                 screen->format->Gmask,
+                 screen->format->Bmask,
+                 screen->format->Amask);
+
+    background = SDL_CreateRGBSurface(SDL_SWSURFACE, WIDTH, HEIGHT,
+                     screen->format->BitsPerPixel,
+                     screen->format->Rmask,
+                     screen->format->Gmask,
+                     screen->format->Bmask,
+                     screen->format->Amask);
+
+    if( buffer == NULL) {
+        fprintf( stderr, "Cannot create buffer surface: %s\n", SDL_GetError());
+    }
+
     tnxar = tnxar_open(ARCHIVE_FILE);
+
+    rectangle(40, (HEIGHT-40)/2, WIDTH-80, 40, 100, 100, 100);
+    store_screen();
+    updatescr();
 
     for( i=0; i<GR_COUNT; i++) {
         if (tnxar_set_current_filename(tnxar, graphics[i]) != 0) {
@@ -106,26 +130,12 @@ void init_graphics() {
             continue;
         }
         images[i].data = data;
+
+        rectangle(40, (HEIGHT-40)/2, (WIDTH-80)*i/(GR_COUNT+SOUND_MAX), 40, 100, 250, 100);
+        rectangle(40, (HEIGHT-40)/2+20, (WIDTH-80)*i/(GR_COUNT+SOUND_MAX), 10, 170, 250, 170);
+        updatescr();
     }
     tnxar_close(tnxar);
-
-    buffer = SDL_CreateRGBSurface(SDL_SWSURFACE, WIDTH, HEIGHT,
-                 screen->format->BitsPerPixel,
-                 screen->format->Rmask,
-                 screen->format->Gmask,
-                 screen->format->Bmask,
-                 screen->format->Amask);
-
-    background = SDL_CreateRGBSurface(SDL_SWSURFACE, WIDTH, HEIGHT,
-                     screen->format->BitsPerPixel,
-                     screen->format->Rmask,
-                     screen->format->Gmask,
-                     screen->format->Bmask,
-                     screen->format->Amask);
-
-    if( buffer == NULL) {
-        fprintf( stderr, "Cannot create buffer surface: %s\n", SDL_GetError());
-    }
 }
 
 void uninit_graphics() {

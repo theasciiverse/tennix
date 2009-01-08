@@ -82,9 +82,9 @@ install: tennix
 	install -m644 tennix.desktop $(DESTDIR)/$(PREFIX)/share/applications/
 
 tennix.o: tennix.c tennix.h game.h graphics.h input.h sound.h
-graphics.o: graphics.c graphics.h tennix.h archive.h
+graphics.o: graphics.c graphics.h tennix.h archive.h sound.h
 game.o: game.c game.h graphics.h tennix.h sound.h input.h
-sound.o: sound.c sound.h tennix.h archive.h
+sound.o: sound.c sound.h tennix.h archive.h graphics.h
 
 archive-lib.o: archive.c archive.h
 	$(CC) -c -o $@ $<

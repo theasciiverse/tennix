@@ -24,8 +24,10 @@
 #include "tennix.h"
 #include "sound.h"
 #include "archive.h"
+#include "graphics.h"
 
 #include <stdarg.h>
+#include <stdlib.h>
 
 static Sound* sounds;
 
@@ -116,6 +118,10 @@ void init_sound() {
 
     sounds = (Sound*)calloc(SOUND_MAX, sizeof(Sound));
 
+    rectangle(40, (HEIGHT-40)/2, WIDTH-80, 40, 100, 100, 100);
+    store_screen();
+    updatescr();
+
     tnxar = tnxar_open(ARCHIVE_FILE);
 
     for( i=0; i<SOUND_MAX; i++) {
@@ -131,9 +137,17 @@ void init_sound() {
         }
 
         sounds[i].data = data;
+
+        rectangle(40, (HEIGHT-40)/2, (WIDTH-80)*(GR_COUNT+i)/(SOUND_MAX+GR_COUNT), 40, 100, 250, 100);
+        rectangle(40, (HEIGHT-40)/2+20, (WIDTH-80)*(GR_COUNT+i)/(SOUND_MAX+GR_COUNT), 10, 170, 250, 170);
+        updatescr();
     }
 
     tnxar_close(tnxar);
+
+    clear_screen();
+    store_screen();
+    updatescr();
 
     /* for Voice Queue processing */
     Mix_ChannelFinished(voice_channel_finished);

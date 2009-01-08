@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <libgen.h>
+#include <string.h>
+#include <stdlib.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -217,8 +219,8 @@ int main( int argc, char** argv) {
     SDL_ShowCursor( SDL_DISABLE);
     SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, 1);
 
-    init_sound();
     init_graphics();
+    init_sound();
     init_joystick();
 
 #ifdef ENABLE_FPS_LIMIT
@@ -414,6 +416,7 @@ int main( int argc, char** argv) {
             /* No menu screen - no hovering. */
             btn_hovering = 0;
         }
+#ifndef MAEMO /* On Maemo, we cannot really "hover" (touchscreen!) */
         if (btn_hovering_old != btn_hovering && btn_hovering != 0) {
 #ifdef HAVE_VOICE_FILES
             if (btn_hovering == MENU_QUIT) {
@@ -427,6 +430,7 @@ int main( int argc, char** argv) {
             play_sample(SOUND_MOUSEOVER);
 #endif
         }
+#endif
    
         if( keys[SDLK_ESCAPE] || keys['q']) {
             /* FIXME: do the state thingie! */
