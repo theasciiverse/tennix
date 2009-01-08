@@ -68,7 +68,13 @@ enum {
     GR_COUNT
 };
 
-#define GRAPHICS_IS_FONT(id) ((id == GR_SMALLISH_FONT) || (id == GR_DKC2_FONT))
+#define GRAPHICS_FONT_FIRST GR_SMALLISH_FONT
+#define GRAPHICS_FONT_LAST GR_DKC2_FONT
+
+#define GRAPHICS_IS_FONT(id) ((id>=GRAPHICS_FONT_FIRST) && (id<=GRAPHICS_FONT_LAST))
+
+#define GRAPHICS_FONT_COUNT (GRAPHICS_FONT_LAST-GRAPHICS_FONT_FIRST+1)
+
 #define GR_CTT_FIRST GR_CTT_HARD
 #define GR_CTT_LAST GR_CTT_GRASS
 
@@ -107,7 +113,7 @@ void updatescr();
 void start_fade();
 int is_fading();
 
-int font_get_metrics( image_id id, char ch, int* xp, int* wp);
+int font_get_metrics(image_id id, unsigned char ch, int* xp, int* wp);
 int font_draw_char( image_id id, char ch, int x_offset, int y_offset);
 void font_draw_string_alpha( image_id id, const char* s, int x_offset, int y_offset, int start, int animation, int opacity);
 #define font_draw_string(id,s,x_offset,y_offset,start,animation) font_draw_string_alpha(id,s,x_offset,y_offset,start,animation,255)

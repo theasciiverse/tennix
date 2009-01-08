@@ -401,13 +401,26 @@ int is_fading() {
     return SDL_GetTicks() < fading_start+FADE_DURATION;
 }
 
-int font_get_metrics( image_id id, char ch, int* xp, int* wp) {
+int font_get_metrics(image_id id, unsigned char ch, int* xp, int* wp) {
+    /* Caching of x and width values for faster calculation */
+    static int xcache[0xFF][GRAPHICS_FONT_COUNT],
+               wcache[0xFF][GRAPHICS_FONT_COUNT];
+    static unsigned char cacheflag[0xFF][GRAPHICS_FONT_COUNT];
+
     SDL_Surface *bitmap;
     int pos, x = -1, w = 0;
     int search_pos = 0, search_x = 0;
+    unsigned char font_index = id-GRAPHICS_FONT_FIRST;
     Uint8 red, green, blue;
 
-    if( id >= GR_COUNT) return 0;
+    if(!GRAPHICS_IS_FONT(id)) return 0;
+
+    if (cacheflag[ch][font_index]) {
+        /* saved! */
+        if (xp != NULL) *xp = xcache[ch][font_index];
+        if (wp != NULL) *wp = wcache[ch][font_index];
+        return wcache[ch][font_index];
+    }
 
     pos = toupper( ch) - ' '; /* ' ' = first character in font bitmap */
 
@@ -434,6 +447,10 @@ int font_get_metrics( image_id id, char ch, int* xp, int* wp) {
 
     if( wp != NULL) (*wp) = w;
     if( xp != NULL) (*xp) = x;
+
+    cacheflag[ch][font_index]++;
+    xcache[ch][font_index] = x;
+    wcache[ch][font_index] = w;
 
     return w;
 }
