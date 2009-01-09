@@ -118,7 +118,7 @@ void init_sound() {
 
     sounds = (Sound*)calloc(SOUND_MAX, sizeof(Sound));
 
-    rectangle(40, (HEIGHT-40)/2, WIDTH-80, 40, 100, 100, 100);
+    draw_button(40, (HEIGHT-40)/2, WIDTH-80, 40, 100, 100, 100, 1);
     store_screen();
     updatescr();
 
@@ -138,8 +138,8 @@ void init_sound() {
 
         sounds[i].data = data;
 
-        rectangle(40, (HEIGHT-40)/2, (WIDTH-80)*(GR_COUNT+i)/(SOUND_MAX+GR_COUNT), 40, 100, 250, 100);
-        rectangle(40, (HEIGHT-40)/2+20, (WIDTH-80)*(GR_COUNT+i)/(SOUND_MAX+GR_COUNT), 10, 170, 250, 170);
+        draw_button(40, (HEIGHT-40)/2, (WIDTH-80)*(GR_COUNT+i)/(SOUND_MAX+GR_COUNT), 40, 100, 250, 100, 0);
+        rectangle(40+BUTTON_BORDER, (HEIGHT-40)/2+20, (WIDTH-80)*(GR_COUNT+i)/(SOUND_MAX+GR_COUNT)-2*BUTTON_BORDER, 10, 170, 250, 170);
         updatescr();
     }
 

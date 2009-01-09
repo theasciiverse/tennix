@@ -99,7 +99,7 @@ void init_graphics() {
 
     tnxar = tnxar_open(ARCHIVE_FILE);
 
-    rectangle(40, (HEIGHT-40)/2, WIDTH-80, 40, 100, 100, 100);
+    draw_button(40, (HEIGHT-40)/2, WIDTH-80, 40, 100, 100, 100, 1);
     store_screen();
     updatescr();
 
@@ -131,8 +131,8 @@ void init_graphics() {
         }
         images[i].data = data;
 
-        rectangle(40, (HEIGHT-40)/2, (WIDTH-80)*i/(GR_COUNT+SOUND_MAX), 40, 100, 250, 100);
-        rectangle(40, (HEIGHT-40)/2+20, (WIDTH-80)*i/(GR_COUNT+SOUND_MAX), 10, 170, 250, 170);
+        draw_button(40, (HEIGHT-40)/2, (WIDTH-80)*i/(GR_COUNT+SOUND_MAX), 40, 100, 250, 100, 0);
+        rectangle(40+BUTTON_BORDER*2, (HEIGHT-40)/2+20+BUTTON_BORDER, (WIDTH-80)*i/(GR_COUNT+SOUND_MAX)-BUTTON_BORDER*2, 10, 170, 250, 170);
         updatescr();
     }
     tnxar_close(tnxar);
@@ -254,10 +254,9 @@ void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b) {
 
 void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed) {
     float diff = (pressed?1.0-BUTTON_HIGHLIGHT:1.0+BUTTON_HIGHLIGHT);
-    int border = BUTTON_BORDER;
-    rectangle( x, y, w, h, r*diff, g*diff, b*diff);
-    rectangle( x+border, y+border, w-border, h-border, r/diff, g/diff, b/diff);
-    rectangle( x+border, y+border, w-2*border, h-2*border, r, g, b);
+    rectangle(x, y, w, h, MIN(r*diff, 255), MIN(g*diff, 255), MIN(b*diff, 255));
+    rectangle(x+BUTTON_BORDER, y+BUTTON_BORDER, w-BUTTON_BORDER, h-BUTTON_BORDER, MIN(r/diff, 255), MIN(g/diff, 255), MIN(b/diff, 255));
+    rectangle(x+BUTTON_BORDER, y+BUTTON_BORDER, w-2*BUTTON_BORDER, h-2*BUTTON_BORDER, r, g, b);
 }
 
 void draw_button_text( char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed) {
