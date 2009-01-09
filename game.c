@@ -446,23 +446,23 @@ void render( GameState* s) {
             break;
     }
     show_sprite( GR_REFEREE, s->referee*3+t, 12, 250, 10, 255);
-#else
-    show_sprite( GR_REFEREE, s->referee, 4, 250, 10, 255);
-#endif
     if (voice_finished_flag == 0) {
         show_sprite(GR_TALK, (s->time/150)%2, 2, 280, 45, 255);
     }
+#else
+    show_sprite( GR_REFEREE, s->referee, 4, 250, 10, 255);
+#endif
     show_image( GR_SHADOW, s->ball.x-BALL_X_MID, s->ball.y + get_phase( s) - BALL_Y_MID, 255);
     
     show_sprite( GR_RACKET, (!s->player1.state), 4, s->player1.x-RACKET_X_MID, s->player1.y-RACKET_Y_MID, 255);
     show_sprite( GR_RACKET, (!s->player2.state)+2, 4, s->player2.x-RACKET_X_MID, s->player2.y-RACKET_Y_MID, 255);
     
     if( s->ball.move_x > 0) {
-        show_sprite( GR_BALL, (s->time/500)%4, 4, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
+        show_sprite( GR_BALL, (s->time/100)%BALL_STATES, BALL_STATES, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
     } else if( s->ball.move_x < 0) {
-        show_sprite( GR_BALL, 3-(s->time/500)%4, 4, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
+        show_sprite( GR_BALL, BALL_STATES-1-(s->time/100)%BALL_STATES, BALL_STATES, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
     } else {
-        show_sprite( GR_BALL, 0, 4, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
+        show_sprite( GR_BALL, 0, BALL_STATES, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
     }
 
     /* Player 1's mouse rectangle */

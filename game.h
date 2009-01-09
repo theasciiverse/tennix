@@ -32,6 +32,12 @@
 
 #define NGRAM_STEPS 6
 
+#ifdef DELUXE_EDITION
+#  define BALL_STATES 16
+#else
+#  define BALL_STATES 4
+#endif
+
 typedef unsigned char bool;
 enum {
     false,
