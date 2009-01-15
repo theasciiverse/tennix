@@ -109,6 +109,7 @@ int voice_finished_flag = 1;
 
 void init_sound() {
     int i;
+    char *d;
     Mix_Chunk* data;
     TennixArchive* tnxar;
 
@@ -126,7 +127,9 @@ void init_sound() {
 
     for( i=0; i<SOUND_MAX; i++) {
         if (tnxar_set_current_filename(tnxar, samples[i]) != 0) {
-            data = Mix_LoadWAV_RW(SDL_RWFromMem(tnxar_read_current(tnxar), tnxar_size_current(tnxar)), 1);
+            d = tnxar_read_current(tnxar);
+            data = Mix_LoadWAV_RW(SDL_RWFromMem(d, tnxar_size_current(tnxar)), 0);
+            free(d);
         } else {
             fprintf(stderr, "Cannot find %s\n", samples[i]);
             exit(EXIT_FAILURE);

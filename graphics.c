@@ -68,6 +68,7 @@ static char* graphics[] = {
 
 void init_graphics() {
     int i;
+    char *d;
     SDL_Surface* data;
     SDL_Surface* tmp;
     TennixArchive *tnxar;
@@ -105,7 +106,9 @@ void init_graphics() {
 
     for( i=0; i<GR_COUNT; i++) {
         if (tnxar_set_current_filename(tnxar, graphics[i]) != 0) {
-            tmp = IMG_Load_RW(SDL_RWFromMem(tnxar_read_current(tnxar), tnxar_size_current(tnxar)), 1);
+            d = tnxar_read_current(tnxar);
+            tmp = IMG_Load_RW(SDL_RWFromMem(d, tnxar_size_current(tnxar)), 0);
+            free(d);
         } else {
             fprintf(stderr, "Cannot find file: %s\n", graphics[i]);
             exit(EXIT_FAILURE);
