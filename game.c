@@ -66,6 +66,7 @@ GameState *gamestate_new() {
         0,
         false,
         0,
+        0,
         0
     };
 
@@ -135,6 +136,9 @@ void gameloop(GameState *s) {
                 ot = SDL_GetTicks();
                 s->was_stopped = false;
             }
+        }
+        if (s->timelimit != 0 && s->time >= s->timelimit) {
+            quit = 1;
         }
 
 #ifdef ENABLE_FPS_LIMIT

@@ -91,6 +91,7 @@ int main( int argc, char** argv) {
     int slide_start;
     bool mouse_pressed = false;
     bool quit = false;
+    bool benchmark = false;
     GameState *current_game = NULL, *prepared_game = NULL;
 
     MenuButton btn_back = {
@@ -177,6 +178,9 @@ int main( int argc, char** argv) {
             joystick_list();
             return 0;
         }
+        else if (OPTION_SET("--benchmark", "-b")) {
+            benchmark = true;
+        }
         else if (OPTION_SET("--joystick", "-j")) {
             SDL_Init(SDL_INIT_JOYSTICK);
             if (OPTION_VALUE == NULL) {
@@ -202,7 +206,11 @@ int main( int argc, char** argv) {
     }
 #endif
 
-    srand( (unsigned)time( NULL));
+    if (benchmark) {
+        srand(100);
+    } else {
+        srand((unsigned)time(NULL));
+    }
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) == -1) {
         fprintf( stderr, "Can't init SDL:  %s\n", SDL_GetError());
@@ -227,6 +235,16 @@ int main( int argc, char** argv) {
     frames = 0;
     ft = SDL_GetTicks();
 #endif
+
+    if (benchmark) {
+        GameState* g = gamestate_new();
+        g->player1.type = PLAYER_TYPE_AI;
+        g->player2.type = PLAYER_TYPE_AI;
+        g->timelimit = BENCHMARK_TIMELIMIT*1000;
+        gameloop(g);
+        free(g);
+        exit(0);
+    }
 
     i = 0;
     /* Sliding initialization */

@@ -134,6 +134,7 @@ typedef struct {
     bool night;
     int wind;
     unsigned int windtime;
+    int timelimit;
 } GameState;
 
 #define PI 3.1415
