@@ -111,7 +111,6 @@ void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h);
 #define update_rect2(r) (update_rect(r.x, r.y, r.w, r.h))
 void updatescr();
 void start_fade();
-int is_fading();
 
 int font_get_metrics(image_id id, unsigned char ch, int* xp, int* wp);
 int font_draw_char( image_id id, char ch, int x_offset, int y_offset);
@@ -121,6 +120,8 @@ int font_get_string_width( image_id id, const char* s);
 
 void draw_line_faded( int x1, int y1, int x2, int y2, int r, int g, int b, int r2, int g2, int b2);
 #define draw_line(x1,y1,x2,y2,r,g,b) draw_line_faded(x1,y1,x2,y2,r,g,b,r,g,b)
+
+extern Uint32 fading_start;
 
 #endif
 

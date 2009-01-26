@@ -41,7 +41,7 @@ static SDL_Rect *rect_update_old;
 static int rect_update_cache_current;
 static int rect_update_old_count;
 
-static Uint32 fading_start = 0;
+Uint32 fading_start = 0;
 
 static char* graphics[] = {
     "court.png",
@@ -368,7 +368,7 @@ void updatescr()
     SDL_Rect *r_old = NULL;
 
     static int fading_last_time = 0;
-    int fading_now = is_fading();
+    int fading_now = ticks < fading_start+FADE_DURATION;
 
     if (fading_now) {
         SDL_SetAlpha(buffer, SDL_SRCALPHA | SDL_RLEACCEL, 255-255*(ticks-fading_start)/FADE_DURATION);
@@ -407,10 +407,6 @@ void updatescr()
 void start_fade() {
     SDL_BlitSurface( screen, NULL, buffer, NULL);
     fading_start = SDL_GetTicks();
-}
-
-int is_fading() {
-    return SDL_GetTicks() < fading_start+FADE_DURATION;
 }
 
 int font_get_metrics(image_id id, unsigned char ch, int* xp, int* wp) {
