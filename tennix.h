@@ -41,7 +41,7 @@
 #define WIDTH 640
 #define HEIGHT 480
 
-#define BENCHMARK_TIMELIMIT 10 /* in seconds */
+#define BENCHMARK_TIMELIMIT 60 /* in seconds */
 #define MENU_BUTTON_HEIGHT 62
 #define MENU_BUTTON_WIDTH 185
 
@@ -92,7 +92,7 @@ enum {
 };
 
 /* Comment the following #define to disable FPS limiting */
-#define ENABLE_FPS_LIMIT
+/*#define ENABLE_FPS_LIMIT*/
 #define DEFAULT_FPS 33
 
 

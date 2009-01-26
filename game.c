@@ -68,7 +68,8 @@ GameState *gamestate_new() {
         0,
         0,
         0,
-        false
+        false,
+        REFEREE_COUNT
     };
 
     s = (GameState*)malloc(sizeof(GameState));
@@ -417,51 +418,52 @@ void render( GameState* s) {
         updatescr();
         return;
     }
-    if (s->old_court_type != s->court_type || s->text_changed) {
+    if (s->old_court_type != s->court_type || s->text_changed || s->old_referee != s->referee) {
         clear_screen();
         fill_image(s->court_type, 120, 120, 400, 250);
         show_image(GR_COURT, 0, 0, 255);
         font_draw_string( GR_DKC2_FONT, s->game_score_str, 14, 14, 0, ANIMATION_NONE);
         font_draw_string( GR_DKC2_FONT, s->sets_score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->sets_score_str))-14, 14, 0, ANIMATION_NONE);
+#ifdef EXTENDED_REFEREE
+        switch (s->referee) {
+            case REFEREE_NORMAL:
+                t = 1000;
+                break;
+            case REFEREE_OUT:
+                t = 200;
+                break;
+            case REFEREE_PLAYER1:
+            case REFEREE_PLAYER2:
+                t = 400;
+                break;
+        }
+        t = (s->time/t)%4;
+        switch (t) {
+            case 0:
+                t=0;
+                break;
+            case 1:
+                t=1;
+                break;
+            case 2:
+                t=0;
+                break;
+            case 3:
+                t=2;
+                break;
+        }
+        show_sprite( GR_REFEREE, s->referee*3+t, 12, 250, 10, 255);
+        if (voice_finished_flag == 0) {
+            show_sprite(GR_TALK, (s->time/150)%2, 2, 280, 45, 255);
+        }
+#else
+        show_sprite( GR_REFEREE, s->referee, 4, 250, 10, 255);
+#endif
         s->old_court_type = s->court_type;
         s->text_changed = false;
+        s->old_referee = s->referee;
         store_screen();
     }
-#ifdef EXTENDED_REFEREE
-    switch (s->referee) {
-        case REFEREE_NORMAL:
-            t = 1000;
-            break;
-        case REFEREE_OUT:
-            t = 200;
-            break;
-        case REFEREE_PLAYER1:
-        case REFEREE_PLAYER2:
-            t = 400;
-            break;
-    }
-    t = (s->time/t)%4;
-    switch (t) {
-        case 0:
-            t=0;
-            break;
-        case 1:
-            t=1;
-            break;
-        case 2:
-            t=0;
-            break;
-        case 3:
-            t=2;
-            break;
-    }
-    show_sprite( GR_REFEREE, s->referee*3+t, 12, 250, 10, 255);
-    if (voice_finished_flag == 0) {
-        show_sprite(GR_TALK, (s->time/150)%2, 2, 280, 45, 255);
-    }
-#else
-    show_sprite( GR_REFEREE, s->referee, 4, 250, 10, 255);
-#endif
     show_image( GR_SHADOW, s->ball.x-BALL_X_MID, s->ball.y + get_phase( s) - BALL_Y_MID, 255);
     
     show_sprite( GR_RACKET, (!s->player1.state), 4, s->player1.x-RACKET_X_MID, s->player1.y-RACKET_Y_MID, 255);

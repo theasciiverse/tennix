@@ -19,7 +19,9 @@
 # MA  02110-1301, USA.
 #
 
-CC        =  gcc
+CC        =  nccgen -ncgcc -ncld -ncfabs
+LD        =  nccld
+
 RELEASE   =  0.6.9
 
 TARGET ?= default
@@ -28,7 +30,7 @@ PREFIX ?= usr/local/
 BINARY_INSTALL_DIR ?= $(PREFIX)/bin
 
 LIBS =
-CFLAGS += -Wall -DVERSION=\"$(RELEASE)\" -O2
+CFLAGS += -Wall -DVERSION=\"$(RELEASE)\" -O2 -pg
 
 ifeq ($(DELUXE),1)
   CFLAGS += -DDELUXE_EDITION

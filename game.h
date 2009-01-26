@@ -49,14 +49,16 @@ enum {
     REFEREE_NORMAL,
     REFEREE_OUT,
     REFEREE_PLAYER1,
-    REFEREE_PLAYER2
+    REFEREE_PLAYER2,
+    REFEREE_COUNT
 };
 #else
 enum {
     REFEREE_NORMAL,
     REFEREE_PLAYER1,
     REFEREE_OUT,
-    REFEREE_PLAYER2
+    REFEREE_PLAYER2,
+    REFEREE_COUNT
 };
 #endif
 
@@ -136,6 +138,7 @@ typedef struct {
     unsigned int windtime;
     int timelimit;
     bool text_changed;
+    unsigned char old_referee;
 } GameState;
 
 #define PI 3.1415
