@@ -135,6 +135,7 @@ typedef struct {
     int wind;
     unsigned int windtime;
     int timelimit;
+    bool text_changed;
 } GameState;
 
 #define PI 3.1415

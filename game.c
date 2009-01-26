@@ -67,7 +67,8 @@ GameState *gamestate_new() {
         false,
         0,
         0,
-        0
+        0,
+        false
     };
 
     s = (GameState*)malloc(sizeof(GameState));
@@ -93,6 +94,7 @@ GameState *gamestate_new() {
 void gameloop(GameState *s) {
     strcpy(s->game_score_str, format_game(s));
     strcpy(s->sets_score_str, format_sets(s));
+    s->text_changed = true;
 
     Uint32 ot = SDL_GetTicks();
     Uint32 nt;
@@ -192,6 +194,7 @@ bool step( GameState* s) {
             score_game( s, s->player2.responsible);
             strcpy( s->game_score_str, format_game( s));
             strcpy( s->sets_score_str, format_sets( s));
+            s->text_changed = true;
 
             if( s->player1.responsible) {
                 if( s->player1.type == PLAYER_TYPE_HUMAN && s->player2.type == PLAYER_TYPE_AI) {
@@ -414,11 +417,14 @@ void render( GameState* s) {
         updatescr();
         return;
     }
-    if (s->old_court_type != s->court_type) {
+    if (s->old_court_type != s->court_type || s->text_changed) {
         clear_screen();
         fill_image(s->court_type, 120, 120, 400, 250);
         show_image(GR_COURT, 0, 0, 255);
+        font_draw_string( GR_DKC2_FONT, s->game_score_str, 14, 14, 0, ANIMATION_NONE);
+        font_draw_string( GR_DKC2_FONT, s->sets_score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->sets_score_str))-14, 14, 0, ANIMATION_NONE);
         s->old_court_type = s->court_type;
+        s->text_changed = false;
         store_screen();
     }
 #ifdef EXTENDED_REFEREE
@@ -475,8 +481,6 @@ void render( GameState* s) {
         rectangle(s->player1.x-1+5, s->player1.mouse_y-1, 2, 2, 0, 0, 0);
     }
     
-    font_draw_string( GR_DKC2_FONT, s->game_score_str, 14, 14, 0, ANIMATION_NONE);
-    font_draw_string( GR_DKC2_FONT, s->sets_score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->sets_score_str))-14, 14, 0, ANIMATION_NONE);
 
     font_draw_string( GR_DKC2_FONT, s->status, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->status))/2, HEIGHT-50, s->time/30, ANIMATION_WAVE);
 
