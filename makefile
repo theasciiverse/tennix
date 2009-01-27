@@ -41,7 +41,7 @@ ifeq ($(DEBUG),1)
 endif
 
 ifeq ($(MAEMO),1)
-  CFLAGS += -DMAEMO
+  CFLAGS += -DMAEMO -mfpu=vfp -mfloat-abi=softfp -mcpu=arm1136j-s
 endif
 
 ifeq ($(TARGET),cocoa)
