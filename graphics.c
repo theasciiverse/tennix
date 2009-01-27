@@ -315,7 +315,10 @@ void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h)
     static int inside = 0;
     if (inside) return;
     inside = 1;
-    /*rectangle(x, y, w, h, 50+rand()%200, 50+rand()%200 ,50+rand()%200);*/
+
+#ifdef DRAW_UPDATE_RECTANGLE
+    rectangle(x, y, w, h, 50+rand()%200, 50+rand()%200 ,50+rand()%200);
+#endif
 
     if ((x >= WIDTH) | (y >= HEIGHT) | (x+w <= 0) | (y+h <= 0) | (!w) | (!h)) {
         inside = 0;
