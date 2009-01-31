@@ -19,8 +19,11 @@
 # MA  02110-1301, USA.
 #
 
-CC        =  nccgen -ncgcc -ncld -ncfabs
-LD        =  nccld
+
+ifeq ($(MKCALLGRAPH),1)
+  CC        =  nccgen -ncgcc -ncld -ncfabs
+  LD        =  nccld
+endif
 
 RELEASE   =  0.6.9
 
@@ -30,7 +33,7 @@ PREFIX ?= usr/local/
 BINARY_INSTALL_DIR ?= $(PREFIX)/bin
 
 LIBS =
-CFLAGS += -Wall -DVERSION=\"$(RELEASE)\" -O2 -pg
+CFLAGS += -Wall -DVERSION=\"$(RELEASE)\" -O2
 
 ifeq ($(UPDRECTANGLE),1)
   CFLAGS += -DDRAW_UPDATE_RECTANGLE
