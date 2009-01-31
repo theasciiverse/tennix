@@ -16,14 +16,6 @@ Effects/weather:
  * Snow (christmas edition?)
  * Sunshine (=current, normal behaviour)
 
-To save RAM, don't put data into tennix binary, but have a separate
-"tennix.dat" file that has all data files inside, and then on startup
-load this file and load all sounds and images. After that, close the
-file, so we do not have to keep the data files in memory during the
-whole lifetime of the tennix process. Should save some RAM, probably.
- \
-  --> Open questions: file format? encryption/obfuscation?
-
 For the next UI clean-up, use "Wild plastic" as music from:
 http://www.melodyloops.com/music-loops/free-music-loops-3.html
 
@@ -56,10 +48,8 @@ Setting "sets to win" (2 or 3)
 Save game and continue game later on
 Highscore list
 Setting player names
-Select court type graphically before game
 Correct serve repeat when serving into the out
 Change between full screen and windowed mode in Windows
 Implement tie break
-Stadium commentator (needs voice actor)
 Implement "hit in the right area on serving"
 

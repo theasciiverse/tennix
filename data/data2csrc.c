@@ -1,7 +1,7 @@
 /***
  * data2csrc.c -- Read data and output c source to stdout
  *
- * Copyright (c) 2007 Thomas Perl <thp@perli.net>
+ * Copyright (c) 2007 Thomas Perl <thpinfo.com/about>
  * Website: http://thpinfo.com/
  *
  * License: This code is in the public domain.

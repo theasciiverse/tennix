@@ -2,7 +2,7 @@
 /**
  *
  * Tennix! SDL Port
- * Copyright (C) 2003, 2007, 2008 Thomas Perl <thp@perli.net>
+ * Copyright (C) 2003, 2007, 2008, 2009 Thomas Perl <thp@thpinfo.com>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,7 +35,7 @@
 
 #define ARCHIVE_FILE "tennix.tnx"
 
-#define COPYRIGHT "Copyright 2003, 2007, 2008 Thomas Perl"
+#define COPYRIGHT "Copyright 2003, 2007, 2008, 2009 Thomas Perl"
 #define URL "http://icculus.org/tennix/"
 
 #define WIDTH 640
