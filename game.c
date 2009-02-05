@@ -36,14 +36,15 @@ GameState *gamestate_new() {
     GameState *s;
 
     GameState template = {
-        { 0, 0, 0.0, 0.0, 0.0 },
+        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, false, -1, false },
         { 0, 0, 0, 0, 0 },
-        { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, 1, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
-        { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
+        {
+            { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
+            { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
+        },
         0,
         0,
-        0,
-        true,
+        1,
         "welcome to tennix " VERSION,
         { 0 },
         { 0 },
@@ -69,7 +70,9 @@ GameState *gamestate_new() {
         0,
         0,
         false,
-        REFEREE_COUNT
+        REFEREE_COUNT,
+        SCORE_UNDECIDED,
+        0,
     };
 
     s = (GameState*)malloc(sizeof(GameState));
@@ -164,115 +167,177 @@ void gameloop(GameState *s) {
 bool step( GameState* s) {
     Uint8 *keys;
     SDL_Event e;
-   
-    if( get_phase( s) < 1.0) {
-        if( !s->ground.jump) {
-            s->play_sound = SOUND_GROUND;
+    bool ground_event = false;
+    int p;
 
-            if( IS_OUT_Y( s->ball.y)) {
-                /* out - responsibilities stay the same */
-                s->status = "out!";
-                s->play_sound = SOUND_OUT;
-                s->referee = REFEREE_OUT;
-            } else {
-                /* not out - responsibilities change */
-                s->player1.responsible = !(s->player2.responsible = !s->player2.responsible);
-                s->status = format_status( s);
-                s->referee = REFEREE_NORMAL;
-            }
+    if (s->ball.z < 0) {
+        /* ground event */
+        ground_event = true;
+
+        s->referee = REFEREE_NORMAL;
+        /* FIXME: set referee to correct "position" */
+
+        /* bounce from the ground */
+        if (fabsf(s->ball.move_z) > 0.5) {
+            s->ball.move_z *= -RESTITUTION;
+        } else {
+            s->ball.move_z = 0;
         }
-        s->ground.jump = 3;
-        s->ground.x = s->ball.x;
-        s->ground.y = s->ball.y;
-    } else {
-        if( s->ground.jump && !(s->time%5)) s->ground.jump--;
+        s->ball.z = 0;
+
+        /* only make the sound if it's visibly bouncing hard */
+        if (!IS_OFFSCREEN(s->ball.x, s->ball.y) && fabsf(s->ball.move_z) > .5) {
+            s->play_sound = SOUND_GROUND;
+        }
     }
 
-    if( IS_OUT_X(s->ball.x) || IS_OFFSCREEN_Y(s->ball.y)) {
-        if( IS_OFFSCREEN( s->ball.x, s->ball.y)) {
-            s->player1_serves = s->player1.responsible;
+    if (NET_COLLISION_BALL(s->ball)) {
+        /* the net blocks movement of the ball */
+        s->ball.move_x = 0;
+        s->ball.move_y = 0;
+        /* FIXME: make sure the ball appears OUTSIDE of the net */
+    }
 
-            score_game( s, s->player2.responsible);
-            strcpy( s->game_score_str, format_game( s));
-            strcpy( s->sets_score_str, format_sets( s));
+    /* see if we have something to score */
+    if (s->score_event == SCORE_UNDECIDED) {
+        if (NET_COLLISION_BALL(s->ball)) {
+            /* the ball "fell" into the net  */
+            s->score_event = SCORE_EVENT_NET;
+            s->play_sound = SOUND_OUT;
+            s->status = "net!";
+        } else if (IS_OFFSCREEN(s->ball.x, s->ball.y)) {
+            /* ball flew offscreen */
+            s->score_event = SCORE_EVENT_OFFSCREEN;
+            s->play_sound = SOUND_OUT;
+            s->status = "out!";
+        } else if (ground_event) {
+            /* the ball hit the ground on the screen */
+            if (IS_OUT(s->ball.x, s->ball.y)) {
+                /* the ball bounced in the OUT area */
+                s->score_event = SCORE_EVENT_OUT;
+                s->play_sound = SOUND_OUT;
+                s->status = "out!";
+            } else if (GROUND_IS_VALID(s->ball.last_hit_by, s->ball.x, s->ball.y)) {
+                if (s->ball.ground_hit) {
+                    s->score_event = SCORE_EVENT_GROUND_VALID;
+                    s->play_sound = SOUND_OUT;
+                    s->status = "did not catch the ball!";
+                } else {
+                    /* first ground hit in valid area */
+                    s->ball.ground_hit = true;
+                }
+            } else {
+                /* ball hit somewhere invalid */
+                s->score_event = SCORE_EVENT_GROUND_INVALID;
+                s->play_sound = SOUND_OUT;
+                s->status = "fault!";
+            }
+        }
+    }
+
+    if (s->score_event != SCORE_UNDECIDED) {
+        /* we have some scoring to do */
+        if (s->score_time == 0) {
+            /* schedule scoring in the future */
+            s->score_time = s->time + SCORING_DELAY;
+        } else if (s->time >= s->score_time) {
+            /* time has ran out - score now */
+            score_game(s);
+            s->score_time = 0;
+
+            strcpy(s->game_score_str, format_game(s));
+            strcpy(s->sets_score_str, format_sets(s));
             s->text_changed = true;
 
-            if( s->player1.responsible) {
-                if( s->player1.type == PLAYER_TYPE_HUMAN && s->player2.type == PLAYER_TYPE_AI) {
+            /*if (FIXME - get winner) {
+                if( PLAYER(s, 1).type == PLAYER_TYPE_HUMAN && PLAYER(s, 2).type == PLAYER_TYPE_AI) {
                     s->status = "computer scores";
                 } else {
                     s->status = "player 2 scores";
                 }
                 s->referee = REFEREE_PLAYER2;
             } else {
-                if( s->player1.type == PLAYER_TYPE_HUMAN && s->player2.type == PLAYER_TYPE_AI) {
+                if( PLAYER(s, 1).type == PLAYER_TYPE_HUMAN && PLAYER(s, 2).type == PLAYER_TYPE_AI) {
                     s->status = "player scores";
                 } else {
                     s->status = "player 1 scores";
                 }
                 s->referee = REFEREE_PLAYER1;
-            }
+            }*/
 
-            game_setup_serve( s);
+            game_setup_serve(s);
             s->play_sound = SOUND_APPLAUSE;
-            SDL_Delay( 500);
-            s->was_stopped = true;
+            /*FIXME n-gram predictor broken
             s->history_size = 0;
             s->history_is_locked = 0;
-            s->ngram_prediction = 0.0;
-#ifdef DEBUG
-            printf( "-- game reset --\n");
-#endif
+            s->ngram_prediction = 0.0;*/
         }
-    
+    } else {
+        /* score is still undecided - do the racket swing thing */
+        for (p=1; p<=2; p++) {
+            if (IS_NEAR_X(PLAYER(s, p).x, s->ball.x) && IS_NEAR_Y(PLAYER(s, p).y, s->ball.y-s->ball.z) && PLAYER(s, p).state && s->ball.last_hit_by != p) {
+                /* RACKET HIT */
+                if (!s->ball.ground_hit && s->ball.move_x != 0.0) {
+                    s->status = "volley!";
+                } else {
+                    s->status = format_status(s);
+                }
+                switch (PLAYER(s, p).desire) {
+                    case DESIRE_NORMAL:
+                        /* normal swing */
+                        s->ball.move_x = 2.7 + 2.0*PLAYER(s, p).state/PLAYER_STATE_MAX;
+                        s->ball.move_z = 1.2*PLAYER(s, p).state/PLAYER_STATE_MAX;
+                        break;
+                    case DESIRE_TOPSPIN:
+                        /* top spin */
+                        s->ball.move_x = 1.1 + 2.2*PLAYER(s, p).state/PLAYER_STATE_MAX;
+                        s->ball.move_z = 2.5*PLAYER(s, p).state/PLAYER_STATE_MAX;
+                        break;
+                    case DESIRE_SMASH:
+                        /* smash */
+                        s->ball.move_x = 4.0 + 3.0*PLAYER(s, p).state/PLAYER_STATE_MAX;
+                        s->ball.move_z = 1.1*PLAYER(s, p).state/PLAYER_STATE_MAX;
+                        break;
+                }
+                s->ball.move_y = get_move_y( s, p);
+                s->play_sound = SOUND_RACKET;
+                s->ball.ground_hit = false;
+                s->ball.inhibit_gravity = false;
+                s->ball.last_hit_by = p;
+                if (p==1) {
+                    pan_sample(SOUND_RACKET, 0.4);
+                } else {
+                    pan_sample(SOUND_RACKET, 0.6);
+                    s->ball.move_x *= -1;
+                }
+            }
+        }
+    }
+
+#if 0
+    FIXME n-gram predictor broken
+    if( IS_OUT_X(s->ball.x) || IS_OFFSCREEN_Y(s->ball.y)) {
         if( IS_OUT_X(s->ball.x)) {
-            if( !s->history_is_locked && s->referee != REFEREE_OUT) {
+            /*if( !s->history_is_locked && s->referee != REFEREE_OUT) {
                 s->history[s->history_size] = (int)(NGRAM_STEPS*s->ball.y/HEIGHT);
                 s->history_size++;
                 if( s->history_size == 3) {
                     s->ngram[s->history[0]][s->history[1]][s->history[2]] += 10;
-#ifdef DEBUG
-                    printf( "history: %d, %d, %d\n", s->history[0], s->history[1], s->history[2]);
-#endif
                     s->ngram_prediction = ngram_predictor( s);
                     s->history[0] = s->history[1];
                     s->history[1] = s->history[2];
                     s->history_size--;
                 }
                 s->history_is_locked = true;
-            }
-            if( s->ball.move_x <= 0 && IS_NEAR_X( s->player1.x, s->ball.x) && IS_NEAR_Y( s->player1.y, s->ball.y) && s->player1.state && s->referee != REFEREE_OUT) {
-                s->ball.x = GAME_X_MIN;
-                if( s->player1.state == PLAYER_STATE_MAX) {
-                    s->ball.move_x = PLAYER_POWERSHOT;
-                } else {
-                    s->ball.move_x = 2.5 + 2.0*s->player1.state/PLAYER_STATE_MAX;
-                }
-                s->ball.move_y = get_move_y( s, 1);
-                s->player2.responsible = !(s->player1.responsible = 1);
-                s->ball.jump += 1.0-2.0*(s->player1.state<5);
-                s->play_sound = SOUND_RACKET;
-                pan_sample(SOUND_RACKET, 0.4);
-            } else if( s->ball.move_x >= 0 && IS_NEAR_X( s->player2.x, s->ball.x) && IS_NEAR_Y( s->player2.y, s->ball.y) && s->player2.state && s->referee != REFEREE_OUT) {
-                s->ball.x = GAME_X_MAX;
-                if( s->player2.state == PLAYER_STATE_MAX) {
-                    s->ball.move_x = -PLAYER_POWERSHOT;
-                } else {
-                    s->ball.move_x = -(2.5 + 2.0*s->player2.state/PLAYER_STATE_MAX);
-                }
-                s->ball.move_y = get_move_y( s, 2);
-                s->player1.responsible = !(s->player2.responsible = 1);
-                s->ball.jump += 1.0-2.0*(s->player2.state<5);
-                s->play_sound = SOUND_RACKET;
-                pan_sample(SOUND_RACKET, 0.6);
-            }
+            }*/
         }
     } else {
-        s->history_is_locked = false;
+        /*s->history_is_locked = false;*/
     }
+#endif
 
-    SDL_PollEvent( &e);
-    keys = SDL_GetKeyState( NULL);
+    SDL_PollEvent(&e);
+    keys = SDL_GetKeyState(NULL);
     switch(e.type) {
         case SDL_JOYAXISMOTION:
             if (e.jaxis.axis == JOYSTICK_Y_AXIS) {
@@ -325,11 +390,13 @@ bool step( GameState* s) {
     }
 
     if(!(SDL_GetTicks() < fading_start+FADE_DURATION) && !s->is_over) {
-        if( s->player1.type == PLAYER_TYPE_HUMAN) {
-           input_human( &s->player1,
+        if( PLAYER(s, 1).type == PLAYER_TYPE_HUMAN) {
+           input_human( &PLAYER(s, 1),
                    keys['w'] || keys[SDLK_UP] || s->joystick_y < -JOYSTICK_TRESHOLD,
                    keys['s'] || keys[SDLK_DOWN] || s->joystick_y > JOYSTICK_TRESHOLD,
                    keys['d'] || keys[SDLK_SPACE] || keys[SDLK_LCTRL] || keys[SDLK_RETURN] || s->joystick_a,
+                   keys['e'],
+                   keys['f'],
 #ifdef ENABLE_MOUSE
                    true,
 #else
@@ -337,18 +404,18 @@ bool step( GameState* s) {
 #endif
                    s);
         } else {
-            input_ai( &s->player1, &s->ball, &s->player2, s);
+            input_ai( &PLAYER(s, 1), &s->ball, &PLAYER(s, 2), s);
         }
  
-        if( s->player2.type == PLAYER_TYPE_HUMAN) {
-            input_human( &s->player2, keys['o'], keys['l'], keys['k'], false, s);
+        if( PLAYER(s, 2).type == PLAYER_TYPE_HUMAN) {
+            input_human( &PLAYER(s, 2), keys['o'], keys['l'], keys['k'], keys['i'], keys['j'], false, s);
         } else {
-            input_ai( &s->player2, &s->ball, &s->player1, s);
+            input_ai( &PLAYER(s, 2), &s->ball, &PLAYER(s, 1), s);
         }
     }
     
     /* Maemo: The "F6" button is the "Fullscreen" button */
-    if( keys['f'] || keys[SDLK_F6]) SDL_WM_ToggleFullScreen( screen);
+    /*if( keys['f'] || keys[SDLK_F6]) SDL_WM_ToggleFullScreen( screen);*/
     if( keys['y']) SDL_SaveBMP( screen, "screenshot.bmp");
 
     /* Maemo: The "F4" button is the "Open menu" button */
@@ -373,31 +440,31 @@ bool step( GameState* s) {
      
     if( keys[SDLK_ESCAPE] || keys['q']) return true;
     
-    limit_value( &s->player1.y, PLAYER_Y_MIN, PLAYER_Y_MAX);
-    limit_value( &s->player2.y, PLAYER_Y_MIN, PLAYER_Y_MAX);
-    limit_value( &s->ball.jump, BALL_JUMP_MIN, BALL_JUMP_MAX);
+    limit_value( &PLAYER(s, 1).y, PLAYER_Y_MIN, PLAYER_Y_MAX);
+    limit_value( &PLAYER(s, 2).y, PLAYER_Y_MIN, PLAYER_Y_MAX);
     
-    /* Update ball_dest for debugging purposes */
-    get_move_y(s, 1);
-    get_move_y(s, 2);
-
     if (s->ball.move_x > 0 && s->wind > 0) {
         s->ball.x += fabsf(s->wind)/2;
     } else if (s->ball.move_x < 0 && s->wind < 0) {
         s->ball.x -= fabsf(s->wind)/2;
     }
 
+    s->ball.z += s->ball.move_z;
+    if (!s->ball.inhibit_gravity) {
+        s->ball.move_z += GRAVITY;
+    }
+
     s->ball.x += s->ball.move_x;
     s->ball.y += s->ball.move_y;
 
-    if(s->player1.state) s->player1.state--;
-    if(s->player2.state) s->player2.state--;
+    if(PLAYER(s, 1).state) PLAYER(s, 1).state--;
+    if(PLAYER(s, 2).state) PLAYER(s, 2).state--;
 
     return false;
 }
 
 void render( GameState* s) {
-    int i, x, y;
+    int i, x, y, b;
 #ifdef EXTENDED_REFEREE
     int t=1000;
 #endif
@@ -464,23 +531,24 @@ void render( GameState* s) {
         s->old_referee = s->referee;
         store_screen();
     }
-    show_image( GR_SHADOW, s->ball.x-BALL_X_MID, s->ball.y + get_phase( s) - BALL_Y_MID, 255);
     
-    show_sprite( GR_RACKET, (!s->player1.state), 4, s->player1.x-RACKET_X_MID, s->player1.y-RACKET_Y_MID, 255);
-    show_sprite( GR_RACKET, (!s->player2.state)+2, 4, s->player2.x-RACKET_X_MID, s->player2.y-RACKET_Y_MID, 255);
+    show_sprite( GR_RACKET, (!PLAYER(s, 1).state), 4, PLAYER(s, 1).x-RACKET_X_MID, PLAYER(s, 1).y-RACKET_Y_MID, 255);
+    show_sprite( GR_RACKET, (!PLAYER(s, 2).state)+2, 4, PLAYER(s, 2).x-RACKET_X_MID, PLAYER(s, 2).y-RACKET_Y_MID, 255);
     
     if( s->ball.move_x > 0) {
-        show_sprite( GR_BALL, (s->time/100)%BALL_STATES, BALL_STATES, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
+        b = (s->time/100)%BALL_STATES;
     } else if( s->ball.move_x < 0) {
-        show_sprite( GR_BALL, BALL_STATES-1-(s->time/100)%BALL_STATES, BALL_STATES, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
+        b = BALL_STATES-1-(s->time/100)%BALL_STATES;
     } else {
-        show_sprite( GR_BALL, 0, BALL_STATES, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID, 255);
+        b = 0;
     }
+    show_image(GR_SHADOW,                s->ball.x-BALL_X_MID, s->ball.y-4, 255);
+    show_sprite(GR_BALL, b, BALL_STATES, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID-s->ball.z, 255);
 
     /* Player 1's mouse rectangle */
-    if (!(s->player1.mouse_locked)) {
-        rectangle(s->player1.x-2+5, s->player1.mouse_y-2, 4, 4, 255, 255, 255);
-        rectangle(s->player1.x-1+5, s->player1.mouse_y-1, 2, 2, 0, 0, 0);
+    if (!(PLAYER(s, 1).mouse_locked)) {
+        rectangle(PLAYER(s, 1).x-2+5, PLAYER(s, 1).mouse_y-2, 4, 4, 255, 255, 255);
+        rectangle(PLAYER(s, 1).x-1+5, PLAYER(s, 1).mouse_y-1, 2, 2, 0, 0, 0);
     }
     
 
@@ -500,16 +568,13 @@ void render( GameState* s) {
     }
 
 #ifdef DEBUG
-    line_horiz( s->player1.y, 255, 0, 0);
-    line_horiz( s->player2.y, 0, 0, 255);
+    line_horiz( PLAYER(s, 1).y, 255, 0, 0);
+    line_horiz( PLAYER(s, 2).y, 0, 0, 255);
     line_horiz( s->ball.y, 0, 255, 0);
 
-    line_vert( s->player1.x, 255, 0, 0);
-    line_vert( s->player2.x, 0, 0, 255);
+    line_vert( PLAYER(s, 1).x, 255, 0, 0);
+    line_vert( PLAYER(s, 2).x, 0, 0, 255);
     line_vert( s->ball.x, 0, 255, 0);
-
-    line_horiz( s->player1.ball_dest, 255, 0, 255);
-    line_horiz( s->player2.ball_dest, 0, 255, 255);
 
     line_horiz( GAME_Y_MIN, 100, 100, 100);
     line_horiz( GAME_Y_MAX, 100, 100, 100);
@@ -542,34 +607,12 @@ void limit_value( float* value, float min, float max) {
     }
 }
 
-float get_phase( GameState* s) {
-    float pos, fract;
-    float x, min, max, direction;
-
-    x = s->ball.x;
-    min = GAME_X_MIN;
-    max = GAME_X_MAX;
-    direction = s->ball.move_x;
-
-    pos = (direction>0)?(1-GROUND_PHASE):(GROUND_PHASE);
-
-    fract = (x-min)/(max-min);
-
-    if( fract < pos) {
-        fract = fract/pos;
-        return fabsf( cosf(PI*fract/2))*PHASE_AMP*s->ball.jump;
-    } else {
-        fract = (pos-fract)/(1-pos);
-        return fabsf( sinf(PI*fract/2))*PHASE_AMP*s->ball.jump;
-    }
-}
-
 float get_move_y( GameState* s, unsigned char player) {
     float pct, dest, x_len, y_len;
     float py, by, pa, move_x;
 
-    py = (player==1)?(s->player1.y):(s->player2.y);
-    by = s->ball.y;
+    py = (player==1)?(PLAYER(s, 1).y):(PLAYER(s, 2).y);
+    by = s->ball.y - s->ball.z;
     pa = RACKET_Y_MID*2;
     move_x = s->ball.move_x;
 
@@ -579,11 +622,6 @@ float get_move_y( GameState* s, unsigned char player) {
 
     /* Y destination for ball */
     dest = GAME_Y_MID + pct*(GAME_Y_MAX-GAME_Y_MIN);
-    if( player == 1) {
-        s->player1.ball_dest = dest;
-    } else {
-        s->player2.ball_dest = dest;
-    }
 
     /* lengths for the ball's journey */
     if( player == 1) {
@@ -598,7 +636,7 @@ float get_move_y( GameState* s, unsigned char player) {
     return (y_len*move_x)/(x_len);
 }
 
-void input_human( Player* player, bool up, bool down, bool hit, bool use_mouse, GameState* s) {
+void input_human( Player* player, bool up, bool down, bool hit, bool topspin, bool smash, bool use_mouse, GameState* s) {
     int diff = PLAYER_MOVE_Y;
     int mb;
 
@@ -650,7 +688,10 @@ void input_human( Player* player, bool up, bool down, bool hit, bool use_mouse, 
         player->accelerate = PLAYER_ACCEL_DEFAULT;
     }
 
-    if( hit) {
+    if(hit || topspin || smash) {
+        player->desire = (topspin)?(DESIRE_TOPSPIN):(DESIRE_NORMAL);
+        player->desire = (smash)?(DESIRE_SMASH):(player->desire);
+
         if( !player->state && !player->state_locked) {
             player->state = PLAYER_STATE_MAX;
             player->state_locked = true;
@@ -664,31 +705,23 @@ void input_ai( Player* player, Ball* ball, Player* opponent, GameState* s) {
     float fact = 1.7;
     float target;
 
-    if( fabsf( player->y - ball->y) > RACKET_Y_MID*5) {
+    /* FIXME - this is broken since the new physics model has been introduced */
+
+    if( fabsf( player->y - (ball->y-ball->z)) > RACKET_Y_MID*5) {
         fact = 3.5;
     }
 
-    target = GAME_Y_MID + (opponent->ball_dest - GAME_Y_MID)/5;
-
-    if( player->responsible) {
-        if( player->desire == DESIRE_NORMAL && !IS_NEAR_Y_AI( player->y, ball->y)) {
-            if( player->y < ball->y) {
-                player->y += fmin( 2*fact, ball->y - player->y);
-            } else if( player->y > ball->y) {
-                player->y -= fmin( 2*fact, player->y - ball->y);
+    if(1) {
+        if( player->desire == DESIRE_NORMAL && !IS_NEAR_Y_AI( player->y, (ball->y-ball->z))) {
+            if( player->y < (ball->y-ball->z)) {
+                player->y += fmin( 2*fact, (ball->y-ball->z) - player->y);
+            } else if( player->y > (ball->y-ball->z)) {
+                player->y -= fmin( 2*fact, player->y - (ball->y-ball->z));
             }
         }
 
-        if( (ball->move_x != 0 || IS_NEAR_Y_AI( player->y, ball->y)) && IS_NEAR_X_AI( player->x, ball->x) && !player->state && rand()%4==0) {
+        if( (ball->move_x != 0 || IS_NEAR_Y_AI( player->y, (ball->y-ball->z))) && IS_NEAR_X_AI( player->x, ball->x)/* && !player->state*/) {
             player->state = PLAYER_STATE_MAX;
-        }
-    } else if( ball->move_x == 0) {
-        if( player->desire == DESIRE_NORMAL && !IS_NEAR_Y_AI( player->y, target)) {
-            if( player->y < target) {
-                player->y += fmin( fact, (target-player->y)/40.0);
-            } else if( player->y > target) {
-                player->y -= fmin( fact, (player->y-target)/40.0);
-            }
         }
     } else if( s->ngram_prediction > 0.0) {
         target = s->ngram_prediction*((float)HEIGHT)/((float)(NGRAM_STEPS));
@@ -701,32 +734,23 @@ void input_ai( Player* player, Ball* ball, Player* opponent, GameState* s) {
                 player->y -= fmin( fact, (player->y-target)/40.0);
             }
         }
-    } else {/*
-        if( player->desire == DESIRE_NORMAL) {
-            if( !IS_NEAR_Y_AI( player->y, target)) {
-                player->y += (target - player->y)/40.0;
-            }
-        }*/
     }
 }
 
 void game_setup_serve( GameState* s) {
-    s->ball.jump = 7.5;
+    s->ball.z = 10.0;
     s->ball.y = GAME_Y_MID;
     s->ball.move_x = 0.0;
     s->ball.move_y = 0.0;
+    s->ball.move_z = 0.0;
+    s->ball.last_hit_by = -1;
+    s->ball.inhibit_gravity = true;
 
-    if( s->player1_serves) {
-        s->player1.responsible = true;
-        s->player1.ball_dest = 0.0;
+    if( s->serving_player == 1) {
         s->ball.x = GAME_X_MIN-RACKET_X_MID*1.5;
     } else {
-        s->player1.responsible = false;
-        s->player2.ball_dest = 0.0;
         s->ball.x = GAME_X_MAX+RACKET_X_MID*1.5;
     }
-
-    s->player2.responsible = !(s->player1.responsible);
 }
 
 float ngram_predictor( GameState* s) {
@@ -755,9 +779,46 @@ float ngram_predictor( GameState* s) {
     return result;
 }
 
-void score_game( GameState* s, bool player1_scored) {
-    Player* winner = (player1_scored)?(&(s->player1)):(&(s->player2));
-    Player* loser = (player1_scored)?(&(s->player2)):(&(s->player1));
+void score_game(GameState* s) {
+    Player *last_hit_by = NULL;
+    Player *other = NULL;
+
+    Player* winner = NULL;
+    Player* loser = NULL;
+
+    /* determine "last hit by" and "other" */
+    if (s->ball.last_hit_by == 1) {
+        last_hit_by = &(PLAYER(s, 1));
+        other = &(PLAYER(s, 2));
+    } else {
+        last_hit_by = &(PLAYER(s, 2));
+        other = &(PLAYER(s, 1));
+    }
+
+    switch (s->score_event) {
+        case SCORE_EVENT_NET:
+            winner = other;
+            break;
+        case SCORE_EVENT_OUT:
+        case SCORE_EVENT_GROUND_INVALID:
+        case SCORE_EVENT_OFFSCREEN:
+        case SCORE_EVENT_GROUND_VALID:
+            if (s->ball.ground_hit) {
+                winner = last_hit_by;
+            } else {
+                winner = other;
+            }
+            break;
+        default:
+            break;
+    }
+
+    /* determine loser based on winner */
+    if (winner == last_hit_by) {
+        loser = other;
+    } else {
+        loser = last_hit_by;
+    }
 
     if( s->current_set >= SETS_TO_WIN*2-1) {
         return;
@@ -769,9 +830,12 @@ void score_game( GameState* s, bool player1_scored) {
             winner->game = loser->game = 0;
             winner->sets[s->current_set]++;
 
+            /* serving is changed when the "game" is over */
+            s->serving_player = (s->serving_player==1)?(2):(1);
+
 #ifdef HAVE_VOICE_FILES
             /* speak the current score */
-            voice_say_list(4, VOICE_ZERO_IN + (s->player1.sets[s->current_set])*2, VOICE_TO, VOICE_ZERO_OUT + (s->player2.sets[s->current_set])*2, VOICE_IN_THE_FIRST_SET+s->current_set);
+            voice_say_list(4, VOICE_ZERO_IN + (PLAYER(s, 1).sets[s->current_set])*2, VOICE_TO, VOICE_ZERO_OUT + (PLAYER(s, 2).sets[s->current_set])*2, VOICE_IN_THE_FIRST_SET+s->current_set);
 #endif
 
             /* scoring the set.. */
@@ -782,6 +846,9 @@ void score_game( GameState* s, bool player1_scored) {
             }
         }
     }
+
+    /* forget this event - we've handled it */
+    s->score_event = SCORE_UNDECIDED;
 }
 
 char* format_sets( GameState* s) {
@@ -795,7 +862,7 @@ char* format_sets( GameState* s) {
         max--;
     }
     for( i=0; i<=max; i++) {
-        sprintf( tmp, "%d:%d, ", s->player1.sets[i], s->player2.sets[i]);
+        sprintf( tmp, "%d:%d, ", PLAYER(s, 1).sets[i], PLAYER(s, 2).sets[i]);
         strcat( sets, tmp);
     }
 
@@ -808,23 +875,23 @@ char* format_game( GameState* s) {
     static char game[100];
     static const int game_scoring[] = { 0, 15, 30, 40 };
 
-    if( s->player1.game < 4 && s->player2.game < 4) {
+    if( PLAYER(s, 1).game < 4 && PLAYER(s, 2).game < 4) {
 #ifdef HAVE_VOICE_FILES
-        if (s->player1.game > 0 || s->player2.game > 0) {
-            if (s->player1.game == s->player2.game) {
-                voice_say_list(2, VOICE_LOVE_IN + 2*(s->player1.game), VOICE_ALL);
+        if (PLAYER(s, 1).game > 0 || PLAYER(s, 2).game > 0) {
+            if (PLAYER(s, 1).game == PLAYER(s, 2).game) {
+                voice_say_list(2, VOICE_LOVE_IN + 2*(PLAYER(s, 1).game), VOICE_ALL);
             } else {
-                voice_say_list(2, VOICE_LOVE_IN + 2*(s->player1.game), VOICE_LOVE_OUT + 2*(s->player2.game));
+                voice_say_list(2, VOICE_LOVE_IN + 2*(PLAYER(s, 1).game), VOICE_LOVE_OUT + 2*(PLAYER(s, 2).game));
             }
         }
 #endif
-        sprintf( game, "%d - %d", game_scoring[s->player1.game], game_scoring[s->player2.game]);
-    } else if( s->player1.game > s->player2.game) {
+        sprintf( game, "%d - %d", game_scoring[PLAYER(s, 1).game], game_scoring[PLAYER(s, 2).game]);
+    } else if( PLAYER(s, 1).game > PLAYER(s, 2).game) {
 #ifdef HAVE_VOICE_FILES
         voice_say_list(1, VOICE_ADVANTAGE_PLAYER_ONE);
 #endif
         strcpy( game, "advantage player 1");
-    } else if( s->player1.game < s->player2.game) {
+    } else if( PLAYER(s, 1).game < PLAYER(s, 2).game) {
 #ifdef HAVE_VOICE_FILES
         voice_say_list(1, VOICE_ADVANTAGE_PLAYER_TWO);
 #endif
@@ -843,7 +910,7 @@ char* format_status( GameState* s) {
     static char status[100];
     static const char* set_names[] = { "first", "second", "third", "fourth", "fifth" };
 
-    sprintf( status, "%d:%d in %s set", s->player1.sets[s->current_set], s->player2.sets[s->current_set], set_names[s->current_set]);
+    sprintf( status, "%d:%d in %s set", PLAYER(s, 1).sets[s->current_set], PLAYER(s, 2).sets[s->current_set], set_names[s->current_set]);
 
     return status;
 }
@@ -853,7 +920,7 @@ int game_get_winner( GameState* s) {
     int sets[2] = {0};
 
     for( i=0; i<s->current_set; i++) {
-        if( s->player1.sets[i] > s->player2.sets[i]) {
+        if( PLAYER(s, 1).sets[i] > PLAYER(s, 2).sets[i]) {
             sets[0]++;
         } else {
             sets[1]++;

@@ -238,8 +238,8 @@ int main( int argc, char** argv) {
 
     if (benchmark) {
         GameState* g = gamestate_new();
-        g->player1.type = PLAYER_TYPE_AI;
-        g->player2.type = PLAYER_TYPE_AI;
+        PLAYER(g, 1).type = PLAYER_TYPE_AI;
+        PLAYER(g, 2).type = PLAYER_TYPE_AI;
         g->timelimit = BENCHMARK_TIMELIMIT*1000;
         gameloop(g);
         free(g);
@@ -518,25 +518,25 @@ int main( int argc, char** argv) {
                         }
                         break;
                     case MENU_PLAYER1:
-                        switch (prepared_game->player1.type) {
+                        switch (PLAYER(prepared_game, 1).type) {
                             case PLAYER_TYPE_HUMAN:
-                                prepared_game->player1.type = PLAYER_TYPE_AI;
+                                PLAYER(prepared_game, 1).type = PLAYER_TYPE_AI;
                                 btn_player1.text = "Computer (AI)";
                                 break;
                             case PLAYER_TYPE_AI:
-                                prepared_game->player1.type = PLAYER_TYPE_HUMAN;
+                                PLAYER(prepared_game, 1).type = PLAYER_TYPE_HUMAN;
                                 btn_player1.text = "Keyboard (W-S-D)";
                                 break;
                         }
                         break;
                     case MENU_PLAYER2:
-                        switch (prepared_game->player2.type) {
+                        switch (PLAYER(prepared_game, 2).type) {
                             case PLAYER_TYPE_HUMAN:
-                                prepared_game->player2.type = PLAYER_TYPE_AI;
+                                PLAYER(prepared_game, 2).type = PLAYER_TYPE_AI;
                                 btn_player2.text = "Computer (AI)";
                                 break;
                             case PLAYER_TYPE_AI:
-                                prepared_game->player2.type = PLAYER_TYPE_HUMAN;
+                                PLAYER(prepared_game, 2).type = PLAYER_TYPE_HUMAN;
                                 btn_player2.text = "Keyboard (O-L-K)";
                                 break;
                         }

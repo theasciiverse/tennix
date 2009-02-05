@@ -32,6 +32,8 @@
 
 #define NGRAM_STEPS 6
 
+#define MAXPLAYERS 2
+
 #ifdef DELUXE_EDITION
 #  define BALL_STATES 16
 #else
@@ -71,9 +73,13 @@ enum {
 typedef struct {
     float x;
     float y;
+    float z;
     float move_x;
     float move_y;
-    float jump;
+    float move_z;
+    bool ground_hit;
+    int last_hit_by;
+    bool inhibit_gravity;
 } Ball;
 
 typedef struct {
@@ -81,8 +87,7 @@ typedef struct {
     float y;
     unsigned char state;
     unsigned int score;
-    bool responsible; /* responsible for the next fault (if any) */
-    unsigned char desire; /* what the player aims to do (0=normal, 1=upper edge, 2=lower edge)*/
+    unsigned char desire;
     bool type; /* is this player ai-controlled or human? */
     float ball_dest; /* prospective y-position of ball */
     bool state_locked; /* enabled when user keeps pressing the "hit" key */
@@ -101,18 +106,31 @@ enum {
 
 enum {
     DESIRE_NORMAL,
+    DESIRE_TOPSPIN,
+    DESIRE_SMASH,
     DESIRE_MAX
+};
+
+/* wait 2 seconds before we score the game */
+#define SCORING_DELAY 2000
+
+enum {
+    SCORE_UNDECIDED,
+    SCORE_EVENT_NET,
+    SCORE_EVENT_OUT,
+    SCORE_EVENT_GROUND_INVALID,
+    SCORE_EVENT_GROUND_VALID,
+    SCORE_EVENT_OFFSCREEN,
+    SCORE_EVENT_MAX
 };
 
 typedef struct {
     Ball ball;
     Ball ground;
-    Player player1;
-    Player player2;
-    float phase;
+    Player players[MAXPLAYERS];
     unsigned int time;
     bool was_stopped;
-    bool player1_serves;
+    unsigned int serving_player;
     char* status;
     char game_score_str[50];
     char sets_score_str[50];
@@ -139,17 +157,16 @@ typedef struct {
     int timelimit;
     bool text_changed;
     unsigned char old_referee;
+    int score_event;
+    unsigned int score_time;
 } GameState;
 
 #define PI 3.1415
 
 #define GAME_TICKS 15
 
-#define GROUND_PHASE 0.4
-#define PHASE_AMP 3.2
-
-#define BALL_JUMP_MIN 4
-#define BALL_JUMP_MAX 10
+#define GRAVITY -.03
+#define RESTITUTION 0.6
 
 #define RACKET_X_MID 15
 #define RACKET_Y_MID 24
@@ -165,25 +182,52 @@ typedef struct {
 #define GAME_Y_MAX 330.0
 #define GAME_Y_MID ((GAME_Y_MIN+GAME_Y_MAX)/2)
 
-#define GAME_EDGE_AREA 20.0
-#define GAME_EDGE_UPPER GAME_Y_MIN+GAME_EDGE_AREA
-#define GAME_EDGE_LOWER GAME_Y_MAX-GAME_EDGE_AREA
+/* net size and collision detection */
+#define NET_X 320
+#define NET_Y 107
+#define NET_WIDTH 5
+#define NET_HEIGHT 273
+#define NET_TALLNESS 5
+#define IN_NET_X(x) (x+BALL_X_MID >= NET_X && x-BALL_X_MID <= NET_X+NET_WIDTH)
+#define IN_NET_Y(y) (y >= NET_Y && y <= NET_Y+NET_HEIGHT)
+#define NET_COLLISION(x, y, z) (z<=NET_TALLNESS && IN_NET_X(x) && IN_NET_Y(y))
+#define NET_COLLISION_BALL(b) (NET_COLLISION(b.x, b.y, b.z))
 
-#define PLAYER_Y_MIN 0.0
-#define PLAYER_Y_MAX 1.0*HEIGHT
+/* "in field" coordinates (left and right part of court) */
+#define FIELD_LEFT_X 119
+#define FIELD_LEFT_WIDTH 202
+#define FIELD_LEFT_IS_VALID(x) (x >= FIELD_LEFT_X && x <= FIELD_LEFT_X+FIELD_LEFT_WIDTH)
+#define FIELD_RIGHT_X 326
+#define FIELD_RIGHT_WIDTH 202
+#define FIELD_RIGHT_IS_VALID(x) (x >= FIELD_RIGHT_X && x <= FIELD_RIGHT_X+FIELD_RIGHT_WIDTH)
+
+/* coordinates for one-vs-one game */
+#define FIELD_SINGLE_Y 154
+#define FIELD_SINGLE_HEIGHT 178
+#define FIELD_SINGLE_IS_VALID(y) (y >= FIELD_SINGLE_Y && y <= FIELD_SINGLE_Y+FIELD_SINGLE_HEIGHT)
+
+/* coordinates for two-vs-two game */
+#define FIELD_DOUBLE_Y 115
+#define FIELD_DOUBLE_HEIGHT 256
+#define FIELD_DOUBLE_IS_VALID(y) (y >= FIELD_DOUBLE_Y && y <= FIELD_DOUBLE_Y+FIELD_DOUBLE_HEIGHT)
+
+/* player = player that last hit the ball, */
+#define GROUND_IS_VALID(player, x, y) (FIELD_SINGLE_IS_VALID(y) && ((player==1)?(FIELD_RIGHT_IS_VALID(x)):(FIELD_LEFT_IS_VALID(x))))
+#define IS_OUT(x, y) (!(FIELD_SINGLE_IS_VALID(y) && (FIELD_RIGHT_IS_VALID(x) || FIELD_LEFT_IS_VALID(x))))
+
+#define PLAYER_Y_MIN 0
+#define PLAYER_Y_MAX HEIGHT
 
 #define IS_OFFSCREEN_Y(y) (((y)<0-BALL_Y_MID*2) || ((y)>HEIGHT+BALL_Y_MID*2))
 #define IS_OFFSCREEN_X(x) (((x)<0-BALL_X_MID*2) || ((x)>WIDTH+BALL_X_MID*2))
 #define IS_OFFSCREEN(x,y) ((IS_OFFSCREEN_X(x)) || (IS_OFFSCREEN_Y(y)))
-#define IS_OUT_Y(y) (y<GAME_Y_MIN || y>GAME_Y_MAX)
-#define IS_OUT_X(x) (x<GAME_X_MIN || x>GAME_X_MAX)
 
 #define PLAYER_AREA_Y RACKET_Y_MID
 #define PLAYER_AREA_X RACKET_X_MID
-#define IS_NEAR_Y(py,by) (fabsf(py-by)<PLAYER_AREA_Y)
-#define IS_NEAR_Y_AI(py,by) (fabsf(py-by)<PLAYER_AREA_Y/3.5)
-#define IS_NEAR_X(px,bx) (fabsf(px-bx)<PLAYER_AREA_X)
-#define IS_NEAR_X_AI(px,bx) (fabsf(px-bx)<PLAYER_AREA_X*2)
+#define IS_NEAR_Y(py,by) (fabsf((py)-(by))<PLAYER_AREA_Y)
+#define IS_NEAR_Y_AI(py,by) (fabsf((py)-(by))<PLAYER_AREA_Y/3.5)
+#define IS_NEAR_X(px,bx) (fabsf((px)-(bx))<PLAYER_AREA_X)
+#define IS_NEAR_X_AI(px,bx) (fabsf((px)-(bx))<PLAYER_AREA_X*2)
 
 #define PLAYER_MOVE_Y 5.0
 #define PLAYER_ACCEL_DEFAULT 0.2
@@ -192,6 +236,8 @@ typedef struct {
 #define PLAYER_POWERSHOT 6.2
 
 #define MOVE_Y_SEED 3
+
+#define PLAYER(s, num) (s->players[num-1])
 
 /* Comment out the following #define to enable mouse control */
 #define ENABLE_MOUSE
@@ -205,14 +251,13 @@ void gameloop(GameState*);
 void render( GameState*);
 bool step( GameState*);
 void limit_value( float*, float, float);
-float get_phase( GameState*);
 float get_move_y( GameState*, unsigned char);
-void input_human( Player*, bool, bool, bool, bool, GameState*);
+void input_human( Player*, bool, bool, bool, bool, bool, bool, GameState*);
 void input_ai( Player*, Ball*, Player*, GameState*);
 void game_setup_serve( GameState*);
 float ngram_predictor( GameState*);
 
-void score_game( GameState*, bool);
+void score_game(GameState*);
 char* format_sets( GameState*);
 char* format_game( GameState*);
 char* format_status( GameState*);
