@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "tennix.h"
 #include "graphics.h"
@@ -99,6 +100,11 @@ void init_graphics() {
     }
 
     tnxar = tnxar_open(ARCHIVE_FILE);
+    if (tnxar == NULL) {
+        /* not found in cwd - try installed... */
+        tnxar = tnxar_open(ARCHIVE_FILE_INSTALLED);
+        assert(tnxar != NULL);
+    }
 
     draw_button(40, (HEIGHT-40)/2, WIDTH-80, 40, 100, 100, 100, 1);
     store_screen();

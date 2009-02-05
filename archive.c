@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
             exit(EXIT_FAILURE);
         }
         tnxar = tnxar_open(argv[1]);
+        assert(tnxar != NULL);
         tnxar_dump(tnxar);
         tnxar_close(tnxar);
     } else if(strcmp(bn, "extract") == 0) {
@@ -87,6 +88,7 @@ int main(int argc, char* argv[])
             exit(EXIT_FAILURE);
         }
         tnxar = tnxar_open(argv[1]);
+        assert(tnxar != NULL);
         if (argc == 2) {
             while (!tnxar_eof(tnxar)) {
                 filename = tnxar_get_current_filename(tnxar);
@@ -138,7 +140,10 @@ TennixArchive* tnxar_open(char* filename)
     assert(tnxar != NULL);
 
     tnxar->fp = fopen(filename, "rb");
-    assert(tnxar->fp != NULL);
+    if (tnxar->fp == NULL) {
+        free(tnxar);
+        return NULL;
+    }
 
     tnxar->offset = sizeof(TennixArchiveHeader)*fread(&(tnxar->header), sizeof(TennixArchiveHeader), 1, tnxar->fp);
     assert(tnxar->offset == sizeof(TennixArchiveHeader));
@@ -297,21 +302,21 @@ void tnxar_build(TennixArchive *tnxar, char* filename)
 
     tnxar->header.key = (0xaa + 0x77*tnxar->header.items*3) % 0xff;
 
+    fprintf(stderr, "Packing: ");
     for (i=0; i<tnxar->header.items; i++) {
-        fprintf(stderr, "Packing: %s", tnxar->items[i].filename);
+        fprintf(stderr, "%s", tnxar->items[i].filename);
         tnxar->items[i].offset = htonl(offset); /* network byte order */
         tnxar->items[i].key = 0xaa ^ ((i<<2)%0x100);
-        fputc('.', stderr);
         tnxar_xormem(tnxar->blobs[i], tnxar->items[i].length, tnxar->items[i].key);
-        fputc('.', stderr);
         memsize[i] = tnxar->items[i].length;
         offset += tnxar->items[i].length;
-        fputc('.', stderr);
         tnxar->items[i].length = htonl(tnxar->items[i].length); /* network byte order */
         tnxar_xormem((char*)(tnxar->items + i), sizeof(TennixArchiveItem), tnxar->header.key);
-        fputc('.', stderr);
-        fprintf(stderr, "OK\n");
+        if (i != tnxar->header.items-1) {
+            fprintf(stderr, ", ");
+        }
     }
+    fputc('\n', stderr);
 
     fprintf(stderr, "Writing: %s", filename);
     fputc('.', stderr);
@@ -320,10 +325,10 @@ void tnxar_build(TennixArchive *tnxar, char* filename)
     fwrite(tnxar->items, sizeof(TennixArchiveItem), tnxar->header.items, tnxar->fp);
     fputc('.', stderr);
     for (i=0; i<tnxar->header.items; i++) {
-        fputc('.', stderr);
         fwrite(tnxar->blobs[i], memsize[i], 1, tnxar->fp);
         free(tnxar->blobs[i]);
     }
+    fputc('.', stderr);
     fprintf(stderr, "OK\n");
 
     free(memsize);

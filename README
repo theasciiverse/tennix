@@ -88,6 +88,12 @@ PLAYING TENNIX
    F  .... Toggle fullscreen (X11 only)
    C  .... Switch type of court (grass, clay, etc..)
 
+   Bonus (because you took the time to look at the README file):
+   Obviously, there are some hidden easter eggs that are still not available
+   via the UI, due to the fact that we didn't implement the UI for it yet :)
+   Think about [n]ight, [r]ain and fog (think fog[t], even..). Wind is also
+   available, but it's so broken, you'll have to look up the keys in game.c.
+
 
 DEVELOPMENT/DEBUGGING
 =====================
@@ -101,16 +107,16 @@ DEVELOPMENT/DEBUGGING
 CREDITS
 =======
 
-   The in-game music has been taken from the free loops available
-   from MelodyLoops. See http://www.melodyloops.com/ for a 
-   selection of Royality Free Music Loops.
+   Some sound effects are based on data from the Freesound Project.
+
+   Thanks to Esad Hajdarevic and Stefan Doesinger for some optimizations
+   done during the Effiziente Programme course in January 2009 :)
 
 
 CONTACT
 =======
 
-
-    E-Mail: Thomas Perl <thp@perli.net>
+    E-Mail: Thomas Perl <thp@thpinfo.com>
     URL: http://icculus.org/tennix/
 
 

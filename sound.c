@@ -28,6 +28,7 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
+#include <assert.h>
 
 static Sound* sounds;
 
@@ -124,6 +125,11 @@ void init_sound() {
     updatescr();
 
     tnxar = tnxar_open(ARCHIVE_FILE);
+    if (tnxar == NULL) {
+        /* not found in cwd - try installed... */
+        tnxar = tnxar_open(ARCHIVE_FILE_INSTALLED);
+        assert(tnxar != NULL);
+    }
 
     for( i=0; i<SOUND_MAX; i++) {
         if (tnxar_set_current_filename(tnxar, samples[i]) != 0) {

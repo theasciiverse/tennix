@@ -155,7 +155,7 @@ int main( int argc, char** argv) {
             break;
     }
 #else
-    fprintf( stderr, "Tennix %s\n%s\n%s\n\n", VERSION, COPYRIGHT, URL);
+    fprintf(stderr, "Tennix " VERSION "\n" COPYRIGHT "\n" URL "\n\n");
 
     bool do_help = false;
     i = 1;
@@ -382,7 +382,10 @@ int main( int argc, char** argv) {
                 show_image(GR_BTN_RESUME, WIDTH-get_image_width(GR_BTN_RESUME)+slide+(slide/7)+3-(3*(btn_hovering==MENU_RESUME)), 230, 255);
                 font_draw_string(GR_DKC2_FONT, "current match:", 10, 10, 0, 0);
                 font_draw_string(GR_DKC2_FONT, current_game->sets_score_str, 10, 40, 0, 0);
+            } else {
+                font_draw_string(GR_DKC2_FONT, "Tennix " VERSION, 10, 10, 0, 0);
             }
+            font_draw_string(GR_DKC2_FONT, URL, 10, HEIGHT-10-get_image_height(GR_DKC2_FONT), 0, 0);
             show_image(GR_BTN_QUIT, WIDTH-get_image_width(GR_BTN_QUIT)+slide+(slide/7)+3-(3*(btn_hovering==MENU_QUIT)), 350, 255);
         } else {
             /* Options screen */

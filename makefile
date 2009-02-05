@@ -25,7 +25,7 @@ ifeq ($(MKCALLGRAPH),1)
   LD        =  nccld
 endif
 
-RELEASE   =  0.6.9
+RELEASE   =  0.7.0
 
 TARGET ?= default
 
@@ -33,7 +33,7 @@ PREFIX ?= usr/local/
 BINARY_INSTALL_DIR ?= $(PREFIX)/bin
 
 LIBS =
-CFLAGS += -Wall -DVERSION=\"$(RELEASE)\" -O2
+CFLAGS += -Wall -DVERSION=\"$(RELEASE)\" -O2 -DPREFIX=\"$(PREFIX)\"
 
 ifeq ($(UPDRECTANGLE),1)
   CFLAGS += -DDRAW_UPDATE_RECTANGLE
@@ -83,12 +83,13 @@ ChangeLog:
 	git log >ChangeLog
 
 install: tennix
-	install -d $(DESTDIR)/$(BINARY_INSTALL_DIR) $(DESTDIR)/$(PREFIX)/share/pixmaps $(DESTDIR)/$(PREFIX)/share/applications $(DESTDIR)/$(PREFIX)/share/man/man6 $(DESTDIR)/$(PREFIX)/share/icons/hicolor/scalable/apps
+	install -d $(DESTDIR)/$(BINARY_INSTALL_DIR) $(DESTDIR)/$(PREFIX)/share/pixmaps $(DESTDIR)/$(PREFIX)/share/applications $(DESTDIR)/$(PREFIX)/share/man/man6 $(DESTDIR)/$(PREFIX)/share/icons/hicolor/scalable/apps $(DESTDIR)/$(PREFIX)/share/tennix
 	install -s tennix $(DESTDIR)/$(BINARY_INSTALL_DIR)/tennix
 	install tennix.6 $(DESTDIR)/$(PREFIX)/share/man/man6/tennix.6
 	install -m644 data/icon.png $(DESTDIR)/$(PREFIX)/share/pixmaps/tennix.png
 	install -m644 data/icon.svg $(DESTDIR)/$(PREFIX)/share/icons/hicolor/scalable/apps/tennix.svg
 	install -m644 tennix.desktop $(DESTDIR)/$(PREFIX)/share/applications/
+	install -m644 tennix.tnx $(DESTDIR)/$(PREFIX)/share/tennix/
 
 tennix.o: tennix.c tennix.h game.h graphics.h input.h sound.h
 graphics.o: graphics.c graphics.h tennix.h archive.h sound.h
