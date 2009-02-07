@@ -33,7 +33,7 @@ PREFIX ?= usr/local/
 BINARY_INSTALL_DIR ?= $(PREFIX)/bin
 
 LIBS =
-CFLAGS += -W -Wall -ansi -pedantic -Wshadow -Wcast-qual -Wwrite-strings -DVERSION=\"$(RELEASE)\" -O2 -DPREFIX=\"$(PREFIX)\"
+CFLAGS += -std=c99 -W -Wall -ansi -pedantic -Wcast-qual -Wwrite-strings -DVERSION=\"$(RELEASE)\" -O2 -DPREFIX=\"$(PREFIX)\"
 
 ifeq ($(UPDRECTANGLE),1)
   CFLAGS += -DDRAW_UPDATE_RECTANGLE

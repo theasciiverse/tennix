@@ -26,6 +26,8 @@
 #include <math.h>
 #include <unistd.h>
 #include <assert.h>
+#include <ctype.h>
+#include <string.h>
 
 #include "tennix.h"
 #include "graphics.h"
@@ -499,7 +501,7 @@ void font_draw_string_alpha( image_id id, const char* s, int x_offset, int y_off
     int y = y_offset;
     int x = x_offset;
     int additional_x = 0, additional_y = 0;
-    float xw = 0.0, xw_diff;
+    float xw = 0.0, xw_diff = 0.0;
     unsigned int i;
     SDL_Surface *bitmap;
 
@@ -510,7 +512,6 @@ void font_draw_string_alpha( image_id id, const char* s, int x_offset, int y_off
 
     if( animation & ANIMATION_BUNGEE) {
         xw = (25.0*sinf( start/10.0));
-        xw_diff = 0.0;
         x -= xw / 2;
     }
 

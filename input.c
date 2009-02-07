@@ -21,6 +21,8 @@
  *
  **/
 
+#include <string.h>
+
 #include "tennix.h"
 #include "input.h"
 
