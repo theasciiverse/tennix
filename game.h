@@ -126,7 +126,6 @@ enum {
 
 typedef struct {
     Ball ball;
-    Ball ground;
     Player players[MAXPLAYERS];
     unsigned int time;
     bool was_stopped;

@@ -37,7 +37,6 @@ GameState *gamestate_new() {
 
     GameState template = {
         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, false, -1, false },
-        { 0, 0, 0, 0, 0 },
         {
             { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
             { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
