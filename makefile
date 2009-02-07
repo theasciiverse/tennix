@@ -91,7 +91,7 @@ install: tennix
 	install -m644 tennix.desktop $(DESTDIR)/$(PREFIX)/share/applications/
 	install -m644 tennix.tnx $(DESTDIR)/$(PREFIX)/share/tennix/
 
-tennix.o: tennix.c tennix.h game.h graphics.h input.h sound.h
+tennix.o: tennix.c tennix.h game.h graphics.h input.h sound.h locations.h
 graphics.o: graphics.c graphics.h tennix.h archive.h sound.h
 game.o: game.c game.h graphics.h tennix.h sound.h input.h
 sound.o: sound.c sound.h tennix.h archive.h graphics.h

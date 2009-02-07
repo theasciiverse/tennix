@@ -67,7 +67,11 @@ static const char* graphics[] = {
     "fog2.png",
     "night.png",
     "talk.png",
-    "cursor.png"
+    "cursor.png",
+    "loc_margaret_court_arena.png",
+    "loc_stade_roland_garros.png",
+    "loc_court_no_1.png",
+    "loc_arthur_ashe_stadium.png"
 };
 
 void init_graphics() {

@@ -37,6 +37,8 @@
 #include "sound.h"
 #include "input.h"
 
+#include "locations.h"
+
 SDL_Surface *screen;
 
 #ifdef WIN32
@@ -110,8 +112,8 @@ int main( int argc, char** argv) {
     };
     MenuButton btn_court_change = {
         "change",
-        240,
-        40,
+        MENU_OPTIONS_BORDER+320-50,
+        MENU_OPTIONS_BORDER*3+200,
         50, MENU_OPTIONS_BUTTON_HEIGHT,
         100, 100, 100
     };
@@ -129,6 +131,8 @@ int main( int argc, char** argv) {
         MENU_OPTIONS_BUTTON_WIDTH, MENU_OPTIONS_BUTTON_HEIGHT,
         255, 50, 50
     };
+
+    unsigned int current_location = 0;
 
     const SDL_VideoInfo* vi = NULL;
 
@@ -244,6 +248,7 @@ int main( int argc, char** argv) {
         PLAYER(g, 1).type = PLAYER_TYPE_AI;
         PLAYER(g, 2).type = PLAYER_TYPE_AI;
         g->timelimit = BENCHMARK_TIMELIMIT*1000;
+        g->location = &(locations[current_location]);
         gameloop(g);
         free(g);
         exit(0);
@@ -290,6 +295,7 @@ int main( int argc, char** argv) {
                 /* Prepare a new game */
                 if (prepared_game == NULL) {
                     prepared_game = gamestate_new();
+                    prepared_game->location = &(locations[current_location]);
                     btn_player1.text = "Keyboard (W-S-D)";
                     btn_player2.text = "Computer (AI)";
                 }
@@ -396,10 +402,13 @@ int main( int argc, char** argv) {
             draw_button_object(btn_back, mx, my);
             draw_button_object(btn_start, mx, my);
             if (prepared_game != NULL) {
-                fill_image(prepared_game->court_type, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*2, get_image_width(GR_STADIUM), get_image_height(GR_STADIUM));
-                show_image(GR_STADIUM, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*2, 255);
+                show_sprite(prepared_game->location->photo, (i/1000)%(prepared_game->location->photo_frames), prepared_game->location->photo_frames, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*2, 100);
                 draw_button_object(btn_court_change, mx, my);
                 font_draw_string(GR_DKC2_FONT, "Location", MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER, 0, 0);
+                font_draw_string(GR_DKC2_FONT, prepared_game->location->name, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*3+200, 0, 0);
+                font_draw_string(GR_DKC2_FONT, prepared_game->location->area, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*3+200+get_image_height(GR_DKC2_FONT), 0, 0);
+                font_draw_string(GR_DKC2_FONT, prepared_game->location->city, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*3+200+2*get_image_height(GR_DKC2_FONT), 0, 0);
+                font_draw_string(GR_DKC2_FONT, prepared_game->location->court_type_name, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*3+200+4*get_image_height(GR_DKC2_FONT), 0, 0);
                 draw_button_object(btn_player1, mx, my);
                 draw_button_object(btn_player2, mx, my);
                 font_draw_string(GR_DKC2_FONT, "Player 1", btn_player1.x, btn_player1.y-MENU_OPTIONS_BORDER, 0, 0);
@@ -515,10 +524,8 @@ int main( int argc, char** argv) {
                         state = MENU_STATE_SLIDE_TO_MAINMENU;
                         break;
                     case MENU_COURT_CHANGE:
-                        prepared_game->court_type++;
-                        if (prepared_game->court_type > GR_CTT_LAST) {
-                            prepared_game->court_type = GR_CTT_FIRST;
-                        }
+                        current_location = (current_location+1)%location_count();
+                        prepared_game->location = &(locations[current_location]);
                         break;
                     case MENU_PLAYER1:
                         switch (PLAYER(prepared_game, 1).type) {

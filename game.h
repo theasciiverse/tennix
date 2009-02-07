@@ -27,6 +27,7 @@
 #include <math.h>
 #include "tennix.h"
 #include "sound.h"
+#include "graphics.h"
 
 #define SETS_TO_WIN 3
 
@@ -69,6 +70,17 @@ enum {
     WINNER_PLAYER1,
     WINNER_PLAYER2
 };
+
+typedef struct {
+    const char* name;
+    const char* area;
+    const char* city;
+    image_id court_type;
+    unsigned int max_visitors;
+    const char* court_type_name;
+    image_id photo;
+    unsigned int photo_frames;
+} Location;
 
 typedef struct {
     float x;
@@ -126,6 +138,7 @@ enum {
 };
 
 typedef struct {
+    Location* location;
     Ball ball;
     Player players[MAXPLAYERS];
     Uint32 time;
@@ -138,8 +151,7 @@ typedef struct {
     unsigned int current_set;
     int winner;
     bool is_over;
-    unsigned int court_type;
-    unsigned int old_court_type;
+    image_id displayed_court_type;
     unsigned int history[3];
     unsigned int history_size;
     bool history_is_locked;

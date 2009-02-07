@@ -39,6 +39,7 @@ GameState *gamestate_new() {
     GameState *s;
 
     GameState template = {
+        NULL,
         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6, false, -1, false },
         {
             { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
@@ -54,8 +55,7 @@ GameState *gamestate_new() {
         0,
         WINNER_NONE,
         false,
-        GR_CTT_GRASS,
-        -1,
+        GR_COUNT,
         { 0 },
         0,
         false,
@@ -118,7 +118,7 @@ void gameloop(GameState *s) {
     }
     play_sample_loop(SOUND_AUDIENCE);
     /* Reset the court type, so it is redrawn on first display */
-    s->old_court_type = -1;
+    s->displayed_court_type = GR_COUNT;
 
 #ifdef ENABLE_FPS_LIMIT
     frames = 0;
@@ -359,16 +359,6 @@ bool step( GameState* s) {
     }
 
     if( s->time%50==0) {
-        /**
-         * Maemo keys:
-         * F7 = "Decrease" key
-         * F8 = "Increase" key
-         **/
-        if (keys['c'] || keys[SDLK_F8]) {
-            s->court_type++;
-        } else if (keys[SDLK_F7]) {
-            s->court_type--;
-        }
         if (keys['r']) {
             if (s->rain == 0) {
                 play_sample_background(SOUND_RAIN);
@@ -386,11 +376,6 @@ bool step( GameState* s) {
         }
         if (keys['n']) {
             s->night = 1 - s->night;
-        }
-        if( s->court_type > GR_CTT_LAST) {
-            s->court_type = GR_CTT_FIRST;
-        } else if (s->court_type < GR_CTT_FIRST) {
-            s->court_type = GR_CTT_LAST;
         }
     }
 
@@ -491,9 +476,9 @@ void render( GameState* s) {
         updatescr();
         return;
     }
-    if (s->old_court_type != s->court_type || s->text_changed || s->old_referee != s->referee) {
+    if (s->displayed_court_type != s->location->court_type || s->text_changed || s->old_referee != s->referee) {
         clear_screen();
-        fill_image(s->court_type, 120, 120, 400, 250);
+        fill_image(s->location->court_type, 120, 120, 400, 250);
         show_image(GR_COURT, 0, 0, 255);
         font_draw_string( GR_DKC2_FONT, s->game_score_str, 14, 14, 0, ANIMATION_NONE);
         font_draw_string( GR_DKC2_FONT, s->sets_score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->sets_score_str))-14, 14, 0, ANIMATION_NONE);
@@ -532,7 +517,7 @@ void render( GameState* s) {
 #else
         show_sprite( GR_REFEREE, s->referee, 4, 250, 10, 255);
 #endif
-        s->old_court_type = s->court_type;
+        s->displayed_court_type = s->location->court_type;
         s->text_changed = false;
         s->old_referee = s->referee;
         store_screen();
