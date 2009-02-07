@@ -294,21 +294,12 @@ int main( int argc, char** argv) {
                 break;
             case MENU_STATE_SLIDE_TO_LOCATION_IN_PROGRESS:
                 if (slide == slide_start) {
-                    start_fade();
-                    state = MENU_STATE_LOCATION;
+                    state = MENU_STATE_FADE_TO_LOCATION;
                 }
                 break;
             case MENU_STATE_FADE_TO_LOCATION:
                 start_fade();
                 state = MENU_STATE_LOCATION;
-                break;
-            case MENU_STATE_FADE_TO_OPTIONS:
-                clear_screen();
-                store_screen();
-                start_fade();
-                state = MENU_STATE_OPTIONS;
-                break;
-            case MENU_STATE_LOCATION:
                 clear_screen();
 
                 /* Draw and store the worldmap with day/night times */
@@ -321,7 +312,19 @@ int main( int argc, char** argv) {
                     rectangle_alpha(worldmap_xpos+night_start, worldmap_ypos, night_end-night_start, get_image_height(GR_WORLDMAP), 0, 0, 0, 150);
                 }
 
+                /* add misc items to screen */
+                show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20, 255);
+                font_draw_string(GR_DKC2_FONT, "Where do you want to play?", MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER, 0, 0);
+
                 store_screen();
+                break;
+            case MENU_STATE_FADE_TO_OPTIONS:
+                clear_screen();
+                store_screen();
+                start_fade();
+                state = MENU_STATE_OPTIONS;
+                break;
+            case MENU_STATE_LOCATION:
             case MENU_STATE_OPTIONS:
                 /* Prepare a new game */
                 if (prepared_game == NULL) {
@@ -448,8 +451,6 @@ int main( int argc, char** argv) {
             font_draw_string(GR_DKC2_FONT, "Player 2", btn_player2.x, btn_player2.y-MENU_OPTIONS_BORDER, 0, 0);
         } else if (state == MENU_STATE_LOCATION) {
             /* Location selection screen */
-            show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20, 255);
-
             for (x=0; x<location_count(); x++) {
                 new_location_distance = SQUARE_DISTANCE(mx-worldmap_xpos-locations[x].worldmap_x,
                                                         my-worldmap_ypos-locations[x].worldmap_y);
@@ -478,7 +479,6 @@ int main( int argc, char** argv) {
                     rectangle(worldmap_xpos + locations[x].worldmap_x-2, worldmap_ypos + locations[x].worldmap_y-2, 5, 5, 255, 255*(current_location != -1 && x==(unsigned int)current_location), 0);
                 }
             }
-            font_draw_string(GR_DKC2_FONT, "Where do you want to play?", MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER, 0, 0);
             if (prepared_game != NULL) {
                 if (location_info_visible) {
                     show_sprite(prepared_game->location->photo, (i/1000)%(prepared_game->location->photo_frames), prepared_game->location->photo_frames, location_info_xpos, location_info_ypos, 255);
