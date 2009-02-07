@@ -42,8 +42,8 @@ GameState *gamestate_new() {
         NULL,
         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6, false, -1, false },
         {
-            { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
-            { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
+            { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
+            { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
         },
         0,
         0,
@@ -116,7 +116,9 @@ void gameloop(GameState *s) {
     if (s->rain > 0) {
         play_sample_background(SOUND_RAIN);
     }
-    play_sample_loop(SOUND_AUDIENCE);
+    if (s->location->max_visitors > 100) {
+        play_sample_loop(SOUND_AUDIENCE);
+    }
     /* Reset the court type, so it is redrawn on first display */
     s->displayed_court_type = GR_COUNT;
 
@@ -271,7 +273,9 @@ bool step( GameState* s) {
             s->text_changed = true;
 
             game_setup_serve(s);
-            s->play_sound = SOUND_APPLAUSE;
+            if (s->location->max_visitors > 100) {
+                s->play_sound = SOUND_APPLAUSE;
+            }
             /*FIXME n-gram predictor broken
             s->history_size = 0;
             s->history_is_locked = 0;
@@ -280,7 +284,7 @@ bool step( GameState* s) {
     } else {
         /* score is still undecided - do the racket swing thing */
         for (p=1; p<=2; p++) {
-            if (IS_NEAR_X(PLAYER(s, p).x, s->ball.x) && IS_NEAR_Y(PLAYER(s, p).y, s->ball.y-s->ball.z) && PLAYER(s, p).state && s->ball.last_hit_by != p) {
+            if (IS_NEAR_X(PLAYER(s, p).x, s->ball.x) && IS_NEAR_Y(PLAYER(s, p).y, s->ball.y-s->ball.z) && PLAYER(s, p).use_power && PLAYER(s, p).power > 30 && s->ball.last_hit_by != p) {
                 /* RACKET HIT */
                 if (!s->ball.ground_hit && s->ball.move_x != 0.0) {
                     s->status = "volley!";
@@ -290,18 +294,18 @@ bool step( GameState* s) {
                 switch (PLAYER(s, p).desire) {
                     case DESIRE_NORMAL:
                         /* normal swing */
-                        s->ball.move_x = 2.7 + 2.0*PLAYER(s, p).state/PLAYER_STATE_MAX;
-                        s->ball.move_z = 1.2*PLAYER(s, p).state/PLAYER_STATE_MAX;
+                        s->ball.move_x = 2.7 + 2.0*PLAYER(s, p).power/PLAYER_POWER_MAX;
+                        s->ball.move_z = 1.2*PLAYER(s, p).power/PLAYER_POWER_MAX;
                         break;
                     case DESIRE_TOPSPIN:
                         /* top spin */
-                        s->ball.move_x = 1.1 + 2.2*PLAYER(s, p).state/PLAYER_STATE_MAX;
-                        s->ball.move_z = 2.5*PLAYER(s, p).state/PLAYER_STATE_MAX;
+                        s->ball.move_x = 1.1 + 2.2*PLAYER(s, p).power/PLAYER_POWER_MAX;
+                        s->ball.move_z = 2.5*PLAYER(s, p).power/PLAYER_POWER_MAX;
                         break;
                     case DESIRE_SMASH:
                         /* smash */
-                        s->ball.move_x = 4.0 + 3.0*PLAYER(s, p).state/PLAYER_STATE_MAX;
-                        s->ball.move_z = 1.1*PLAYER(s, p).state/PLAYER_STATE_MAX;
+                        s->ball.move_x = 4.0 + 3.0*PLAYER(s, p).power/PLAYER_POWER_MAX;
+                        s->ball.move_z = 1.1*PLAYER(s, p).power/PLAYER_POWER_MAX;
                         break;
                 }
                 s->ball.move_y = get_move_y( s, p);
@@ -447,8 +451,11 @@ bool step( GameState* s) {
     s->ball.x += s->ball.move_x;
     s->ball.y += s->ball.move_y;
 
-    if(PLAYER(s, 1).state) PLAYER(s, 1).state--;
-    if(PLAYER(s, 2).state) PLAYER(s, 2).state--;
+    for (p=1; p<=MAXPLAYERS; p++) {
+        if (PLAYER(s, p).use_power) {
+            PLAYER(s, p).power = MAX(0, MIN(PLAYER(s, p).power*PLAYER(s, p).power_down_factor, PLAYER_POWER_MAX));
+        }
+    }
 
     return false;
 }
@@ -482,49 +489,59 @@ void render( GameState* s) {
         show_image(GR_COURT, 0, 0, 255);
         font_draw_string( GR_DKC2_FONT, s->game_score_str, 14, 14, 0, ANIMATION_NONE);
         font_draw_string( GR_DKC2_FONT, s->sets_score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->sets_score_str))-14, 14, 0, ANIMATION_NONE);
+        if (s->location->has_referee) {
 #ifdef EXTENDED_REFEREE
-        switch (s->referee) {
-            case REFEREE_NORMAL:
-                t = 1000;
-                break;
-            case REFEREE_OUT:
-                t = 200;
-                break;
-            case REFEREE_PLAYER1:
-            case REFEREE_PLAYER2:
-                t = 400;
-                break;
-        }
-        t = (s->time/t)%4;
-        switch (t) {
-            case 0:
-                t=0;
-                break;
-            case 1:
-                t=1;
-                break;
-            case 2:
-                t=0;
-                break;
-            case 3:
-                t=2;
-                break;
-        }
-        show_sprite( GR_REFEREE, s->referee*3+t, 12, 250, 10, 255);
-        if (voice_finished_flag == 0) {
-            show_sprite(GR_TALK, (s->time/150)%2, 2, 280, 45, 255);
-        }
+            switch (s->referee) {
+                case REFEREE_NORMAL:
+                    t = 1000;
+                    break;
+                case REFEREE_OUT:
+                    t = 200;
+                    break;
+                case REFEREE_PLAYER1:
+                case REFEREE_PLAYER2:
+                    t = 400;
+                    break;
+            }
+            t = (s->time/t)%4;
+            switch (t) {
+                case 0:
+                    t=0;
+                    break;
+                case 1:
+                    t=1;
+                    break;
+                case 2:
+                    t=0;
+                    break;
+                case 3:
+                    t=2;
+                    break;
+            }
+            show_sprite( GR_REFEREE, s->referee*3+t, 12, 250, 10, 255);
+            if (voice_finished_flag == 0) {
+                show_sprite(GR_TALK, (s->time/150)%2, 2, 280, 45, 255);
+            }
 #else
-        show_sprite( GR_REFEREE, s->referee, 4, 250, 10, 255);
+            show_sprite( GR_REFEREE, s->referee, 4, 250, 10, 255);
 #endif
+        }
         s->displayed_court_type = s->location->court_type;
         s->text_changed = false;
         s->old_referee = s->referee;
         store_screen();
     }
     
-    show_sprite( GR_RACKET, (!PLAYER(s, 1).state), 4, PLAYER(s, 1).x-RACKET_X_MID, PLAYER(s, 1).y-RACKET_Y_MID, 255);
-    show_sprite( GR_RACKET, (!PLAYER(s, 2).state)+2, 4, PLAYER(s, 2).x-RACKET_X_MID, PLAYER(s, 2).y-RACKET_Y_MID, 255);
+   /* show_sprite( GR_RACKET, (!PLAYER(s, 1).state), 4, PLAYER(s, 1).x-RACKET_X_MID, PLAYER(s, 1).y-RACKET_Y_MID, 255);
+    show_sprite( GR_RACKET, (!PLAYER(s, 2).state)+2, 4, PLAYER(s, 2).x-RACKET_X_MID, PLAYER(s, 2).y-RACKET_Y_MID, 255);*/
+    show_sprite( GR_RACKET, !PLAYER(s, 1).use_power, 4, PLAYER(s, 1).x-RACKET_X_MID, PLAYER(s, 1).y-RACKET_Y_MID, 255);
+    show_sprite( GR_RACKET, !PLAYER(s, 2).use_power + 2, 4, PLAYER(s, 2).x-RACKET_X_MID, PLAYER(s, 2).y-RACKET_Y_MID, 255);
+    
+    rectangle(10, HEIGHT-30, PLAYER_POWER_MAX, 10, 50, 50, 50);
+    rectangle(WIDTH-PLAYER_POWER_MAX-10, HEIGHT-30, PLAYER_POWER_MAX, 10, 50, 50, 50);
+
+    rectangle(10, HEIGHT-30, PLAYER(s, 1).power, 10, 200, 200, 200);
+    rectangle(WIDTH-PLAYER_POWER_MAX-10, HEIGHT-30, PLAYER(s, 2).power, 10, 200, 200, 200);
     
     if( s->ball.move_x > 0) {
         b = (s->time/100)%BALL_STATES;
@@ -683,18 +700,22 @@ void input_human( Player* player, bool up, bool down, bool hit, bool topspin, bo
         player->desire = (topspin)?(DESIRE_TOPSPIN):(DESIRE_NORMAL);
         player->desire = (smash)?(DESIRE_SMASH):(player->desire);
 
-        if( !player->state && !player->state_locked) {
-            player->state = PLAYER_STATE_MAX;
-            player->state_locked = true;
-        }
+        player->power = MAX(10, MIN(player->power*player->power_up_factor, PLAYER_POWER_MAX));
+        player->use_power = false;
     } else {
-        player->state_locked = false;
+        player->use_power = true;
     }
 }
 
 void input_ai( Player* player, Ball* ball, Player* opponent, GameState* s) {
     float fact = 1.7;
     float target;
+    int ball_approaching = 0;
+
+    if ((player->x < opponent->x && ball->move_x <= 0) ||
+        (player->x > opponent->y && ball->move_x >= 0)) {
+        ball_approaching = 1;
+    }
 
     /* FIXME - this is broken since the new physics model has been introduced */
 
@@ -703,7 +724,7 @@ void input_ai( Player* player, Ball* ball, Player* opponent, GameState* s) {
     }
 
     if(1) {
-        if( player->desire == DESIRE_NORMAL && !IS_NEAR_Y_AI( player->y, (ball->y-ball->z))) {
+        if( player->desire == DESIRE_NORMAL && !IS_NEAR_Y_AI(player->y, (ball->y-ball->z)) && ball_approaching) {
             if( player->y < (ball->y-ball->z)) {
                 player->y += fmin( 2*fact, (ball->y-ball->z) - player->y);
             } else if( player->y > (ball->y-ball->z)) {
@@ -711,8 +732,11 @@ void input_ai( Player* player, Ball* ball, Player* opponent, GameState* s) {
             }
         }
 
-        if( (ball->move_x != 0 || IS_NEAR_Y_AI( player->y, (ball->y-ball->z))) && IS_NEAR_X_AI( player->x, ball->x)/* && !player->state*/) {
-            player->state = PLAYER_STATE_MAX;
+        if (IS_NEAR_Y(player->y, (ball->y-ball->z)) && IS_NEAR_X_AI(player->x, ball->x) && player->power > 90) {
+            player->use_power = true;
+        } else if (ball_approaching) {
+            player->power = MAX(10, MIN(player->power*player->power_up_factor, PLAYER_POWER_MAX));
+            player->use_power = false;
         }
     } else if( s->ngram_prediction > 0.0) {
         target = s->ngram_prediction*((float)HEIGHT)/((float)(NGRAM_STEPS));

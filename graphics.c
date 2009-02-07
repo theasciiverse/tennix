@@ -72,7 +72,10 @@ static const char* graphics[] = {
     "loc_margaret_court_arena.png",
     "loc_stade_roland_garros.png",
     "loc_court_no_1.png",
-    "loc_arthur_ashe_stadium.png"
+    "loc_arthur_ashe_stadium.png",
+#ifdef NONFREE_LOCATIONS
+    "loc_training_camp.png"
+#endif
 };
 
 void init_graphics() {

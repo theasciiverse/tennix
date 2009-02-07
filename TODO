@@ -13,7 +13,6 @@ MENU AND NAVIGATION (COSMETIC)
     Physikalischer Tennis-ball im Hauptmenü zum herumspielen
 
 
-
 ==================================================================
 IMPORTANT GAMEPLAY ISSUES (NEEDS FIXING!)
 ==================================================================
@@ -51,6 +50,10 @@ Regen erhöht gravity (oder ist fixes, negatives move_z??)
        man steht"
 
 
+
+Zeitzone holen und daraus ableiten, ob es in New York, Melbourne,
+London oder sonst wo gerade Nacht oder Tag ist (damit kann man den
+night-Modos bestimmen
 
 
 ==================================================================

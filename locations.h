@@ -52,7 +52,8 @@ static Location locations[] = {
         GR_LOC_STADE_ROLAND_GARROS,
         1,
         227,
-        51
+        51,
+        true
     },
     {
         /* http://en.wikipedia.org/wiki/The_Championships,_Wimbledon */
@@ -65,7 +66,8 @@ static Location locations[] = {
         GR_LOC_COURT_NO_1,
         1,
         225,
-        46
+        46,
+        true
     },
     {
         /* US Open, http://en.wikipedia.org/wiki/US_Open_(tennis) */
@@ -78,8 +80,26 @@ static Location locations[] = {
         GR_LOC_ARTHUR_ASHE_STADIUM,
         1,
         125,
-        64
+        64,
+        true
     },
+
+#ifdef NONFREE_LOCATIONS
+    {
+        /* Training Camp Lung-Katah */
+        "Training Camp Bunabhainneadar",
+        "Husinish",
+        "North Harris",
+        GR_CTT_GRASS,
+        30,
+        "artificial grass",
+        GR_LOC_TRAINING_CAMP,
+        1,
+        218,
+        37,
+        false
+    },
+#endif
 
     /* End marker */
     { NULL, NULL, NULL, 0, 0, NULL, 0, 0, 0, 0 }

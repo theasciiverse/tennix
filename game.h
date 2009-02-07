@@ -82,6 +82,7 @@ typedef struct {
     unsigned int photo_frames;
     unsigned int worldmap_x;
     unsigned int worldmap_y;
+    bool has_referee;
 } Location;
 
 typedef struct {
@@ -100,7 +101,10 @@ typedef struct {
 typedef struct {
     float x;
     float y;
-    unsigned char state;
+    unsigned int power;
+    float power_up_factor;
+    float power_down_factor;
+    bool use_power;
     unsigned int score;
     unsigned char desire;
     bool type; /* is this player ai-controlled or human? */
@@ -245,8 +249,10 @@ typedef struct {
 #define PLAYER_MOVE_Y 5.0
 #define PLAYER_ACCEL_DEFAULT 0.2
 #define PLAYER_ACCEL_INCREASE 1.2
-#define PLAYER_STATE_MAX 7
-#define PLAYER_POWERSHOT 6.2
+
+#define POWER_UP_FACTOR 1.1
+#define POWER_DOWN_FACTOR 0.9
+#define PLAYER_POWER_MAX 100
 
 #define MOVE_Y_SEED 3
 
