@@ -467,7 +467,7 @@ int main( int argc, char** argv) {
    
 #ifndef MAEMO /* No mouse cursor on Maemo (we have a touchscreen) */
         if (state == MENU_STATE_MAINMENU || state == MENU_STATE_OPTIONS) {
-            show_sprite( GR_RACKET, ((mb&SDL_BUTTON( SDL_BUTTON_LEFT))>0)+(((mb&SDL_BUTTON( SDL_BUTTON_RIGHT))>0)*2), 4, mx, my, 255);
+            show_image(GR_CURSOR, mx-2, my-1, 255);
         }
 #endif
 

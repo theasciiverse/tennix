@@ -66,7 +66,8 @@ static const char* graphics[] = {
     "fog.png",
     "fog2.png",
     "night.png",
-    "talk.png"
+    "talk.png",
+    "cursor.png"
 };
 
 void init_graphics() {

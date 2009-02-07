@@ -65,6 +65,7 @@ enum {
     GR_FOG2,
     GR_NIGHT,
     GR_TALK,
+    GR_CURSOR,
     GR_COUNT
 };
 
