@@ -81,7 +81,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 int main( int argc, char** argv) {
 #endif
     int i, slide, slide_direction;
-    int ticks;
+    Uint32 ticks;
     int mx, my;
     Uint8 *keys;
     Uint8 mb;
@@ -130,6 +130,10 @@ int main( int argc, char** argv) {
         255, 50, 50
     };
 
+    const SDL_VideoInfo* vi = NULL;
+
+    bool do_help = false;
+
     int state = MENU_STATE_STARTED;
 
 #ifdef ENABLE_FPS_LIMIT
@@ -157,7 +161,6 @@ int main( int argc, char** argv) {
 #else
     fprintf(stderr, "Tennix " VERSION "\n" COPYRIGHT "\n" URL "\n\n");
 
-    bool do_help = false;
     i = 1;
     while (i < argc) {
         /* A poor/lazy man's getopt */
@@ -217,7 +220,7 @@ int main( int argc, char** argv) {
         exit( 1);
     }
 
-    SDL_VideoInfo* vi = (SDL_VideoInfo*)SDL_GetVideoInfo();
+    vi = SDL_GetVideoInfo();
     if( (screen = SDL_SetVideoMode( WIDTH, HEIGHT, vi->vfmt->BitsPerPixel, sdl_flags)) == NULL) {
         fprintf( stderr, "Can't set video mode: %s\n", SDL_GetError());
         exit( 1);

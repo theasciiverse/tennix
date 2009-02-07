@@ -26,7 +26,7 @@
 
 #include <sys/param.h>
 
-#include "SDL.h"
+#include <SDL/SDL.h>
 
 #ifdef DELUXE_EDITION
 #  define HAVE_VOICE_FILES
@@ -100,7 +100,7 @@ enum {
 extern SDL_Surface *screen;
 
 typedef struct {
-    char *text;
+    const char *text;
     int x;
     int y;
     int w;

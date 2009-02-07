@@ -34,7 +34,7 @@
 #define BUTTON_HIGHLIGHT 0.4
 #define BUTTON_BORDER 2
 
-#define GET_PIXEL_DATA(surface,x,y) (*((Uint32*)(surface->pixels + x * surface->format->BytesPerPixel + y * surface->pitch)))
+#define GET_PIXEL_DATA(surface,x,y) (*((Uint32*)((char*)surface->pixels + x * surface->format->BytesPerPixel + y * surface->pitch)))
 
 #define GET_PIXEL_RGB(surface,x,y,r,g,b) (SDL_GetRGB( GET_PIXEL_DATA(surface,x,y), surface->format, r, g, b))
 #define SET_PIXEL_RGB(surface,x,y,r,g,b) (GET_PIXEL_DATA(surface,x,y)=SDL_MapRGB(surface->format, r, g, b))
@@ -99,7 +99,7 @@ void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);
 void fill_image_offset(image_id id, int x, int y, int w, int h, int offset_x, int offset_y);
 #define fill_image(id, x, y, w, h) fill_image_offset(id, x, y, w, h, 0, 0)
 void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
-void draw_button_text( char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
+void draw_button_text(const char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
 #define draw_button_object(button,mx,my) (draw_button_text(button.text, button.x, button.y, button.w, button.h, button.r, button.g, button.b, M_POS_BUTTON(button, mx, my)))
 
 void clear_screen();

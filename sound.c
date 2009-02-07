@@ -32,10 +32,10 @@
 
 static Sound* sounds;
 
-static char* samples[] = {
+static const char* samples[] = {
+    "rain.ogg",
     "racket1.ogg",
     "racket2.ogg",
-    "rain.ogg",
     "ground1.ogg",
     "ground2.ogg",
     "audience.ogg",

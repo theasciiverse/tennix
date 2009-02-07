@@ -72,8 +72,8 @@ struct _TennixArchive {
 typedef struct _TennixArchive TennixArchive;
 
 /* reading existing archives */
-TennixArchive* tnxar_open(char* filename);
-int tnxar_set_current_filename(TennixArchive* tnxar, char* filename);
+TennixArchive* tnxar_open(const char* filename);
+int tnxar_set_current_filename(TennixArchive* tnxar, const char* filename);
 char* tnxar_get_current_filename(TennixArchive* tnxar);
 char* tnxar_read_current(TennixArchive* tnxar);
 size_t tnxar_size_current(TennixArchive* tnxar);

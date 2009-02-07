@@ -44,7 +44,7 @@ static int rect_update_old_count;
 
 Uint32 fading_start = 0;
 
-static char* graphics[] = {
+static const char* graphics[] = {
     "court.png",
     "shadow.png",
     "player-racket.png",
@@ -268,7 +268,7 @@ void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pr
     rectangle(x+BUTTON_BORDER, y+BUTTON_BORDER, w-2*BUTTON_BORDER, h-2*BUTTON_BORDER, r, g, b);
 }
 
-void draw_button_text( char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed) {
+void draw_button_text(const char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed) {
     int font_x, font_y;
     pressed = pressed?1:0;
     draw_button( x, y, w, h, r, g, b, pressed);
@@ -318,6 +318,7 @@ void reset_screen()
 
 void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h)
 {
+    SDL_Rect* u = NULL;
     static int inside = 0;
     if (inside) return;
     inside = 1;
@@ -336,7 +337,7 @@ void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h)
         rect_update_cache_current = 0;
     }
 
-    SDL_Rect* u = &(rect_update_cache[rect_update_cache_current]);
+    u = &(rect_update_cache[rect_update_cache_current]);
 
     if (x < 0/* && x+w > 0*/) {
         w += x;
@@ -372,12 +373,12 @@ void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h)
 
 void updatescr()
 {
-    int ticks = SDL_GetTicks();
+    Uint32 ticks = SDL_GetTicks();
     SDL_Rect *r_current = NULL, *end_current = NULL;
     SDL_Rect *r_old = NULL;
 
     static int fading_last_time = 0;
-    int fading_now = ticks < fading_start+FADE_DURATION;
+    unsigned char fading_now = ticks < fading_start+FADE_DURATION;
 
     if (fading_now) {
         SDL_SetAlpha(buffer, SDL_SRCALPHA | SDL_RLEACCEL, 255-255*(ticks-fading_start)/FADE_DURATION);
@@ -497,8 +498,9 @@ int font_draw_char( image_id id, char ch, int x_offset, int y_offset) {
 void font_draw_string_alpha( image_id id, const char* s, int x_offset, int y_offset, int start, int animation, int opacity) {
     int y = y_offset;
     int x = x_offset;
-    int i, additional_x = 0, additional_y = 0;
+    int additional_x = 0, additional_y = 0;
     float xw = 0.0, xw_diff;
+    unsigned int i;
     SDL_Surface *bitmap;
 
     if( id > GR_COUNT) return;
@@ -544,7 +546,8 @@ void font_draw_string_alpha( image_id id, const char* s, int x_offset, int y_off
 }
 
 int font_get_string_width( image_id id, const char* s) {
-    int w = 0, i;
+    int w = 0;
+    unsigned int i;
 
     for( i=0; i<strlen(s); i++) {
         w += font_get_metrics( id, s[i], NULL, NULL);

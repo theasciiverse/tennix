@@ -95,10 +95,6 @@ GameState *gamestate_new() {
 
 
 void gameloop(GameState *s) {
-    strcpy(s->game_score_str, format_game(s));
-    strcpy(s->sets_score_str, format_sets(s));
-    s->text_changed = true;
-
     Uint32 ot = SDL_GetTicks();
     Uint32 nt;
     Uint32 dt = GAME_TICKS;
@@ -109,6 +105,10 @@ void gameloop(GameState *s) {
 #ifdef ENABLE_FPS_LIMIT
     Uint32 ft, frames; /* frame timer and frames */
 #endif
+
+    strcpy(s->game_score_str, format_game(s));
+    strcpy(s->sets_score_str, format_sets(s));
+    s->text_changed = true;
 
     if (s->rain > 0) {
         play_sample_background(SOUND_RAIN);
@@ -463,7 +463,8 @@ bool step( GameState* s) {
 }
 
 void render( GameState* s) {
-    int i, x, y, b;
+    int x, y, b;
+    unsigned int i;
 #ifdef EXTENDED_REFEREE
     int t=1000;
 #endif
@@ -915,7 +916,7 @@ char* format_status( GameState* s) {
 }
 
 int game_get_winner( GameState* s) {
-    int i;
+    unsigned int i;
     int sets[2] = {0};
 
     for( i=0; i<s->current_set; i++) {

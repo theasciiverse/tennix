@@ -81,7 +81,7 @@ int joystick_open(const char* name)
     return 0;
 }
 
-char* get_joystick_help()
+const char* get_joystick_help()
 {
     if (strcmp(joystick_help, "") == 0) {
         return "no joystick (enable with --joystick)";

@@ -35,9 +35,9 @@ extern int voice_finished_flag;
 
 typedef unsigned char sound_id;
 enum {
-    SOUND_RACKET1 = 0,
+    SOUND_RAIN = 0,
+    SOUND_RACKET1,
     SOUND_RACKET2,
-    SOUND_RAIN,
     SOUND_GROUND1,
     SOUND_GROUND2,
     SOUND_AUDIENCE,
@@ -103,7 +103,7 @@ enum {
     VOICE_LETS_GO4,
 #endif
 
-    SOUND_MAX,
+    SOUND_MAX
 };
 
 /* Channel by id gives: 1-7 (of 0-7) */

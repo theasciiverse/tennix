@@ -33,7 +33,7 @@ PREFIX ?= usr/local/
 BINARY_INSTALL_DIR ?= $(PREFIX)/bin
 
 LIBS =
-CFLAGS += -Wall -DVERSION=\"$(RELEASE)\" -O2 -DPREFIX=\"$(PREFIX)\"
+CFLAGS += -W -Wall -ansi -pedantic -Wshadow -Wcast-qual -Wwrite-strings -DVERSION=\"$(RELEASE)\" -O2 -DPREFIX=\"$(PREFIX)\"
 
 ifeq ($(UPDRECTANGLE),1)
   CFLAGS += -DDRAW_UPDATE_RECTANGLE
@@ -102,7 +102,7 @@ archive-lib.o: archive.c archive.h
 tennixar: archive dump
 
 archive.o: archive.c archive.h
-	$(CC) -DTENNIXAR_STANDALONE -c -o $@ $<
+	$(CC) $(CFLAGS) -DTENNIXAR_STANDALONE -c -o $@ $<
 
 dump: archive
 	ln -s archive dump

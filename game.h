@@ -101,7 +101,7 @@ typedef struct {
 
 enum {
     PLAYER_TYPE_HUMAN,
-    PLAYER_TYPE_AI,
+    PLAYER_TYPE_AI
 };
 
 enum {
@@ -127,10 +127,10 @@ enum {
 typedef struct {
     Ball ball;
     Player players[MAXPLAYERS];
-    unsigned int time;
+    Uint32 time;
     bool was_stopped;
     unsigned int serving_player;
-    char* status;
+    const char* status;
     char game_score_str[50];
     char sets_score_str[50];
     unsigned char referee;
@@ -153,7 +153,7 @@ typedef struct {
     bool night;
     int wind;
     unsigned int windtime;
-    int timelimit;
+    Uint32 timelimit;
     bool text_changed;
     unsigned char old_referee;
     int score_event;

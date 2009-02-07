@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
             len = ftell(fp);
             fseek(fp, 0, SEEK_SET);
             data = (char*)malloc(len);
-            fread(data, len, 1, fp);
+            assert(fread(data, len, 1, fp) == 1);
             fclose(fp);
             tnxar_append(tnxar, (char*)basename(argv[i]), data, len);
         }
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
                 fprintf(stderr, " (%d bytes)", len);
                 fp = fopen(filename, "wb");
                 fputc('.', stderr);
-                fwrite(data, len, 1, fp);
+                assert(fwrite(data, len, 1, fp) == 1);
                 fputc('.', stderr);
                 fclose(fp);
                 fprintf(stderr, ".OK\n");
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
                 fprintf(stderr, " (%d bytes)", len);
                 fp = fopen(filename, "wb");
                 fputc('.', stderr);
-                fwrite(data, len, 1, fp);
+                assert(fwrite(data, len, 1, fp) == 1);
                 fputc('.', stderr);
                 fclose(fp);
                 fprintf(stderr, ".OK\n");
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 }
 #endif
 
-TennixArchive* tnxar_open(char* filename)
+TennixArchive* tnxar_open(const char* filename)
 {
     int i;
 
@@ -147,7 +147,7 @@ TennixArchive* tnxar_open(char* filename)
 
     tnxar->offset = sizeof(TennixArchiveHeader)*fread(&(tnxar->header), sizeof(TennixArchiveHeader), 1, tnxar->fp);
     assert(tnxar->offset == sizeof(TennixArchiveHeader));
-    assert(strcmp(tnxar->header.header, TENNIX_ARCHIVE_HEADER) == 0);
+    assert(strncmp(tnxar->header.header, TENNIX_ARCHIVE_HEADER, TENNIX_ARCHIVE_HEADER_LEN) == 0);
     assert(tnxar->header.versionmajor == TENNIX_ARCHIVE_VERSIONMAJOR);
     assert(tnxar->header.versionminor == TENNIX_ARCHIVE_VERSIONMINOR);
 
@@ -188,12 +188,12 @@ void tnxar_dump(TennixArchive* tnxar)
 }
 #endif
 
-int tnxar_set_current_filename(TennixArchive* tnxar, char* filename)
+int tnxar_set_current_filename(TennixArchive* tnxar, const char* filename)
 {
     int i;
 
     for (i=0; i<tnxar->header.items; i++) {
-        if (strcmp(tnxar->items[i].filename, filename) == 0) {
+        if (strncmp(tnxar->items[i].filename, filename, TENNIX_ARCHIVE_ITEM_MAXNAME) == 0) {
             tnxar->current_item = i;
             return 1;
         }
@@ -322,12 +322,12 @@ void tnxar_build(TennixArchive *tnxar, char* filename)
 
     fprintf(stderr, "Writing: %s", filename);
     fputc('.', stderr);
-    fwrite(&(tnxar->header), sizeof(TennixArchiveHeader), 1, tnxar->fp);
+    assert(fwrite(&(tnxar->header), sizeof(TennixArchiveHeader), 1, tnxar->fp) == 1);
     fputc('.', stderr);
-    fwrite(tnxar->items, sizeof(TennixArchiveItem), tnxar->header.items, tnxar->fp);
+    assert(fwrite(tnxar->items, sizeof(TennixArchiveItem), tnxar->header.items, tnxar->fp) == tnxar->header.items);
     fputc('.', stderr);
     for (i=0; i<tnxar->header.items; i++) {
-        fwrite(tnxar->blobs[i], memsize[i], 1, tnxar->fp);
+        assert(fwrite(tnxar->blobs[i], memsize[i], 1, tnxar->fp) == 1);
         free(tnxar->blobs[i]);
     }
     fputc('.', stderr);

@@ -40,7 +40,7 @@ void uninit_joystick();
 void joystick_list();
 int joystick_open(const char* name);
 
-char* get_joystick_help();
+const char* get_joystick_help();
 
 #endif
 
