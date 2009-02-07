@@ -68,6 +68,7 @@ static const char* graphics[] = {
     "night.png",
     "talk.png",
     "cursor.png",
+    "worldmap.png",
     "loc_margaret_court_arena.png",
     "loc_stade_roland_garros.png",
     "loc_court_no_1.png",

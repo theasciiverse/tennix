@@ -83,8 +83,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 int main( int argc, char** argv) {
 #endif
     int i, slide, slide_direction;
+    unsigned int x;
     Uint32 ticks;
     int mx, my;
+    unsigned int worldmap_xpos, worldmap_ypos;
     Uint8 *keys;
     Uint8 mb;
     SDL_Event e;
@@ -110,13 +112,6 @@ int main( int argc, char** argv) {
         MENU_OPTIONS_BUTTON_WIDTH, MENU_OPTIONS_BUTTON_HEIGHT,
         0, 255, 0
     };
-    MenuButton btn_court_change = {
-        "change",
-        MENU_OPTIONS_BORDER+320-50,
-        MENU_OPTIONS_BORDER*3+200,
-        50, MENU_OPTIONS_BUTTON_HEIGHT,
-        100, 100, 100
-    };
     MenuButton btn_player1 = {
         NULL,
         380,
@@ -132,7 +127,12 @@ int main( int argc, char** argv) {
         255, 50, 50
     };
 
-    unsigned int current_location = 0;
+    unsigned int current_location = -1;
+    unsigned int highlight_location = -1;
+    float highlight_location_distance = 0.0;
+    float new_location_distance = 0.0;
+    bool location_info_visible = false;
+    unsigned int location_info_xpos = 0, location_info_ypos = 0;
 
     const SDL_VideoInfo* vi = NULL;
 
@@ -248,11 +248,14 @@ int main( int argc, char** argv) {
         PLAYER(g, 1).type = PLAYER_TYPE_AI;
         PLAYER(g, 2).type = PLAYER_TYPE_AI;
         g->timelimit = BENCHMARK_TIMELIMIT*1000;
-        g->location = &(locations[current_location]);
+        g->location = &(locations[0]);
         gameloop(g);
         free(g);
         exit(0);
     }
+
+    worldmap_xpos = (WIDTH-get_image_width(GR_WORLDMAP))/2;
+    worldmap_ypos = (HEIGHT-get_image_height(GR_WORLDMAP))/2;
 
     i = 0;
     /* Sliding initialization */
@@ -280,24 +283,36 @@ int main( int argc, char** argv) {
                 free(prepared_game);
                 prepared_game = NULL;
                 break;
-            case MENU_STATE_SLIDE_TO_OPTIONS:
+            case MENU_STATE_SLIDE_TO_LOCATION:
                 slide = 1;
                 slide_direction = 3;
-                state = MENU_STATE_SLIDE_TO_OPTIONS_IN_PROGRESS;
+                state = MENU_STATE_SLIDE_TO_LOCATION_IN_PROGRESS;
                 break;
-            case MENU_STATE_SLIDE_TO_OPTIONS_IN_PROGRESS:
+            case MENU_STATE_SLIDE_TO_LOCATION_IN_PROGRESS:
                 if (slide == slide_start) {
                     start_fade();
-                    state = MENU_STATE_OPTIONS;
+                    state = MENU_STATE_LOCATION;
                 }
                 break;
+            case MENU_STATE_FADE_TO_LOCATION:
+                start_fade();
+                state = MENU_STATE_LOCATION;
+                break;
+            case MENU_STATE_FADE_TO_OPTIONS:
+                start_fade();
+                state = MENU_STATE_OPTIONS;
+                break;
+            case MENU_STATE_LOCATION:
             case MENU_STATE_OPTIONS:
                 /* Prepare a new game */
                 if (prepared_game == NULL) {
                     prepared_game = gamestate_new();
-                    prepared_game->location = &(locations[current_location]);
+                    prepared_game->location = NULL;
                     btn_player1.text = "Keyboard (W-S-D)";
                     btn_player2.text = "Computer (AI)";
+                    location_info_visible = false;
+                    current_location = -1;
+                    highlight_location = -1;
                 }
                 break;
             case MENU_STATE_SLIDE_TO_GAME:
@@ -384,7 +399,7 @@ int main( int argc, char** argv) {
 #endif
         show_image(GR_SIDEBAR, WIDTH-get_image_width(GR_SIDEBAR)+slide, 0, 255);
         show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20-slide, 255);
-        if (state != MENU_STATE_OPTIONS) {
+        if (state != MENU_STATE_OPTIONS && state != MENU_STATE_LOCATION) {
             /* Main Menu */
             show_image(GR_BTN_PLAY, WIDTH-get_image_width(GR_BTN_PLAY)+slide+(slide/7)+3-(3*(btn_hovering==MENU_START)), 150, 255);
             if (current_game != NULL) {
@@ -396,24 +411,62 @@ int main( int argc, char** argv) {
             }
             font_draw_string(GR_DKC2_FONT, URL, 10, HEIGHT-10-get_image_height(GR_DKC2_FONT), 0, 0);
             show_image(GR_BTN_QUIT, WIDTH-get_image_width(GR_BTN_QUIT)+slide+(slide/7)+3-(3*(btn_hovering==MENU_QUIT)), 350, 255);
-        } else {
+        } else if (state == MENU_STATE_OPTIONS) {
             /* Options screen */
             show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20, 255);
             draw_button_object(btn_back, mx, my);
             draw_button_object(btn_start, mx, my);
-            if (prepared_game != NULL) {
-                show_sprite(prepared_game->location->photo, (i/1000)%(prepared_game->location->photo_frames), prepared_game->location->photo_frames, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*2, 100);
-                draw_button_object(btn_court_change, mx, my);
-                font_draw_string(GR_DKC2_FONT, "Location", MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER, 0, 0);
-                font_draw_string(GR_DKC2_FONT, prepared_game->location->name, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*3+200, 0, 0);
-                font_draw_string(GR_DKC2_FONT, prepared_game->location->area, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*3+200+get_image_height(GR_DKC2_FONT), 0, 0);
-                font_draw_string(GR_DKC2_FONT, prepared_game->location->city, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*3+200+2*get_image_height(GR_DKC2_FONT), 0, 0);
-                font_draw_string(GR_DKC2_FONT, prepared_game->location->court_type_name, MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER*3+200+4*get_image_height(GR_DKC2_FONT), 0, 0);
-                draw_button_object(btn_player1, mx, my);
-                draw_button_object(btn_player2, mx, my);
-                font_draw_string(GR_DKC2_FONT, "Player 1", btn_player1.x, btn_player1.y-MENU_OPTIONS_BORDER, 0, 0);
-                font_draw_string(GR_DKC2_FONT, "Player 2", btn_player2.x, btn_player2.y-MENU_OPTIONS_BORDER, 0, 0);
+            draw_button_object(btn_player1, mx, my);
+            draw_button_object(btn_player2, mx, my);
+            font_draw_string(GR_DKC2_FONT, "Player 1", btn_player1.x, btn_player1.y-MENU_OPTIONS_BORDER, 0, 0);
+            font_draw_string(GR_DKC2_FONT, "Player 2", btn_player2.x, btn_player2.y-MENU_OPTIONS_BORDER, 0, 0);
+        } else if (state == MENU_STATE_LOCATION) {
+            /* Location selection screen */
+            show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20, 255);
+            show_image(GR_WORLDMAP, WIDTH/2-get_image_width(GR_WORLDMAP)/2, HEIGHT/2-get_image_height(GR_WORLDMAP)/2, 255);
+
+            for (x=0; x<location_count(); x++) {
+                new_location_distance = SQUARE_DISTANCE(mx-worldmap_xpos-locations[x].worldmap_x,
+                                                        my-worldmap_ypos-locations[x].worldmap_y);
+                if (highlight_location == -1) {
+                    if (new_location_distance < 20*20) {
+                        highlight_location = x;
+                    }
+                } else {
+                    highlight_location_distance = SQUARE_DISTANCE(mx-worldmap_xpos-locations[highlight_location].worldmap_x,
+                                                                  my-worldmap_ypos-locations[highlight_location].worldmap_y);
+                    if (highlight_location_distance > 20*20) {
+                        highlight_location = -1;
+                    }
+                    if (highlight_location_distance > new_location_distance && new_location_distance < 20*20) {
+                        highlight_location = x;
+                    }
+                }
             }
+            if (!location_info_visible) {
+                for (x=0; x<location_count(); x++) {
+                    /* draw rectangle for location at "x"*/
+                    if (highlight_location == x) {
+                        rectangle(worldmap_xpos + locations[x].worldmap_x-3, worldmap_ypos + locations[x].worldmap_y-3, 7, 7, 255*((i/10)%2), 0, 255*((i/10)%2));
+                    }
+
+                    rectangle(worldmap_xpos + locations[x].worldmap_x-2, worldmap_ypos + locations[x].worldmap_y-2, 5, 5, 255, 255*(x==current_location), 0);
+                }
+            }
+            font_draw_string(GR_DKC2_FONT, "Where do you want to play?", MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER, 0, 0);
+            if (prepared_game != NULL) {
+                if (location_info_visible) {
+                    show_sprite(prepared_game->location->photo, (i/1000)%(prepared_game->location->photo_frames), prepared_game->location->photo_frames, location_info_xpos, location_info_ypos, 255);
+                font_draw_string(GR_DKC2_FONT, prepared_game->location->name, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200, 0, 0);
+                font_draw_string(GR_DKC2_FONT, prepared_game->location->area, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200+get_image_height(GR_DKC2_FONT), 0, 0);
+                font_draw_string(GR_DKC2_FONT, prepared_game->location->city, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200+2*get_image_height(GR_DKC2_FONT), 0, 0);
+                font_draw_string(GR_DKC2_FONT, prepared_game->location->court_type_name, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200+4*get_image_height(GR_DKC2_FONT), 0, 0);
+                }
+                if (prepared_game->location != NULL) {
+                    draw_button_object(btn_start, mx, my);
+                }
+            }
+            draw_button_object(btn_back, mx, my);
         }
 
         SDL_PollEvent( &e);
@@ -431,13 +484,19 @@ int main( int argc, char** argv) {
             if (current_game == NULL) {
                 btn_hovering &= ~MENU_RESUME;
             }
+        } else if (state == MENU_STATE_LOCATION) {
+            if (M_POS_BUTTON(btn_back, mx, my)) {
+                btn_hovering = MENU_QUIT;
+            } else if (M_POS_BUTTON(btn_start, mx, my)) {
+                btn_hovering = MENU_START;
+            } else {
+                btn_hovering = 0;
+            }
         } else if (state == MENU_STATE_OPTIONS) {
             if (M_POS_BUTTON(btn_back, mx, my)) {
                 btn_hovering = MENU_QUIT;
             } else if (M_POS_BUTTON(btn_start, mx, my)) {
                 btn_hovering = MENU_START;
-            } else if (M_POS_BUTTON(btn_court_change, mx, my)) {
-                btn_hovering = MENU_COURT_CHANGE;
             } else if (M_POS_BUTTON(btn_player1, mx, my)) {
                 btn_hovering = MENU_PLAYER1;
             } else if (M_POS_BUTTON(btn_player2, mx, my)) {
@@ -475,7 +534,7 @@ int main( int argc, char** argv) {
         }
    
 #ifndef MAEMO /* No mouse cursor on Maemo (we have a touchscreen) */
-        if (state == MENU_STATE_MAINMENU || state == MENU_STATE_OPTIONS) {
+        if (state == MENU_STATE_MAINMENU || state == MENU_STATE_OPTIONS || state == MENU_STATE_LOCATION) {
             show_image(GR_CURSOR, mx-2, my-1, 255);
         }
 #endif
@@ -492,7 +551,7 @@ int main( int argc, char** argv) {
             mouse_pressed = true;
         } else if (mouse_pressed == true) {
             /* Mouse button released */
-            if (state == MENU_STATE_MAINMENU || state == MENU_STATE_OPTIONS) {
+            if (state == MENU_STATE_MAINMENU || state == MENU_STATE_OPTIONS || state == MENU_STATE_LOCATION) {
 #ifdef HAVE_VOICE_FILES
                 if (btn_hovering == MENU_START) {
                     play_sample(VOICE_LETS_GO);
@@ -506,7 +565,7 @@ int main( int argc, char** argv) {
             if (state == MENU_STATE_MAINMENU) {
                 switch (btn_hovering) {
                     case MENU_START:
-                        state = MENU_STATE_SLIDE_TO_OPTIONS;
+                        state = MENU_STATE_SLIDE_TO_LOCATION;
                         break;
                     case MENU_RESUME:
                         state = MENU_STATE_SLIDE_TO_RESUME;
@@ -515,17 +574,38 @@ int main( int argc, char** argv) {
                         state = MENU_STATE_SLIDE_TO_QUIT;
                         break;
                 }
+            } else if (state == MENU_STATE_LOCATION) {
+                switch (btn_hovering) {
+                    case MENU_START:
+                        if (prepared_game->location != NULL) {
+                            state = MENU_STATE_FADE_TO_OPTIONS;
+                        }
+                        break;
+                    case MENU_QUIT:
+                        state = MENU_STATE_SLIDE_TO_MAINMENU;
+                        break;
+                    default:
+                        if (!location_info_visible && highlight_location != -1) {
+                            current_location = highlight_location;
+                            prepared_game->location = &(locations[current_location]);
+                            location_info_xpos = MAX(0, MIN(WIDTH-320-50, mx-320/2));
+                            location_info_ypos = MAX(0, MIN(HEIGHT-200-160, my-200/2));
+                            location_info_visible = true;
+                        } else {
+                            location_info_visible = false;
+                            current_location = -1;
+                            highlight_location = -1;
+                            prepared_game->location = NULL;
+                        }
+                        break;
+                }
             } else if (state == MENU_STATE_OPTIONS) {
                 switch (btn_hovering) {
                     case MENU_START:
                         state = MENU_STATE_SLIDE_TO_GAME;
                         break;
                     case MENU_QUIT:
-                        state = MENU_STATE_SLIDE_TO_MAINMENU;
-                        break;
-                    case MENU_COURT_CHANGE:
-                        current_location = (current_location+1)%location_count();
-                        prepared_game->location = &(locations[current_location]);
+                        state = MENU_STATE_FADE_TO_LOCATION;
                         break;
                     case MENU_PLAYER1:
                         switch (PLAYER(prepared_game, 1).type) {

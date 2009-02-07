@@ -56,7 +56,7 @@
 #define M_POS_QUIT(y)    (y>MENU_QUIT_YPOS && y<MENU_QUIT_YPOS+MENU_BUTTON_HEIGHT)
 
 #define MENU_OPTIONS_BORDER 20
-#define MENU_OPTIONS_BUTTON_HEIGHT 50
+#define MENU_OPTIONS_BUTTON_HEIGHT 25
 #define MENU_OPTIONS_BUTTON_WIDTH 150
 
 /* Menu items */
@@ -78,8 +78,11 @@ enum {
     MENU_STATE_SLIDE_TO_MAINMENU,
     MENU_STATE_SLIDE_TO_MAINMENU_IN_PROGRESS,
     MENU_STATE_MAINMENU,
-    MENU_STATE_SLIDE_TO_OPTIONS,
-    MENU_STATE_SLIDE_TO_OPTIONS_IN_PROGRESS,
+    MENU_STATE_SLIDE_TO_LOCATION,
+    MENU_STATE_SLIDE_TO_LOCATION_IN_PROGRESS,
+    MENU_STATE_FADE_TO_LOCATION,
+    MENU_STATE_LOCATION,
+    MENU_STATE_FADE_TO_OPTIONS,
     MENU_STATE_OPTIONS,
     MENU_STATE_SLIDE_TO_GAME,
     MENU_STATE_SLIDE_TO_GAME_IN_PROGRESS,
@@ -111,5 +114,7 @@ typedef struct {
 } MenuButton;
 
 #define M_POS_BUTTON(button,mx,my) (mx>=button.x && mx<=button.x+button.w && my>=button.y && my<=button.y+button.h)
+
+#define SQUARE_DISTANCE(xdiff, ydiff) (((xdiff)*(xdiff)) + ((ydiff)*(ydiff)))
 
 #endif

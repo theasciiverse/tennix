@@ -37,7 +37,9 @@ static Location locations[] = {
         6000,
         "Plexicushion",
         GR_LOC_MARGARET_COURT_ARENA,
-        1
+        1,
+        422,
+        187
     },
     {
         /* French Open, http://en.wikipedia.org/wiki/French_Open */
@@ -48,7 +50,9 @@ static Location locations[] = {
         8000,
         "terre battue",
         GR_LOC_STADE_ROLAND_GARROS,
-        2
+        1,
+        227,
+        51
     },
     {
         /* http://en.wikipedia.org/wiki/The_Championships,_Wimbledon */
@@ -59,7 +63,9 @@ static Location locations[] = {
         14000,
         "ryegrass",
         GR_LOC_COURT_NO_1,
-        2
+        1,
+        225,
+        46
     },
     {
         /* US Open, http://en.wikipedia.org/wiki/US_Open_(tennis) */
@@ -70,11 +76,13 @@ static Location locations[] = {
         22547,
         "acrylic hard",
         GR_LOC_ARTHUR_ASHE_STADIUM,
-        2
+        1,
+        125,
+        64
     },
 
     /* End marker */
-    { NULL, NULL, NULL, 0, 0, NULL, 0, 0 }
+    { NULL, NULL, NULL, 0, 0, NULL, 0, 0, 0, 0 }
 };
 
 int location_count()

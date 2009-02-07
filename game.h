@@ -80,6 +80,8 @@ typedef struct {
     const char* court_type_name;
     image_id photo;
     unsigned int photo_frames;
+    unsigned int worldmap_x;
+    unsigned int worldmap_y;
 } Location;
 
 typedef struct {
