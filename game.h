@@ -77,6 +77,7 @@ typedef struct {
     float move_x;
     float move_y;
     float move_z;
+    float restitution;
     bool ground_hit;
     int last_hit_by;
     bool inhibit_gravity;
@@ -165,7 +166,6 @@ typedef struct {
 #define GAME_TICKS 15
 
 #define GRAVITY -.03
-#define RESTITUTION 0.6
 
 #define RACKET_X_MID 15
 #define RACKET_Y_MID 24
@@ -256,7 +256,7 @@ void input_ai( Player*, Ball*, Player*, GameState*);
 void game_setup_serve( GameState*);
 float ngram_predictor( GameState*);
 
-void score_game(GameState*);
+int score_game(GameState*);
 char* format_sets( GameState*);
 char* format_game( GameState*);
 char* format_status( GameState*);

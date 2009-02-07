@@ -1,42 +1,144 @@
 Todo and Idea List for Tennix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Ideas/suggestions from our Debian maintainer:
+RELEASE PARTY FEB 09 ("Tennix 2009 Edition")
+
+==================================================================
+MENU AND NAVIGATION (COSMETIC)
+==================================================================
+
  -> Make options menu same style as main menu
  -> add picture to left side of main menu
+ -> NICE TO HAVE:
+    Physikalischer Tennis-ball im Hauptmenü zum herumspielen
+
+
+
+==================================================================
+IMPORTANT GAMEPLAY ISSUES (NEEDS FIXING!)
+==================================================================
 
 basic user experience testing results:
  * Fix "hit area" for racket -> make outside areas also hit the ball or
                                 add a sound to make it audible that the
                                 ball hit the edge area of the racket.
+                                 COLLISION DETECTION BEI RACKET!!!
  * Give a visual clue where the ball goes when serving
 
-Effects/weather:
+ * AI is currently broken
+   "Satz vom sportlichen Statistiker" (add statistics features to AI)
+
+
+** PHYSICAL PROPERTIES **
+
+GROUND
+  * Restitution
+
+RACKET
+  * Restitution
+  * "power"?
+
+BALL
+  * (maximum) Speed (or: speed curve)
+  * Restitution
+  * Elasticity (???)
+
+Regen erhöht gravity (oder ist fixes, negatives move_z??)
+
+
+[####--->    ]   "Power bar" für schlagstärke
+   => "während man läuft, schlägt man nicht so gut, wie wenn
+       man steht"
+
+
+
+
+==================================================================
+PARTY MODE AND INPUT ISSUES
+==================================================================
+
+Multiplayer with Input manager / Input selection (like Fifa 96)
+Proper gamepad axis support (can we do this in general?)
+Tournament config / setup / frontend (GTK+/Qt/[...]?)
+
+Münze werfen bei Spielbeginn
+
+
+
+==================================================================
+CAREER MODE
+==================================================================
+
+  * Ball + racket buying/selling/upgrading
+  * Schläger: upgrades [name, verbesserung, kosten, haltbarkeit]
+  * Person, Training: Laufgeschwindigkeit, Vorhand/Rückhand
+  * add wear (abnutzung) to ball and racket, so one has to buy new
+    stuff every now and then ("design charge" vs "current charge")
+
+
+
+==================================================================
+LOCATIONS
+==================================================================
+
+  * Grand slam locations
+  * Weather-verlauf pro location gegeben über W-vtlg. mit anschl.
+    berechnung des wetterverlaufs über simulierte stichprobe
+
+
+==================================================================
+IN-GAME FX
+==================================================================
+
+ * Grafische Darstellung der hit points des Balles am Ground
  * Wind (modifies the ball movement)
+   Wind darstellen über die rot-weiße "Windfahne"
  * Snow (christmas edition?)
  * Sunshine (=current, normal behaviour)
 
-For the next UI clean-up, use "Wild plastic" as music from:
-http://www.melodyloops.com/music-loops/free-music-loops-3.html
+
+Ballgröße am Bildschirm verändert sich je nach Höhe (weil die
+Kamera von oben ist) --> selbiges mit Shadow!
+
+Shadow computer-generiert??
+Shadow x2/x4 wenn Nacht-Modus (weil scheinwerfer!!)
+
+
+Kleinere Schläger, dafür mehr Sprites für die Animation
+Schläger einfärben per SDL möglich? (HUE-verschiebung)
+Schatten für schläger (ebenfalls computergeneriert möglich?
+
+
+
+
+==================================================================
+TECHNICAL DETAILS
+==================================================================
+
+librsvg for rendering the SVG source files in-game instead of
+shipping pre-rendered PNG files (would allow us to modify XML)
+
+Garbage collector für c/c++?
+
+umsteigen auf c++?
+
+umsteigen auf SDL_ttf?
+
+==================================================================
 
 CC-Licensed photos from Flickr:
-Converse over Tennis Court: http://flickr.com/photos/yolky/271033295/
 Public Tennis Court: http://flickr.com/photos/dan4th/1387725497/
 Tennis mit Palmen: http://flickr.com/photos/a2gemma/251846846/
 Melbourne Tennis-Stadium: http://flickr.com/photos/snips/32925154/
 Tennis Court Nightly: http://flickr.com/photos/exfordy/394570878/
 
-http://flickr.com/photos/mthird3rd/471720012/
+Tennis in der wueste: http://flickr.com/photos/mthird3rd/471720012/
 
-Sounds:
-click reverb: http://freesound.iua.upf.edu/samplesViewSingle.php?id=34099
-hover clack: http://freesound.iua.upf.edu/samplesViewSingle.php?id=34099
+click sound: http://freesound.iua.upf.edu/samplesViewSingle.php?id=34099
+rain: http://www.freesound.org/samplesViewSingle.php?id=34067
 
-http://www.freesound.org/samplesViewSingle.php?id=34067
-
-MAEMO TODO
-~~~~~~~~~~
-Main screen should look like all other maemo games
+MAEMO WISHLIST
+~~~~~~~~~~~~~~
 Fix sounds (wav, mp3? - ogg doesn't seem to be supported)
 Widescreen support (??)
 
@@ -44,12 +146,12 @@ Widescreen support (??)
 Brainstorming
 ~~~~~~~~~~~~~
 Make sound deactivatable (or sound volume settings?)
-Setting "sets to win" (2 or 3)
+User-settable "sets to win" (2 or 3)
 Save game and continue game later on
 Highscore list
 Setting player names
-Correct serve repeat when serving into the out
 Change between full screen and windowed mode in Windows
 Implement tie break
 Implement "hit in the right area on serving"
+Correct serve repeat when serving into the out
 

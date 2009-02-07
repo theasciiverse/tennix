@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 #include "tennix.h"
 #include "game.h"
@@ -38,7 +39,7 @@ GameState *gamestate_new() {
     GameState *s;
 
     GameState template = {
-        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, false, -1, false },
+        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6, false, -1, false },
         {
             { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
             { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
@@ -176,11 +177,10 @@ bool step( GameState* s) {
         ground_event = true;
 
         s->referee = REFEREE_NORMAL;
-        /* FIXME: set referee to correct "position" */
 
         /* bounce from the ground */
         if (fabsf(s->ball.move_z) > 0.5) {
-            s->ball.move_z *= -RESTITUTION;
+            s->ball.move_z *= -s->ball.restitution;
         } else {
             s->ball.move_z = 0;
         }
@@ -196,7 +196,14 @@ bool step( GameState* s) {
         /* the net blocks movement of the ball */
         s->ball.move_x = 0;
         s->ball.move_y = 0;
-        /* FIXME: make sure the ball appears OUTSIDE of the net */
+        while (NET_COLLISION_BALL(s->ball)) {
+            /* make sure the ball appears OUTSIDE of the net */
+            if (s->ball.x >= (NET_X+NET_WIDTH/2)) {
+                s->ball.x += 1;
+            } else {
+                s->ball.x -= 1;
+            }
+        }
     }
 
     /* see if we have something to score */
@@ -241,30 +248,27 @@ bool step( GameState* s) {
         if (s->score_time == 0) {
             /* schedule scoring in the future */
             s->score_time = s->time + SCORING_DELAY;
+            s->referee = REFEREE_OUT;
         } else if (s->time >= s->score_time) {
             /* time has ran out - score now */
-            score_game(s);
+            switch (score_game(s)) {
+                case WINNER_PLAYER1:
+                    s->status = "player 1 scores";
+                    s->referee = REFEREE_PLAYER1;
+                    break;
+                case WINNER_PLAYER2:
+                    s->status = "player 2 scores";
+                    s->referee = REFEREE_PLAYER2;
+                    break;
+                default:
+                    assert(0);
+                    break;
+            }
             s->score_time = 0;
 
             strcpy(s->game_score_str, format_game(s));
             strcpy(s->sets_score_str, format_sets(s));
             s->text_changed = true;
-
-            /*if (FIXME - get winner) {
-                if( PLAYER(s, 1).type == PLAYER_TYPE_HUMAN && PLAYER(s, 2).type == PLAYER_TYPE_AI) {
-                    s->status = "computer scores";
-                } else {
-                    s->status = "player 2 scores";
-                }
-                s->referee = REFEREE_PLAYER2;
-            } else {
-                if( PLAYER(s, 1).type == PLAYER_TYPE_HUMAN && PLAYER(s, 2).type == PLAYER_TYPE_AI) {
-                    s->status = "player scores";
-                } else {
-                    s->status = "player 1 scores";
-                }
-                s->referee = REFEREE_PLAYER1;
-            }*/
 
             game_setup_serve(s);
             s->play_sound = SOUND_APPLAUSE;
@@ -781,7 +785,7 @@ float ngram_predictor( GameState* s) {
     return result;
 }
 
-void score_game(GameState* s) {
+int score_game(GameState* s) {
     Player *last_hit_by = NULL;
     Player *other = NULL;
 
@@ -822,9 +826,8 @@ void score_game(GameState* s) {
         loser = last_hit_by;
     }
 
-    if( s->current_set >= SETS_TO_WIN*2-1) {
-        return;
-    }
+    /* we cannot be in an "impossibly high" set */
+    assert(s->current_set < SETS_TO_WIN*2-1);
 
     winner->game++;
     if( loser->game < winner->game-1) {
@@ -851,6 +854,12 @@ void score_game(GameState* s) {
 
     /* forget this event - we've handled it */
     s->score_event = SCORE_UNDECIDED;
+
+    if (winner == &PLAYER(s, 1)) {
+        return WINNER_PLAYER1;
+    } else {
+        return WINNER_PLAYER2;
+    }
 }
 
 char* format_sets( GameState* s) {
