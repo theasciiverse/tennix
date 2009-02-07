@@ -262,6 +262,8 @@ TennixArchive* tnxar_create()
 
     strcpy(tnxar->header.header, TENNIX_ARCHIVE_HEADER);
     tnxar->header.items = 0;
+
+    return tnxar;
 }
 
 void tnxar_append(TennixArchive* tnxar, char* filename, char* mem, uint32_t length)
