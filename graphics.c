@@ -272,6 +272,33 @@ void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b) {
     update_rect(x, y, w, h);
 }
 
+void rectangle_alpha(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, Uint8 opacity)
+{
+    Uint32 color = SDL_MapRGB(screen->format, r, g, b);
+    SDL_Surface *buf;
+    SDL_Rect rect, rect2;
+
+    buf = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h,
+                 screen->format->BitsPerPixel,
+                 screen->format->Rmask,
+                 screen->format->Gmask,
+                 screen->format->Bmask,
+                 screen->format->Amask);
+
+    rect.x = rect.y = 0;
+    rect2.x = x;
+    rect2.y = y;
+    rect.w = rect2.w = w;
+    rect.h = rect2.h = h;
+
+    SDL_FillRect(buf, &rect, color);
+    SDL_SetAlpha(buf, SDL_RLEACCEL | SDL_SRCALPHA, opacity);
+    SDL_BlitSurface(buf, &rect, screen, &rect2);
+    update_rect(x, y, w, h);
+
+    SDL_FreeSurface(buf);
+}
+
 void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed) {
     float diff = (pressed?1.0-BUTTON_HIGHLIGHT:1.0+BUTTON_HIGHLIGHT);
     rectangle(x, y, w, h, MIN(r*diff, 255), MIN(g*diff, 255), MIN(b*diff, 255));

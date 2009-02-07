@@ -105,6 +105,7 @@ void show_sprite(image_id, int, int, int, int, int);
 void line_horiz( int y, Uint8 r, Uint8 g, Uint8 b);
 void line_vert( int x, Uint8 r, Uint8 g, Uint8 b);
 void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);
+void rectangle_alpha(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, Uint8 opacity);
 void fill_image_offset(image_id id, int x, int y, int w, int h, int offset_x, int offset_y);
 #define fill_image(id, x, y, w, h) fill_image_offset(id, x, y, w, h, 0, 0)
 void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);

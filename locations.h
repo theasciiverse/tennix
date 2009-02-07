@@ -39,7 +39,8 @@ static Location locations[] = {
         GR_LOC_MARGARET_COURT_ARENA,
         1,
         422,
-        187
+        187,
+        true
     },
     {
         /* French Open, http://en.wikipedia.org/wiki/French_Open */
@@ -102,12 +103,12 @@ static Location locations[] = {
 #endif
 
     /* End marker */
-    { NULL, NULL, NULL, 0, 0, NULL, 0, 0, 0, 0 }
+    { NULL, NULL, NULL, 0, 0, NULL, 0, 0, 0, 0, false }
 };
 
-int location_count()
+unsigned int location_count()
 {
-    static int location_count = 0;
+    static unsigned int location_count = 0;
 
     if (location_count == 0) {
         while (locations[location_count].name != NULL) {

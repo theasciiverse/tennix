@@ -378,9 +378,6 @@ bool step( GameState* s) {
         if (keys['2']) {
             s->wind--;
         }
-        if (keys['n']) {
-            s->night = 1 - s->night;
-        }
     }
 
     if(!(SDL_GetTicks() < fading_start+FADE_DURATION) && !s->is_over) {

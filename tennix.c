@@ -36,6 +36,7 @@
 #include "graphics.h"
 #include "sound.h"
 #include "input.h"
+#include "util.h"
 
 #include "locations.h"
 
@@ -96,6 +97,7 @@ int main( int argc, char** argv) {
     bool mouse_pressed = false;
     bool quit = false;
     bool benchmark = false;
+    unsigned int night_start, night_end;
     GameState *current_game = NULL, *prepared_game = NULL;
 
     MenuButton btn_back = {
@@ -127,8 +129,8 @@ int main( int argc, char** argv) {
         255, 50, 50
     };
 
-    unsigned int current_location = -1;
-    unsigned int highlight_location = -1;
+    int current_location = -1;
+    int highlight_location = -1;
     float highlight_location_distance = 0.0;
     float new_location_distance = 0.0;
     bool location_info_visible = false;
@@ -269,6 +271,8 @@ int main( int argc, char** argv) {
                 state = MENU_STATE_SLIDE_TO_MAINMENU;
                 break;
             case MENU_STATE_SLIDE_TO_MAINMENU:
+                clear_screen();
+                store_screen();
                 slide = slide_start;
                 slide_direction = -1;
                 state = MENU_STATE_SLIDE_TO_MAINMENU_IN_PROGRESS;
@@ -299,10 +303,25 @@ int main( int argc, char** argv) {
                 state = MENU_STATE_LOCATION;
                 break;
             case MENU_STATE_FADE_TO_OPTIONS:
+                clear_screen();
+                store_screen();
                 start_fade();
                 state = MENU_STATE_OPTIONS;
                 break;
             case MENU_STATE_LOCATION:
+                clear_screen();
+
+                /* Draw and store the worldmap with day/night times */
+                show_image(GR_WORLDMAP, WIDTH/2-get_image_width(GR_WORLDMAP)/2, HEIGHT/2-get_image_height(GR_WORLDMAP)/2, 255);
+                day_night(get_image_width(GR_WORLDMAP), &night_start, &night_end);
+                if (night_start > night_end) {
+                    rectangle_alpha(worldmap_xpos, worldmap_ypos, night_end, get_image_height(GR_WORLDMAP), 0, 0, 0, 150);
+                    rectangle_alpha(worldmap_xpos+night_start, worldmap_ypos, get_image_width(GR_WORLDMAP)-night_start, 10, 0, 0, 0, 150);
+                } else {
+                    rectangle_alpha(worldmap_xpos+night_start, worldmap_ypos, night_end-night_start, get_image_height(GR_WORLDMAP), 0, 0, 0, 150);
+                }
+
+                store_screen();
             case MENU_STATE_OPTIONS:
                 /* Prepare a new game */
                 if (prepared_game == NULL) {
@@ -341,6 +360,13 @@ int main( int argc, char** argv) {
                     fprintf(stderr, "Game not yet prepared!\n");
                     exit(EXIT_FAILURE);
                 }
+                /* Set the day/night status */
+                if (night_start < night_end) {
+                    prepared_game->night = (prepared_game->location->worldmap_x > night_start && prepared_game->location->worldmap_x < night_end);
+                } else {
+                    prepared_game->night = (prepared_game->location->worldmap_x < night_end || prepared_game->location->worldmap_x > night_start);
+                }
+
                 /* Cancel a possibly started game */
                 free(current_game);
                 current_game = prepared_game;
@@ -423,7 +449,6 @@ int main( int argc, char** argv) {
         } else if (state == MENU_STATE_LOCATION) {
             /* Location selection screen */
             show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20, 255);
-            show_image(GR_WORLDMAP, WIDTH/2-get_image_width(GR_WORLDMAP)/2, HEIGHT/2-get_image_height(GR_WORLDMAP)/2, 255);
 
             for (x=0; x<location_count(); x++) {
                 new_location_distance = SQUARE_DISTANCE(mx-worldmap_xpos-locations[x].worldmap_x,
@@ -446,11 +471,11 @@ int main( int argc, char** argv) {
             if (!location_info_visible) {
                 for (x=0; x<location_count(); x++) {
                     /* draw rectangle for location at "x"*/
-                    if (highlight_location == x) {
+                    if (highlight_location != -1 && (unsigned int)highlight_location == x) {
                         rectangle(worldmap_xpos + locations[x].worldmap_x-3, worldmap_ypos + locations[x].worldmap_y-3, 7, 7, 255*((i/10)%2), 0, 255*((i/10)%2));
                     }
 
-                    rectangle(worldmap_xpos + locations[x].worldmap_x-2, worldmap_ypos + locations[x].worldmap_y-2, 5, 5, 255, 255*(x==current_location), 0);
+                    rectangle(worldmap_xpos + locations[x].worldmap_x-2, worldmap_ypos + locations[x].worldmap_y-2, 5, 5, 255, 255*(current_location != -1 && x==(unsigned int)current_location), 0);
                 }
             }
             font_draw_string(GR_DKC2_FONT, "Where do you want to play?", MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER, 0, 0);

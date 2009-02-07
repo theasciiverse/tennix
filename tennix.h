@@ -31,6 +31,7 @@
 #ifdef DELUXE_EDITION
 #  define HAVE_VOICE_FILES
 #  define EXTENDED_REFEREE
+#  define NONFREE_LOCATIONS
 #endif
 
 #define ARCHIVE_FILE "tennix.tnx"
