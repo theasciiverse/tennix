@@ -24,23 +24,57 @@
 #ifndef __INPUT_H
 #define __INPUT_H
 
-#define JOYSTICK_PERCENTIZE(x) ((float)(x)/(float)(32768)*100.0)
+#define JOYSTICK_PERCENTIZE(x) ((float)(x)/(float)(32768))
 
-#define JOYSTICK_X_AXIS 0
-#define JOYSTICK_Y_AXIS 1
-#define JOYSTICK_BUTTON_A 0
+#define MAX_INPUT_DEVICES 16
 
-#define JOYSTICK_TRESHOLD 5.0
+enum {
+    INPUT_TYPE_KEYBOARD,
+    INPUT_TYPE_JOYSTICK,
+    INPUT_TYPE_MAX
+};
 
-void wait_keypress();
+enum {
+    INPUT_AXIS_X,
+    INPUT_AXIS_Y
+};
 
-void init_joystick();
-void uninit_joystick();
+enum {
+    INPUT_KEY_HIT,
+    INPUT_KEY_TOPSPIN,
+    INPUT_KEY_SMASH,
+    INPUT_KEY_COUNT
+};
 
-void joystick_list();
-int joystick_open(const char* name);
+#define INPUT_DEVICE_NAME_MAX 100
 
-const char* get_joystick_help();
+typedef struct {
+    unsigned char type;
+    char name[INPUT_DEVICE_NAME_MAX];
+
+    /* Joystick-specific items */
+    SDL_Joystick* joystick;
+    int x_axis;
+    int y_axis;
+
+    /* Joystick and keyboard */
+    int input_keys[INPUT_KEY_COUNT];
+
+    /* Keyboard-specific items */
+    int up_key;
+    int down_key;
+    int left_key;
+    int right_key;
+} InputDevice;
+
+void init_input();
+void uninit_input();
+
+InputDevice* find_input_devices(unsigned int*);
+
+const char* input_device_get_name(InputDevice*);
+float input_device_get_axis(InputDevice*, unsigned const char);
+char input_device_get_key(InputDevice*, unsigned const char);
 
 #endif
 

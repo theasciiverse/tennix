@@ -42,8 +42,8 @@ GameState *gamestate_new() {
         NULL,
         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6, false, -1, false },
         {
-            { GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_HUMAN, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
-            { GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
+            { NULL, -1, GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
+            { NULL, -1, GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
         },
         0,
         0,
@@ -196,16 +196,16 @@ bool step( GameState* s) {
 
     if (NET_COLLISION_BALL(s->ball)) {
         /* the net blocks movement of the ball */
-        s->ball.move_x = 0;
-        s->ball.move_y = 0;
         while (NET_COLLISION_BALL(s->ball)) {
             /* make sure the ball appears OUTSIDE of the net */
-            if (s->ball.x >= (NET_X+NET_WIDTH/2)) {
+            if (s->ball.move_x < 0) {
                 s->ball.x += 1;
             } else {
                 s->ball.x -= 1;
             }
         }
+        s->ball.move_x = 0;
+        s->ball.move_y = 0;
     }
 
     /* see if we have something to score */
@@ -345,22 +345,8 @@ bool step( GameState* s) {
     }
 #endif
 
-    SDL_PollEvent(&e);
+    SDL_PumpEvents();
     keys = SDL_GetKeyState(NULL);
-    switch(e.type) {
-        case SDL_JOYAXISMOTION:
-            if (e.jaxis.axis == JOYSTICK_Y_AXIS) {
-                s->joystick_y = JOYSTICK_PERCENTIZE(e.jaxis.value);
-            } else if (e.jaxis.axis == JOYSTICK_X_AXIS) {
-                s->joystick_x = JOYSTICK_PERCENTIZE(e.jaxis.value);
-            }
-            break;
-        case SDL_JOYBUTTONUP: case SDL_JOYBUTTONDOWN:
-            if (e.jbutton.button == JOYSTICK_BUTTON_A) {
-                s->joystick_a = (e.jbutton.state == SDL_PRESSED);
-            }
-            break;
-    }
 
     if( s->time%50==0) {
         if (keys['r']) {
@@ -381,27 +367,12 @@ bool step( GameState* s) {
     }
 
     if(!(SDL_GetTicks() < fading_start+FADE_DURATION) && !s->is_over) {
-        if( PLAYER(s, 1).type == PLAYER_TYPE_HUMAN) {
-           input_human( &PLAYER(s, 1),
-                   keys['w'] || keys[SDLK_UP] || s->joystick_y < -JOYSTICK_TRESHOLD,
-                   keys['s'] || keys[SDLK_DOWN] || s->joystick_y > JOYSTICK_TRESHOLD,
-                   keys['d'] || keys[SDLK_SPACE] || keys[SDLK_LCTRL] || keys[SDLK_RETURN] || s->joystick_a,
-                   keys['e'],
-                   keys['f'],
-#ifdef ENABLE_MOUSE
-                   true,
-#else
-                   false,
-#endif
-                   s);
-        } else {
-            input_ai( &PLAYER(s, 1), &s->ball, &PLAYER(s, 2), s);
-        }
- 
-        if( PLAYER(s, 2).type == PLAYER_TYPE_HUMAN) {
-            input_human( &PLAYER(s, 2), keys['o'], keys['l'], keys['k'], keys['i'], keys['j'], false, s);
-        } else {
-            input_ai( &PLAYER(s, 2), &s->ball, &PLAYER(s, 1), s);
+        for (p=1; p<=MAXPLAYERS; p++) {
+            if( PLAYER(s, p).type == PLAYER_TYPE_HUMAN) {
+                input_human(s, p);
+            } else {
+                input_ai(s, p);
+            }
         }
     }
     
@@ -641,109 +612,77 @@ float get_move_y( GameState* s, unsigned char player) {
     return (y_len*move_x)/(x_len);
 }
 
-void input_human( Player* player, bool up, bool down, bool hit, bool topspin, bool smash, bool use_mouse, GameState* s) {
-    int diff = PLAYER_MOVE_Y;
-    int mb;
+void input_human(GameState* s, int player) {
+    bool hit, topspin, smash;
+    float move_y;
 
-    /**
-     * Only use mouse control if the user isn't pressing any buttons
-     * this way, keyboard control still works when mouse control is
-     * enabled.
-     **/
-    if (use_mouse && (down || up || hit)) {
-        /**
-         * this is here so if the user decides to play
-         * with keyboard controls, we will lock the 
-         * mouse and disable displaying the mouse cursor
-         **/
-        player->mouse_locked = true;
-    }
-    if (use_mouse && !down && !up && !hit) {
-        mb = SDL_GetMouseState(&(player->mouse_x), &(player->mouse_y));
-        if (mb&SDL_BUTTON(SDL_BUTTON_LEFT)) {
-            if (player->mouse_y < player->y) {
-                down = false;
-                up = true;
-                diff = (player->y-player->mouse_y<diff)?(player->y-player->mouse_y):(diff);
-            } else if (player->mouse_y > player->y) {
-                up = false;
-                down = true;
-                diff = (player->mouse_y-player->y<diff)?(player->mouse_y-player->y):(diff);
-            }
-            player->mouse_locked = false;
-        } else if (!player->mouse_locked) {
-            hit = true;
+    move_y = PLAYER_MOVE_Y*input_device_get_axis(PLAYER(s, player).input, INPUT_AXIS_Y);
+
+    hit = input_device_get_key(PLAYER(s, player).input, INPUT_KEY_HIT);
+    topspin = input_device_get_key(PLAYER(s, player).input, INPUT_KEY_TOPSPIN);
+    smash = input_device_get_key(PLAYER(s, player).input, INPUT_KEY_SMASH);
+
+    if (move_y != 0) {
+        if (fabsf(move_y) > fabsf(move_y*PLAYER(s, player).accelerate)) {
+            move_y *= PLAYER(s, player).accelerate;
         }
-    }
-
-    if (fabsf(s->joystick_y) > JOYSTICK_TRESHOLD) {
-        diff = PLAYER_MOVE_Y*fabsf(s->joystick_y)/40.0;
-        if (diff > PLAYER_MOVE_Y) {
-            diff = PLAYER_MOVE_Y;
-        }
-    }
-
-    if (up) {
-        player->y -= fminf(diff, diff*player->accelerate);
-        player->accelerate *= PLAYER_ACCEL_INCREASE;
-    } else if (down) {
-        player->y += fminf(diff, diff*player->accelerate);
-        player->accelerate *= PLAYER_ACCEL_INCREASE;
+        PLAYER(s, player).y += move_y;
+        PLAYER(s, player).accelerate *= PLAYER_ACCEL_INCREASE;
     } else {
-        player->accelerate = PLAYER_ACCEL_DEFAULT;
+        PLAYER(s, player).accelerate = PLAYER_ACCEL_DEFAULT;
     }
 
     if(hit || topspin || smash) {
-        player->desire = (topspin)?(DESIRE_TOPSPIN):(DESIRE_NORMAL);
-        player->desire = (smash)?(DESIRE_SMASH):(player->desire);
+        PLAYER(s, player).desire = (topspin)?(DESIRE_TOPSPIN):(DESIRE_NORMAL);
+        PLAYER(s, player).desire = (smash)?(DESIRE_SMASH):(PLAYER(s, player).desire);
 
-        player->power = MAX(10, MIN(player->power*player->power_up_factor, PLAYER_POWER_MAX));
-        player->use_power = false;
+        PLAYER(s, player).power = MAX(10, MIN(PLAYER(s, player).power*PLAYER(s, player).power_up_factor, PLAYER_POWER_MAX));
+        PLAYER(s, player).use_power = false;
     } else {
-        player->use_power = true;
+        PLAYER(s, player).use_power = true;
     }
 }
 
-void input_ai( Player* player, Ball* ball, Player* opponent, GameState* s) {
+void input_ai(GameState* s, int player) {
     float fact = 1.7;
     float target;
     int ball_approaching = 0;
 
-    if ((player->x < opponent->x && ball->move_x <= 0) ||
-        (player->x > opponent->y && ball->move_x >= 0)) {
+    if ((PLAYER(s, player).x < GAME_X_MID && s->ball.move_x <= 0) ||
+        (PLAYER(s, player).x > GAME_X_MID && s->ball.move_x >= 0)) {
         ball_approaching = 1;
     }
 
     /* FIXME - this is broken since the new physics model has been introduced */
 
-    if( fabsf( player->y - (ball->y-ball->z)) > RACKET_Y_MID*5) {
+    if( fabsf( PLAYER(s, player).y - (s->ball.y-s->ball.z)) > RACKET_Y_MID*5) {
         fact = 3.5;
     }
 
     if(1) {
-        if( player->desire == DESIRE_NORMAL && !IS_NEAR_Y_AI(player->y, (ball->y-ball->z)) && ball_approaching) {
-            if( player->y < (ball->y-ball->z)) {
-                player->y += fmin( 2*fact, (ball->y-ball->z) - player->y);
-            } else if( player->y > (ball->y-ball->z)) {
-                player->y -= fmin( 2*fact, player->y - (ball->y-ball->z));
+        if( PLAYER(s, player).desire == DESIRE_NORMAL && !IS_NEAR_Y_AI(PLAYER(s, player).y, (s->ball.y-s->ball.z)) && ball_approaching) {
+            if( PLAYER(s, player).y < (s->ball.y-s->ball.z)) {
+                PLAYER(s, player).y += fmin( 2*fact, (s->ball.y-s->ball.z) - PLAYER(s, player).y);
+            } else if( PLAYER(s, player).y > (s->ball.y-s->ball.z)) {
+                PLAYER(s, player).y -= fmin( 2*fact, PLAYER(s, player).y - (s->ball.y-s->ball.z));
             }
         }
 
-        if (IS_NEAR_Y(player->y, (ball->y-ball->z)) && IS_NEAR_X_AI(player->x, ball->x) && player->power > 90) {
-            player->use_power = true;
+        if (IS_NEAR_Y(PLAYER(s, player).y, (s->ball.y-s->ball.z)) && IS_NEAR_X_AI(PLAYER(s, player).x, s->ball.x) && PLAYER(s, player).power > 90) {
+            PLAYER(s, player).use_power = true;
         } else if (ball_approaching) {
-            player->power = MAX(10, MIN(player->power*player->power_up_factor, PLAYER_POWER_MAX));
-            player->use_power = false;
+            PLAYER(s, player).power = MAX(10, MIN(PLAYER(s, player).power*PLAYER(s, player).power_up_factor, PLAYER_POWER_MAX));
+            PLAYER(s, player).use_power = false;
         }
     } else if( s->ngram_prediction > 0.0) {
         target = s->ngram_prediction*((float)HEIGHT)/((float)(NGRAM_STEPS));
         target = GAME_Y_MID + (target-GAME_Y_MID)*1.5;
 
-        if( player->desire == DESIRE_NORMAL && !IS_NEAR_Y_AI( player->y, target)) {
-            if( player->y < target) {
-                player->y += fmin( fact, (target-player->y)/40.0);
-            } else if( player->y > target) {
-                player->y -= fmin( fact, (player->y-target)/40.0);
+        if( PLAYER(s, player).desire == DESIRE_NORMAL && !IS_NEAR_Y_AI( PLAYER(s, player).y, target)) {
+            if( PLAYER(s, player).y < target) {
+                PLAYER(s, player).y += fmin( fact, (target-PLAYER(s, player).y)/40.0);
+            } else if( PLAYER(s, player).y > target) {
+                PLAYER(s, player).y -= fmin( fact, (PLAYER(s, player).y-target)/40.0);
             }
         }
     }

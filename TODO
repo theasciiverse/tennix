@@ -17,6 +17,9 @@ MENU AND NAVIGATION (COSMETIC)
 IMPORTANT GAMEPLAY ISSUES (NEEDS FIXING!)
 ==================================================================
 
+ => RAIN SHOULD NOT CONFLICT WITH ANYTHING (i.e. "out" sound should not
+ stop rain sound from playing!)
+
 basic user experience testing results:
  * Fix "hit area" for racket -> make outside areas also hit the ball or
                                 add a sound to make it audible that the
@@ -50,12 +53,6 @@ Regen erhöht gravity (oder ist fixes, negatives move_z??)
        man steht"
 
 
-
-Zeitzone holen und daraus ableiten, ob es in New York, Melbourne,
-London oder sonst wo gerade Nacht oder Tag ist (damit kann man den
-night-Modos bestimmen
-
-
 ==================================================================
 PARTY MODE AND INPUT ISSUES
 ==================================================================
@@ -63,6 +60,11 @@ PARTY MODE AND INPUT ISSUES
 Multiplayer with Input manager / Input selection (like Fifa 96)
 Proper gamepad axis support (can we do this in general?)
 Tournament config / setup / frontend (GTK+/Qt/[...]?)
+
+read keyboard input mappings from config file and generate bindings
+dynamically or even allow new input devices configured in the UI
+
+allow menu navigation with joystick / keyboard in addition to mouse
 
 Münze werfen bei Spielbeginn
 
@@ -105,6 +107,8 @@ Kamera von oben ist) --> selbiges mit Shadow!
 
 Shadow computer-generiert??
 Shadow x2/x4 wenn Nacht-Modus (weil scheinwerfer!!)
+
+ground bounce sound volume relative to bounce amount
 
 
 Kleinere Schläger, dafür mehr Sprites für die Animation

@@ -26,70 +26,119 @@
 #include "tennix.h"
 #include "input.h"
 
-static char joystick_help[100];
+static InputDevice devices[MAX_INPUT_DEVICES];
+static int devices_count;
 
-void wait_keypress() {
-    SDL_Event e;
-    unsigned char done = 0;
-
-    SDL_Delay( 100);
-
-    /* clean up all events */
-    while( SDL_PollEvent( &e));
-
-    while( !done) {
-        if( SDL_PollEvent( &e)) {
-            done = (e.type == SDL_KEYUP || e.type == SDL_MOUSEBUTTONUP);
-        } else {
-            SDL_Delay( 50);
-        }
-    }
-}
-
-void init_joystick()
+void init_input()
 {
+    int n, x;
+
     SDL_JoystickEventState(SDL_ENABLE);
-}
 
-void uninit_joystick()
-{
-    SDL_JoystickEventState(SDL_IGNORE);
-}
+    /* keyboard presets */
+    devices[devices_count].type = INPUT_TYPE_KEYBOARD;
+    devices[devices_count].up_key = 'w';
+    devices[devices_count].down_key = 's';
+    devices[devices_count].input_keys[INPUT_KEY_HIT]= 'd';
+    devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = 'e';
+    devices[devices_count].input_keys[INPUT_KEY_SMASH] = 'f';
+    strcpy(devices[devices_count].name, "Keyboard (WS/DEF)");
+    devices_count++;
 
-void joystick_list()
-{
-    int i, n;
+    /* keyboard presets */
+    devices[devices_count].type = INPUT_TYPE_KEYBOARD;
+    devices[devices_count].up_key = 'o';
+    devices[devices_count].down_key = 'l';
+    devices[devices_count].input_keys[INPUT_KEY_HIT]= 'k';
+    devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = 'i';
+    devices[devices_count].input_keys[INPUT_KEY_SMASH] = 'j';
+    strcpy(devices[devices_count].name, "Keyboard (OL/KIJ)");
+    devices_count++;
 
+    /* keyboard presets */
+    devices[devices_count].type = INPUT_TYPE_KEYBOARD;
+    devices[devices_count].up_key = SDLK_UP;
+    devices[devices_count].down_key = SDLK_DOWN;
+    devices[devices_count].input_keys[INPUT_KEY_HIT]= SDLK_SPACE;
+    devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = SDLK_LCTRL;
+    devices[devices_count].input_keys[INPUT_KEY_SMASH] = SDLK_LALT;
+    strcpy(devices[devices_count].name, "Keyboard (arrows + space, lctrl, lalt)");
+    devices_count++;
+
+    /* joysticks */
     n = SDL_NumJoysticks();
-
-    for (i=0; i<n; i++) {
-        printf("Joystick %d: %s (use with: --joystick \"%s\")\n", i+1, SDL_JoystickName(i), SDL_JoystickName(i));
+    for (x=0; x<n && devices_count<MAX_INPUT_DEVICES; x++) {
+        strcpy(devices[devices_count].name, SDL_JoystickName(x));
+        devices[devices_count].type = INPUT_TYPE_JOYSTICK;
+        devices[devices_count].joystick = SDL_JoystickOpen(x);
+        devices[devices_count].x_axis = 0;
+        devices[devices_count].y_axis = 0;
+        devices[devices_count].input_keys[INPUT_KEY_HIT]= 0;
+        devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = 1;
+        devices[devices_count].input_keys[INPUT_KEY_SMASH] = 2;
+        devices_count++;
     }
 }
 
-int joystick_open(const char* name)
+void uninit_input()
 {
-    int i, n;
+    int i;
+    SDL_JoystickEventState(SDL_IGNORE);
 
-    n = SDL_NumJoysticks();
-
-    for (i=0; i<n; i++) {
-        if (strcmp(SDL_JoystickName(i), name) == 0) {
-            SDL_JoystickOpen(i);
-            sprintf(joystick_help, "joystick enabled: %s", name);
-            return 1;
+    for (i=0; i<devices_count; i++) {
+        if (devices[i].type == INPUT_TYPE_JOYSTICK) {
+            SDL_JoystickClose(devices[i].joystick);
         }
+    }
+    devices_count = 0;
+}
+
+
+InputDevice* find_input_devices(unsigned int* count)
+{
+    *count = devices_count;
+    return devices;
+}
+
+const char* input_device_get_name(InputDevice* d)
+{
+    return d->name;
+}
+
+float input_device_get_axis(InputDevice* d, unsigned const char axis) {
+    Uint8 *keystate;
+    SDL_PumpEvents();
+
+    if (d->type == INPUT_TYPE_KEYBOARD) {
+        keystate = SDL_GetKeyState(NULL);
+        if (axis == INPUT_AXIS_X) {
+            return 1.0*keystate[d->right_key] + -1.0*keystate[d->left_key];
+        } else {
+            return 1.0*keystate[d->down_key] + -1.0*keystate[d->up_key];
+        }
+    } else if (d->type == INPUT_TYPE_JOYSTICK) {
+        if (axis == INPUT_AXIS_X) {
+            return JOYSTICK_PERCENTIZE(SDL_JoystickGetAxis(d->joystick, d->x_axis*2));
+        } else {
+            return JOYSTICK_PERCENTIZE(SDL_JoystickGetAxis(d->joystick, 1+d->y_axis*2));
+        }
+    } else {
+        /* unimplemented */
+    }
+    return 0.0;
+}
+
+char input_device_get_key(InputDevice* d, unsigned const char key) {
+    SDL_PumpEvents();
+
+    if (d->type == INPUT_TYPE_KEYBOARD) {
+        return SDL_GetKeyState(NULL)[d->input_keys[key]];
+    } else if (d->type == INPUT_TYPE_JOYSTICK) {
+        return SDL_JoystickGetButton(d->joystick, d->input_keys[key]);
+    } else {
+        /* unimplemented */
     }
     return 0;
 }
 
-const char* get_joystick_help()
-{
-    if (strcmp(joystick_help, "") == 0) {
-        return "no joystick (enable with --joystick)";
-    }
-    else {
-        return joystick_help;
-    }
-}
 

@@ -99,6 +99,8 @@ int main( int argc, char** argv) {
     bool benchmark = false;
     unsigned int night_start, night_end;
     GameState *current_game = NULL, *prepared_game = NULL;
+    InputDevice* input_devices;
+    unsigned int input_device_count;
 
     MenuButton btn_back = {
         "Back to main menu",
@@ -116,16 +118,16 @@ int main( int argc, char** argv) {
     };
     MenuButton btn_player1 = {
         NULL,
-        380,
+        WIDTH/2-150,
         180,
-        MENU_OPTIONS_BUTTON_WIDTH, MENU_OPTIONS_BUTTON_HEIGHT,
+        300, MENU_OPTIONS_BUTTON_HEIGHT,
         50, 50, 255
     };
     MenuButton btn_player2 = {
         NULL,
-        380,
+        WIDTH/2-150,
         180+MENU_OPTIONS_BORDER*2+MENU_OPTIONS_BUTTON_HEIGHT,
-        MENU_OPTIONS_BUTTON_WIDTH, MENU_OPTIONS_BUTTON_HEIGHT,
+        300, MENU_OPTIONS_BUTTON_HEIGHT,
         255, 50, 50
     };
 
@@ -182,26 +184,8 @@ int main( int argc, char** argv) {
         else if (OPTION_SET("--help", "-h")) {
             do_help = true;
         }
-        else if (OPTION_SET("--list-joysticks", "-J")) {
-            SDL_Init(SDL_INIT_JOYSTICK);
-            joystick_list();
-            return 0;
-        }
         else if (OPTION_SET("--benchmark", "-b")) {
             benchmark = true;
-        }
-        else if (OPTION_SET("--joystick", "-j")) {
-            SDL_Init(SDL_INIT_JOYSTICK);
-            if (OPTION_VALUE == NULL) {
-                fprintf(stderr, "Error: You need to specify the name of the joystick as parameter.\n");
-                do_help = true;
-                break;
-            }
-            if (joystick_open(OPTION_VALUE)==0) {
-                fprintf(stderr, "Warning: Cannot find joystick \"%s\" - Ignored.\n", OPTION_VALUE);
-                break;
-            }
-            OPTION_VALUE_PROCESSED;
         }
         else {
             fprintf(stderr, "Ignoring unknown option: %s\n", argv[i]);
@@ -210,7 +194,7 @@ int main( int argc, char** argv) {
     }
 
     if (do_help == true) {
-        fprintf(stderr, "Usage: %s [--fullscreen|-f] [--help|-h] [--list-joysticks|-J] [--joystick|-j] [joystick name]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [--fullscreen|-f] [--help|-h]\n", argv[0]);
         return 0;
     }
 #endif
@@ -238,7 +222,9 @@ int main( int argc, char** argv) {
 
     init_graphics();
     init_sound();
-    init_joystick();
+    init_input();
+
+    input_devices = find_input_devices(&input_device_count);
 
 #ifdef ENABLE_FPS_LIMIT
     frames = 0;
@@ -330,8 +316,8 @@ int main( int argc, char** argv) {
                 if (prepared_game == NULL) {
                     prepared_game = gamestate_new();
                     prepared_game->location = NULL;
-                    btn_player1.text = "Keyboard (W-S-D)";
-                    btn_player2.text = "Computer (AI)";
+                    btn_player1.text = "computer (AI)";
+                    btn_player2.text = "computer (AI)";
                     location_info_visible = false;
                     current_location = -1;
                     highlight_location = -1;
@@ -633,27 +619,39 @@ int main( int argc, char** argv) {
                         state = MENU_STATE_FADE_TO_LOCATION;
                         break;
                     case MENU_PLAYER1:
-                        switch (PLAYER(prepared_game, 1).type) {
-                            case PLAYER_TYPE_HUMAN:
-                                PLAYER(prepared_game, 1).type = PLAYER_TYPE_AI;
-                                btn_player1.text = "Computer (AI)";
-                                break;
-                            case PLAYER_TYPE_AI:
-                                PLAYER(prepared_game, 1).type = PLAYER_TYPE_HUMAN;
-                                btn_player1.text = "Keyboard (W-S-D)";
-                                break;
+                        /* advance the input device index */
+                        PLAYER(prepared_game, 1).input_device_index++;
+                        if (PLAYER(prepared_game, 1).input_device_index == (signed int)input_device_count) {
+                            PLAYER(prepared_game, 1).input_device_index = -1;
+                        }
+
+                        /* determine the selected input device */
+                        if (PLAYER(prepared_game, 1).input_device_index == -1) {
+                            PLAYER(prepared_game, 1).type = PLAYER_TYPE_AI;
+                            PLAYER(prepared_game, 1).input = NULL;
+                            btn_player1.text = "Computer (AI)";
+                        } else {
+                            PLAYER(prepared_game, 1).type = PLAYER_TYPE_HUMAN;
+                            PLAYER(prepared_game, 1).input = &(input_devices[PLAYER(prepared_game, 1).input_device_index]);
+                            btn_player1.text = input_device_get_name(PLAYER(prepared_game, 1).input);
                         }
                         break;
                     case MENU_PLAYER2:
-                        switch (PLAYER(prepared_game, 2).type) {
-                            case PLAYER_TYPE_HUMAN:
-                                PLAYER(prepared_game, 2).type = PLAYER_TYPE_AI;
-                                btn_player2.text = "Computer (AI)";
-                                break;
-                            case PLAYER_TYPE_AI:
-                                PLAYER(prepared_game, 2).type = PLAYER_TYPE_HUMAN;
-                                btn_player2.text = "Keyboard (O-L-K)";
-                                break;
+                        /* advance the input device index */
+                        PLAYER(prepared_game, 2).input_device_index++;
+                        if (PLAYER(prepared_game, 2).input_device_index == (signed int)input_device_count) {
+                            PLAYER(prepared_game, 2).input_device_index = -1;
+                        }
+
+                        /* determine the selected input device */
+                        if (PLAYER(prepared_game, 2).input_device_index == -1) {
+                            PLAYER(prepared_game, 2).type = PLAYER_TYPE_AI;
+                            PLAYER(prepared_game, 2).input = NULL;
+                            btn_player2.text = "Computer (AI)";
+                        } else {
+                            PLAYER(prepared_game, 2).type = PLAYER_TYPE_HUMAN;
+                            PLAYER(prepared_game, 2).input = &(input_devices[PLAYER(prepared_game, 2).input_device_index]);
+                            btn_player2.text = input_device_get_name(PLAYER(prepared_game, 2).input);
                         }
                         break;
                 }
@@ -670,7 +668,7 @@ int main( int argc, char** argv) {
     }
 
     uninit_graphics();
-    uninit_joystick();
+    uninit_input();
 
     SDL_Quit();
     return 0;

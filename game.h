@@ -28,6 +28,7 @@
 #include "tennix.h"
 #include "sound.h"
 #include "graphics.h"
+#include "input.h"
 
 #define SETS_TO_WIN 3
 
@@ -99,6 +100,8 @@ typedef struct {
 } Ball;
 
 typedef struct {
+    InputDevice* input;
+    int input_device_index;
     float x;
     float y;
     unsigned int power;
@@ -271,8 +274,8 @@ void render( GameState*);
 bool step( GameState*);
 void limit_value( float*, float, float);
 float get_move_y( GameState*, unsigned char);
-void input_human( Player*, bool, bool, bool, bool, bool, bool, GameState*);
-void input_ai( Player*, Ball*, Player*, GameState*);
+void input_human(GameState*, int);
+void input_ai(GameState*, int);
 void game_setup_serve( GameState*);
 float ngram_predictor( GameState*);
 
