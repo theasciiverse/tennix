@@ -87,7 +87,7 @@ static Location locations[] = {
 
 #ifdef NONFREE_LOCATIONS
     {
-        /* Training Camp Lung-Katah */
+        /* Bunabhainneadar Tennis Club  */
         "Training Camp Bunabhainneadar",
         "Husinish",
         "North Harris",
@@ -99,6 +99,34 @@ static Location locations[] = {
         218,
         37,
         false
+    },
+    {
+        /* Austrian Open in Kitzbuhel, http://www.austrianopen.eu/ */
+        "Center Court",
+        "Sportpark Golfclub",
+        "Kitzbuhel",
+        GR_CTT_CLAY,
+        4500,
+        "clay",
+        GR_LOC_AUSTRIAN_OPEN,
+        1,
+        243,
+        53,
+        true
+    },
+    {
+        /* http://en.wikipedia.org/wiki/Olympic_Green_Tennis_Centre */
+        "Main Court",
+        "Olympic Green Tennis Center",
+        "Beijing",
+        GR_CTT_HARD,
+        10000,
+        "deco turf", /* http://tinyurl.com/agwpje */
+        GR_LOC_OLYMPIC_GREEN_TENNIS,
+        1,
+        384,
+        64,
+        true
     },
 #endif
 

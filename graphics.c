@@ -74,7 +74,9 @@ static const char* graphics[] = {
     "loc_court_no_1.png",
     "loc_arthur_ashe_stadium.png",
 #ifdef NONFREE_LOCATIONS
-    "loc_training_camp.png"
+    "loc_training_camp.png",
+    "loc_austrian_open.png",
+    "loc_olympic_green_tennis.png"
 #endif
 };
 
