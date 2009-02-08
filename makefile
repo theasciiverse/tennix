@@ -29,8 +29,10 @@ RELEASE   =  0.7.0
 
 TARGET ?= default
 
-PREFIX ?= usr/local/
-BINARY_INSTALL_DIR ?= $(PREFIX)/bin
+PREFIX ?= /usr/local
+BINDIR ?= $(PREFIX)/bin
+DATAROOTDIR ?= $(PREFIX)/share
+DATADIR ?= $(DATAROOTDIR)/games
 
 LIBS =
 CFLAGS += -std=c99 -W -Wall -ansi -pedantic -Wcast-qual -Wwrite-strings -DVERSION=\"$(RELEASE)\" -O2 -DPREFIX=\"$(PREFIX)\"
@@ -83,13 +85,18 @@ ChangeLog:
 	git log >ChangeLog
 
 install: tennix
-	install -d $(DESTDIR)/$(BINARY_INSTALL_DIR) $(DESTDIR)/$(PREFIX)/share/pixmaps $(DESTDIR)/$(PREFIX)/share/applications $(DESTDIR)/$(PREFIX)/share/man/man6 $(DESTDIR)/$(PREFIX)/share/icons/hicolor/scalable/apps $(DESTDIR)/$(PREFIX)/share/tennix
-	install -s tennix $(DESTDIR)/$(BINARY_INSTALL_DIR)/tennix
-	install tennix.6 $(DESTDIR)/$(PREFIX)/share/man/man6/tennix.6
-	install -m644 data/icon.png $(DESTDIR)/$(PREFIX)/share/pixmaps/tennix.png
-	install -m644 data/icon.svg $(DESTDIR)/$(PREFIX)/share/icons/hicolor/scalable/apps/tennix.svg
-	install -m644 tennix.desktop $(DESTDIR)/$(PREFIX)/share/applications/
-	install -m644 tennix.tnx $(DESTDIR)/$(PREFIX)/share/tennix/
+	install -d -m 755 $(DESTDIR)$(BINDIR)
+	install -d -m 755 $(DESTDIR)$(DATAROOTDIR)/pixmaps
+	install -d -m 755 $(DESTDIR)$(DATAROOTDIR)/applications
+	install -d -m 755 $(DESTDIR)$(DATAROOTDIR)/man/man6
+	install -d -m 755 $(DESTDIR)$(DATAROOTDIR)/icons/hicolor/scalable/apps
+	install -d -m 755 $(DESTDIR)$(DATADIR)/tennix
+	install -m 755 tennix $(DESTDIR)$(BINDIR)/
+	install -m 644 tennix.6 $(DESTDIR)$(DATAROOTDIR)/man/man6/
+	install -m 644 data/icon.png $(DESTDIR)$(DATAROOTDIR)/pixmaps/tennix.png
+	install -m 644 data/icon.svg $(DESTDIR)$(DATAROOTDIR)/icons/hicolor/scalable/apps/tennix.svg
+	install -m 644 tennix.desktop $(DESTDIR)$(DATAROOTDIR)/applications/
+	install -m 644 tennix.tnx $(DESTDIR)$(DATADIR)/tennix/
 
 tennix.o: tennix.c tennix.h game.h graphics.h input.h util.h sound.h locations.h util.h
 graphics.o: graphics.c graphics.h tennix.h archive.h sound.h

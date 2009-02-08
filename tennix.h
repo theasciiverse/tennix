@@ -35,7 +35,7 @@
 #endif
 
 #define ARCHIVE_FILE "tennix.tnx"
-#define ARCHIVE_FILE_INSTALLED "/" PREFIX "share/tennix/" ARCHIVE_FILE
+#define ARCHIVE_FILE_INSTALLED "/" PREFIX "/share/games/tennix/" ARCHIVE_FILE
 
 #define COPYRIGHT "Copyright 2003, 2007, 2008, 2009 Thomas Perl"
 #define URL "http://icculus.org/tennix/"
