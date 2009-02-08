@@ -293,7 +293,7 @@ int main( int argc, char** argv) {
                 day_night(get_image_width(GR_WORLDMAP), &night_start, &night_end);
                 if (night_start > night_end) {
                     rectangle_alpha(worldmap_xpos, worldmap_ypos, night_end, get_image_height(GR_WORLDMAP), 0, 0, 0, 150);
-                    rectangle_alpha(worldmap_xpos+night_start, worldmap_ypos, get_image_width(GR_WORLDMAP)-night_start, 10, 0, 0, 0, 150);
+                    rectangle_alpha(worldmap_xpos+night_start, worldmap_ypos, get_image_width(GR_WORLDMAP)-night_start, get_image_height(GR_WORLDMAP), 0, 0, 0, 150);
                 } else {
                     rectangle_alpha(worldmap_xpos+night_start, worldmap_ypos, night_end-night_start, get_image_height(GR_WORLDMAP), 0, 0, 0, 150);
                 }
