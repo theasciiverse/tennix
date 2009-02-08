@@ -106,8 +106,10 @@ enum {
     SOUND_MAX
 };
 
-/* Channel by id gives: 1-7 (of 0-7) */
-#define CHANNEL_BY_ID(id) ((id)%7+1)
+#define LAST_SOUNDEFFECT_ID SOUND_MOUSECLICK
+
+/* Channel by id gives: 1-N (of 0-N) */
+#define CHANNEL_BY_ID(id, numchannels) ((id)%numchannels+1)
 #define CHANNEL_VOICE 0
 
 #define SOUND_RACKET_FIRST SOUND_RACKET1
@@ -142,7 +144,10 @@ void play_sample_n(sound_id id, int n);
 #define play_sample_loop(id) play_sample_n(id,-1)
 #define play_sample_background(id) play_sample_n(id,-2)
 void stop_sample(sound_id id);
+void sample_volume(sound_id id, float volume);
+void sample_volume_group(sound_id first, sound_id last, float volume);
 void pan_sample(sound_id id, float position);
+void pan_sample_group(sound_id first, sound_id last, float position);
 #define unpan_sample(id) pan_sample(id,0.5)
 
 void voice_clear();

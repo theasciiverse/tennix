@@ -61,7 +61,7 @@ GameState *gamestate_new() {
         false,
         { { { 0 } } },
         0.0,
-        SOUND_MAX,
+        0, /* sound events */
         0.0,
         0.0,
         0,
@@ -181,17 +181,15 @@ bool step( GameState* s) {
         s->referee = REFEREE_NORMAL;
 
         /* bounce from the ground */
-        if (fabsf(s->ball.move_z) > 0.5) {
+        if (fabsf(s->ball.move_z) > 0.3) {
+            s->sound_events |= SOUND_EVENT_GROUND;
+            sample_volume_group(SOUND_GROUND_FIRST, SOUND_GROUND_LAST, MAX(0.0, MIN(1.0, fabsf(s->ball.move_z)/2)));
+            pan_sample_group(SOUND_GROUND_FIRST, SOUND_GROUND_LAST, MAX(0.0, MIN(1.0, 0.5+0.8*(s->ball.x-GAME_X_MID)/WIDTH)));
             s->ball.move_z *= -s->ball.restitution;
         } else {
             s->ball.move_z = 0;
         }
         s->ball.z = 0;
-
-        /* only make the sound if it's visibly bouncing hard */
-        if (!IS_OFFSCREEN(s->ball.x, s->ball.y) && fabsf(s->ball.move_z) > .5) {
-            s->play_sound = SOUND_GROUND;
-        }
     }
 
     if (NET_COLLISION_BALL(s->ball)) {
@@ -213,24 +211,24 @@ bool step( GameState* s) {
         if (NET_COLLISION_BALL(s->ball)) {
             /* the ball "fell" into the net  */
             s->score_event = SCORE_EVENT_NET;
-            s->play_sound = SOUND_OUT;
+            s->sound_events |= SOUND_EVENT_OUT;
             s->status = "net!";
         } else if (IS_OFFSCREEN(s->ball.x, s->ball.y)) {
             /* ball flew offscreen */
             s->score_event = SCORE_EVENT_OFFSCREEN;
-            s->play_sound = SOUND_OUT;
+            s->sound_events |= SOUND_EVENT_OUT;
             s->status = "out!";
         } else if (ground_event) {
             /* the ball hit the ground on the screen */
             if (IS_OUT(s->ball.x, s->ball.y)) {
                 /* the ball bounced in the OUT area */
                 s->score_event = SCORE_EVENT_OUT;
-                s->play_sound = SOUND_OUT;
+                s->sound_events |= SOUND_EVENT_OUT;
                 s->status = "out!";
             } else if (GROUND_IS_VALID(s->ball.last_hit_by, s->ball.x, s->ball.y)) {
                 if (s->ball.ground_hit) {
                     s->score_event = SCORE_EVENT_GROUND_VALID;
-                    s->play_sound = SOUND_OUT;
+                    s->sound_events |= SOUND_EVENT_OUT;
                     s->status = "did not catch the ball!";
                 } else {
                     /* first ground hit in valid area */
@@ -239,7 +237,7 @@ bool step( GameState* s) {
             } else {
                 /* ball hit somewhere invalid */
                 s->score_event = SCORE_EVENT_GROUND_INVALID;
-                s->play_sound = SOUND_OUT;
+                s->sound_events |= SOUND_EVENT_OUT;
                 s->status = "fault!";
             }
         }
@@ -274,7 +272,7 @@ bool step( GameState* s) {
 
             game_setup_serve(s);
             if (s->location->max_visitors > 100) {
-                s->play_sound = SOUND_APPLAUSE;
+                s->sound_events |= SOUND_EVENT_APPLAUSE;
             }
             /*FIXME n-gram predictor broken
             s->history_size = 0;
@@ -309,14 +307,14 @@ bool step( GameState* s) {
                         break;
                 }
                 s->ball.move_y = get_move_y( s, p);
-                s->play_sound = SOUND_RACKET;
+                s->sound_events |= SOUND_EVENT_RACKET;
                 s->ball.ground_hit = false;
                 s->ball.inhibit_gravity = false;
                 s->ball.last_hit_by = p;
                 if (p==1) {
-                    pan_sample(SOUND_RACKET, 0.4);
+                    pan_sample_group(SOUND_RACKET_FIRST, SOUND_RACKET_LAST, 0.3);
                 } else {
-                    pan_sample(SOUND_RACKET, 0.6);
+                    pan_sample_group(SOUND_RACKET_FIRST, SOUND_RACKET_LAST, 0.7);
                     s->ball.move_x *= -1;
                 }
             }
@@ -434,9 +432,20 @@ void render( GameState* s) {
 #ifdef EXTENDED_REFEREE
     int t=1000;
 #endif
-    if (s->play_sound != SOUND_MAX) {
-        play_sample(s->play_sound);
-        s->play_sound = SOUND_MAX;
+    if (s->sound_events != 0) {
+        if (s->sound_events & SOUND_EVENT_GROUND) {
+            play_sample(SOUND_GROUND);
+        }
+        if (s->sound_events & SOUND_EVENT_OUT) {
+            play_sample(SOUND_OUT);
+        }
+        if (s->sound_events & SOUND_EVENT_APPLAUSE) {
+            play_sample(SOUND_APPLAUSE);
+        }
+        if (s->sound_events & SOUND_EVENT_RACKET) {
+            play_sample(SOUND_RACKET);
+        }
+        s->sound_events = 0;
     }
     if( s->winner != WINNER_NONE) {
         if( !s->is_over) {

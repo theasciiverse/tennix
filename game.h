@@ -72,6 +72,13 @@ enum {
     WINNER_PLAYER2
 };
 
+enum {
+    SOUND_EVENT_GROUND   = 1<<0,
+    SOUND_EVENT_OUT      = 1<<1,
+    SOUND_EVENT_APPLAUSE = 1<<2,
+    SOUND_EVENT_RACKET   = 1<<3
+};
+
 typedef struct {
     const char* name;
     const char* area;
@@ -166,7 +173,7 @@ typedef struct {
     bool history_is_locked;
     unsigned char ngram[NGRAM_STEPS][NGRAM_STEPS][NGRAM_STEPS];
     float ngram_prediction;
-    sound_id play_sound;
+    unsigned int sound_events;
     float joystick_y;
     float joystick_x;
     unsigned char joystick_a;

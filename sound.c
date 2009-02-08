@@ -107,6 +107,7 @@ static int voice_queue_size = 0;
 static int voice_queue_position = 0;
 
 int voice_finished_flag = 1;
+static int available_channels = 0;
 
 void init_sound() {
     int i;
@@ -123,6 +124,15 @@ void init_sound() {
     draw_button(40, (HEIGHT-40)/2, WIDTH-80, 40, 100, 100, 100, 1);
     store_screen();
     updatescr();
+
+    /* +1 because of zero-based indexing AND +1 for voice channel */
+    available_channels = Mix_AllocateChannels(LAST_SOUNDEFFECT_ID+1+1);
+
+    if (available_channels < LAST_SOUNDEFFECT_ID+1+1) {
+        fprintf(stderr, "Warning: Got only %d audio channels (requested %d).\n",
+                available_channels,
+                LAST_SOUNDEFFECT_ID+1+1);
+    }
 
     tnxar = tnxar_open(ARCHIVE_FILE);
     if (tnxar == NULL) {
@@ -170,9 +180,9 @@ void play_sample_n(sound_id id, int n)
     }
 
     if (n == -2) {
-        Mix_FadeInChannel(CHANNEL_BY_ID(id), sounds[id].data, -1, FADE_IN_MS);
+        Mix_FadeInChannel(CHANNEL_BY_ID(id, available_channels), sounds[id].data, -1, FADE_IN_MS);
     } else {
-        Mix_PlayChannel(CHANNEL_BY_ID(id), sounds[id].data, n);
+        Mix_PlayChannel(CHANNEL_BY_ID(id, available_channels), sounds[id].data, n);
     }
 
     /* Audience stops clapping when ball is served */
@@ -183,19 +193,40 @@ void play_sample_n(sound_id id, int n)
 
 void stop_sample(sound_id id)
 {
-    Mix_FadeOutChannel(CHANNEL_BY_ID(id), FADE_OUT_MS);
+    Mix_FadeOutChannel(CHANNEL_BY_ID(id, available_channels), FADE_OUT_MS);
 }
 
+void sample_volume(sound_id id, float volume)
+{
+    Mix_Volume(CHANNEL_BY_ID(id, available_channels), volume*MIX_MAX_VOLUME);
+}
+
+void sample_volume_group(sound_id first, sound_id last, float volume)
+{
+    unsigned int i;
+
+    for (i=first; i<=last; i++) {
+        sample_volume(i, volume);
+    }
+}
 void pan_sample(sound_id id, float position)
 {
     if (position == 0.5) {
-        Mix_SetPanning(CHANNEL_BY_ID(id), 255, 255);
+        Mix_SetPanning(CHANNEL_BY_ID(id, available_channels), 255, 255);
     }
     else {
-        Mix_SetPanning(CHANNEL_BY_ID(id), 255*(1.0-position), 255*(position));
+        Mix_SetPanning(CHANNEL_BY_ID(id, available_channels), 255*(1.0-position), 255*(position));
     }
 }
 
+void pan_sample_group(sound_id first, sound_id last, float position)
+{
+    unsigned int i;
+
+    for (i=first; i<=last; i++) {
+        pan_sample(i, position);
+    }
+}
 void voice_clear()
 {
     voice_queue_size = 0;
