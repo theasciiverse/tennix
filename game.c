@@ -602,20 +602,18 @@ float get_move_y( GameState* s, unsigned char player) {
     move_x = s->ball.move_x;
 
     /* -1.0 .. 1.0 for racket hit position */
-    pct = (by-py)/(pa/2);
-    limit_value( &pct, -1.0, 1.0);
+    pct = MAX(-1.0, MIN(1.0, (by-py)/(pa/2)));
 
     /* Y destination for ball */
     dest = GAME_Y_MID + pct*(GAME_Y_MAX-GAME_Y_MIN);
 
     /* lengths for the ball's journey */
     if( player == 1) {
-        x_len = fabsf(GAME_X_MAX - s->ball.x);
-        y_len = dest - by + MOVE_Y_SEED-rand()%MOVE_Y_SEED*2;
+        x_len = GAME_X_MAX - s->ball.x;
     } else {
         x_len = s->ball.x - GAME_X_MIN;
-        y_len = by - dest + MOVE_Y_SEED-rand()%MOVE_Y_SEED*2;
     }
+    y_len = dest - by + MOVE_Y_SEED-rand()%MOVE_Y_SEED*2;
 
     /* return the should-be value for move_y */
     return (y_len*move_x)/(x_len);
