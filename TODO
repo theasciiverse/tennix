@@ -101,6 +101,8 @@ IN-GAME FX
  * Snow (christmas edition?)
  * Sunshine (=current, normal behaviour)
 
+Balljunge (oder lange Schiri-Hand)
+Schiri spannt Schirm auf, wenns es regnet
 
 Ballgröße am Bildschirm verändert sich je nach Höhe (weil die
 Kamera von oben ist) --> selbiges mit Shadow!
@@ -108,15 +110,18 @@ Kamera von oben ist) --> selbiges mit Shadow!
 Shadow computer-generiert??
 Shadow x2/x4 wenn Nacht-Modus (weil scheinwerfer!!)
 
-ground bounce sound volume relative to bounce amount
-
-
 Kleinere Schläger, dafür mehr Sprites für die Animation
 Schläger einfärben per SDL möglich? (HUE-verschiebung)
 Schatten für schläger (ebenfalls computergeneriert möglich?
 
+Sound effect groups: Group the same types of sounds (e.g. voice,
+racket, ground) in one sound "GROUP" that shares a channel.
 
 
+Trainings-Modus mit Zielscheibe
+
+Möglichkeit, ans netz zu gehen, aber dann kann man sich nur mehr
+einen kleine bereich auf- und abbewegen (mario).
 
 ==================================================================
 TECHNICAL DETAILS
@@ -130,6 +135,7 @@ Garbage collector für c/c++?
 umsteigen auf c++?
 
 umsteigen auf SDL_ttf?
+=> /usr/share/fonts/truetype/dustin
 
 ==================================================================
 
