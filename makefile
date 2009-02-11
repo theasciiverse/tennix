@@ -62,7 +62,7 @@ else
 endif
 
 SRC = tennix.c game.c graphics.c input.c util.c sound.c
-OBJ = tennix.o game.o graphics.o input.o util.o sound.o archive-lib.o
+OBJ = tennix.o game.o graphics.o input.o util.o sound.o archive-lib.o SDL_rotozoom.o
 ifeq ($(MSYSTEM),MINGW32)
   OBJ += tennixres.o
 endif
@@ -104,6 +104,7 @@ game.o: game.c game.h graphics.h tennix.h sound.h input.h
 sound.o: sound.c sound.h tennix.h archive.h graphics.h
 input.o: input.c input.h
 util.o: util.c util.h
+SDL_rotozoom.o: SDL_rotozoom.c SDL_rotozoom.h
 
 archive-lib.o: archive.c archive.h
 	$(CC) -c -o $@ $<

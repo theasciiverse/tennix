@@ -35,6 +35,8 @@
 #include "archive.h"
 #include "sound.h"
 
+#include "SDL_rotozoom.h"
+
 static Image* images;
 
 static Font* fonts;
@@ -297,6 +299,27 @@ void show_sprite( image_id id, int pos, int items, int x_offset, int y_offset, i
 
     SDL_BlitSurface( bitmap, &src, screen, &dst);
     update_rect2(dst);
+}
+
+void show_image_rotozoom(image_id id, int x, int y, float rotate, float zoom)
+{
+    SDL_Surface* tmp;
+    SDL_Rect src, dst;
+
+    assert(id < GR_COUNT);
+
+    tmp = rotozoomSurface(images[id].data, rotate, zoom, SMOOTHING_OFF);
+
+    dst.w = src.w = tmp->w;
+    dst.h = src.h = tmp->h;
+    src.x = 0;
+    src.y = 0;
+    dst.x = x - src.w/2;
+    dst.y = y - src.h/2;
+
+    SDL_BlitSurface(tmp, &src, screen, &dst);
+    update_rect2(dst);
+    SDL_FreeSurface(tmp);
 }
 
 void fill_image_offset( image_id id, int x, int y, int w, int h, int offset_x, int offset_y) {

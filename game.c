@@ -527,8 +527,10 @@ void render( GameState* s) {
     } else {
         b = 0;
     }
-    show_image(GR_SHADOW,                s->ball.x-BALL_X_MID, s->ball.y-4, 255);
-    show_sprite(GR_BALL, b, BALL_STATES, s->ball.x-BALL_X_MID, s->ball.y-BALL_Y_MID-s->ball.z, 255);
+
+    show_image_rotozoom(GR_SHADOW, s->ball.x, s->ball.y+3, 0.0, MAX(0.5, MIN(1.0, (30-s->ball.z)/10)));
+
+    show_image_rotozoom(GR_BALL, s->ball.x, s->ball.y - s->ball.z, -s->ball.move_x * (s->time/10), 1.0+MAX(0.0, (s->ball.z-10)/100));
 
     /* Player 1's mouse rectangle */
     if (!(PLAYER(s, 1).mouse_locked)) {

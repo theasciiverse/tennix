@@ -122,6 +122,7 @@ int get_image_height(image_id);
 int get_sprite_width(image_id, int);
 void show_sprite(image_id, int, int, int, int, int);
 #define show_image(id, x_offset, y_offset, opacity) show_sprite(id, 0, 1, x_offset, y_offset, opacity)
+void show_image_rotozoom(image_id id, int x, int y, float rotate, float zoom);
 void line_horiz( int y, Uint8 r, Uint8 g, Uint8 b);
 void line_vert( int x, Uint8 r, Uint8 g, Uint8 b);
 void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);
