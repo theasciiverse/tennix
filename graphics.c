@@ -28,6 +28,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <string.h>
+#include <assert.h>
 
 #include "tennix.h"
 #include "graphics.h"
@@ -35,6 +36,22 @@
 #include "sound.h"
 
 static Image* images;
+
+static Font* fonts;
+FreeList* font_freelist = NULL;
+
+static FontDescription font_desc[] = {
+    /**
+     * This is the list of fonts to be loaded. Be sure to
+     * use NULL as filename when using the same .ttf file
+     * the second time in a row - this saves memory in the
+     * loader function.
+     **/
+    { "dustismo.ttf", 13, TTF_STYLE_NORMAL },
+    { NULL, 20, TTF_STYLE_NORMAL },
+    { "itwasntme.ttf", 22, TTF_STYLE_NORMAL },
+    { NULL, 30, TTF_STYLE_BOLD }
+};
 
 static SDL_Surface *buffer;
 static SDL_Surface *background;
@@ -51,8 +68,6 @@ static const char* graphics[] = {
     "shadow.png",
     "player-racket.png",
     "ball.png",
-    "smallish-font.png",
-    "dkc2.png",
     "referee.png",
     "ctt_hard.png",
     "ctt_clay.png",
@@ -86,6 +101,13 @@ void init_graphics() {
     SDL_Surface* data;
     SDL_Surface* tmp;
     TennixArchive *tnxar;
+    struct SDL_RWops* rw;
+    char *font_data = NULL;
+
+    if (TTF_Init() == -1) {
+        fprintf(stderr, "Cannot init TTF: %s\n", TTF_GetError());
+        exit(EXIT_FAILURE);
+    }
 
     rect_update_cache = (SDL_Rect*)calloc(RECT_UPDATE_CACHE, sizeof(SDL_Rect));
     rect_update_old = (SDL_Rect*)calloc(RECT_UPDATE_CACHE, sizeof(SDL_Rect));
@@ -93,6 +115,7 @@ void init_graphics() {
     rect_update_old_count = 0;
 
     images = (Image*)calloc( GR_COUNT, sizeof( Image));
+    fonts = (Font*)calloc(FONT_COUNT, sizeof(Font));
 
     buffer = SDL_CreateRGBSurface(SDL_SWSURFACE, WIDTH, HEIGHT,
                  screen->format->BitsPerPixel,
@@ -119,6 +142,22 @@ void init_graphics() {
         assert(tnxar != NULL);
     }
 
+    font_freelist = freelist_create();
+
+    /* Load fonts from resource file */
+    for (i=0; i<FONT_COUNT; i++) {
+        if (font_desc[i].filename != NULL) {
+            assert(tnxar_set_current_filename(tnxar, font_desc[i].filename) != 0);
+            font_data = tnxar_read_current(tnxar);
+            freelist_append(font_freelist, font_data);
+        }
+        assert(font_data != NULL);
+        rw = SDL_RWFromMem(font_data, tnxar_size_current(tnxar));
+        fonts[i].data = TTF_OpenFontRW(rw, 1, font_desc[i].size);
+        assert(fonts[i].data != NULL);
+        TTF_SetFontStyle(fonts[i].data, font_desc[i].style);
+    }
+
     draw_button(40, (HEIGHT-40)/2, WIDTH-80, 40, 100, 100, 100, 1);
     store_screen();
     updatescr();
@@ -126,7 +165,7 @@ void init_graphics() {
     for( i=0; i<GR_COUNT; i++) {
         if (tnxar_set_current_filename(tnxar, graphics[i]) != 0) {
             d = tnxar_read_current(tnxar);
-            tmp = IMG_Load_RW(SDL_RWFromMem(d, tnxar_size_current(tnxar)), 0);
+            tmp = IMG_Load_RW(SDL_RWFromMem(d, tnxar_size_current(tnxar)), 1);
             free(d);
         } else {
             fprintf(stderr, "Cannot find file: %s\n", graphics[i]);
@@ -137,15 +176,9 @@ void init_graphics() {
             continue;
         }
 
-        if( GRAPHICS_IS_FONT(i)) {
-            /* Convert to RGB w/ colorkey=black for opacity support */
-            SDL_SetColorKey( tmp, SDL_SRCCOLORKEY | SDL_RLEACCEL, SDL_MapRGB( tmp->format, 0, 0, 0));
-            data = SDL_ConvertSurface( tmp, screen->format, SDL_SRCCOLORKEY | SDL_RLEACCEL);
-        } else {
-            /* Convert to RGBA for alpha channel from PNG */
-            data = SDL_DisplayFormatAlpha( tmp);
-        }
-        SDL_FreeSurface( tmp);
+        /* Convert to RGBA in the display format */
+        data = SDL_DisplayFormatAlpha(tmp);
+        SDL_FreeSurface(tmp);
 
         if( !data) {
             fprintf( stderr, "Error: %s\n", SDL_GetError());
@@ -178,7 +211,60 @@ void uninit_graphics() {
     free(rect_update_cache);
     free(rect_update_old);
     free(images);
+
+    for (i=0; i<FONT_COUNT; i++) {
+        TTF_CloseFont(fonts[i].data);
+        fonts[i].data = NULL;
+    }
+    free(fonts);
+
+    freelist_free_all(font_freelist);
+
+    TTF_Quit();
 }
+
+
+FreeList* freelist_create()
+{
+    FreeList* list = (FreeList*)malloc(sizeof(FreeList));
+    assert(list != NULL);
+
+    list->head = NULL;
+
+    return list;
+}
+
+void freelist_append(FreeList* list, char* data)
+{
+    FreeListItem* new_item = (FreeListItem*)malloc(sizeof(FreeListItem));
+
+    assert(list != NULL);
+    assert(data != NULL);
+
+    new_item->data = data;
+
+    /* Insert item at the beginning of list */
+    new_item->next = list->head;
+    list->head = new_item;
+}
+
+void freelist_free_all(FreeList* list)
+{
+    FreeListItem* next;
+
+    assert(list != NULL);
+
+    while (list->head != NULL) {
+        /* Remove one item from the head of the list */
+        next = list->head->next;
+        free(list->head->data);
+        free(list->head);
+        list->head = next;
+    }
+
+    free(list);
+}
+
 
 int get_image_width( image_id id) {
     return images[id].data->w;
@@ -310,11 +396,12 @@ void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pr
 
 void draw_button_text(const char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed) {
     int font_x, font_y;
+    float factor = 0.3;
     pressed = pressed?1:0;
     draw_button( x, y, w, h, r, g, b, pressed);
-    font_x = x + w/2 - font_get_string_width( GR_SMALLISH_FONT, s)/2 + pressed*BUTTON_BORDER;
-    font_y = y + h/2 - get_image_height( GR_SMALLISH_FONT)/2 + pressed*BUTTON_BORDER;
-    font_draw_string( GR_SMALLISH_FONT, s, font_x, font_y, 0, 0);
+    font_x = x + w/2 - font_get_string_width(FONT_SMALL, s)/2 + pressed*BUTTON_BORDER;
+    font_y = y + h/2 - font_get_height(FONT_SMALL)/2 + pressed*BUTTON_BORDER;
+    font_draw_string_color(FONT_SMALL, s, font_x, font_y, (Uint8)(r*factor), (Uint8)(g*factor), (Uint8)(b*factor));
 }
 
 void clear_screen()
@@ -459,140 +546,47 @@ void start_fade() {
     fading_start = SDL_GetTicks();
 }
 
-int font_get_metrics(image_id id, unsigned char ch, int* xp, int* wp) {
-    /* Caching of x and width values for faster calculation */
-    static int xcache[0xFF][GRAPHICS_FONT_COUNT],
-               wcache[0xFF][GRAPHICS_FONT_COUNT];
-    static unsigned char cacheflag[0xFF][GRAPHICS_FONT_COUNT];
+void font_draw_string_color(font_id id, const char* s, int x_offset, int y_offset, Uint8 r, Uint8 g, Uint8 b) {
+    SDL_Surface *text;
+    SDL_Rect rect, rect2;
+    SDL_Color color;
 
-    SDL_Surface *bitmap;
-    int pos, x = -1, w = 0;
-    int search_pos = 0, search_x = 0;
-    unsigned char font_index = id-GRAPHICS_FONT_FIRST;
-    Uint8 red, green, blue;
+    color.r = r;
+    color.g = g;
+    color.b = b;
 
-    if(!GRAPHICS_IS_FONT(id)) return 0;
+    assert(id < FONT_COUNT);
 
-    if (cacheflag[ch][font_index]) {
-        /* saved! */
-        if (xp != NULL) *xp = xcache[ch][font_index];
-        if (wp != NULL) *wp = wcache[ch][font_index];
-        return wcache[ch][font_index];
+    text = TTF_RenderText_Blended(fonts[id].data, s, color);
+    if (text != NULL) {
+        rect.w = rect2.w = text->w;
+        rect.h = rect2.h = text->h;
+        rect.x = rect.y = 0;
+        rect2.x = x_offset;
+        rect2.y = y_offset;
+        SDL_SetAlpha(text, SDL_SRCALPHA | SDL_RLEACCEL, 255);
+        SDL_BlitSurface(text, &rect, screen, &rect2);
+        SDL_FreeSurface(text);
     }
 
-    pos = toupper( ch) - ' '; /* ' ' = first character in font bitmap */
+    update_rect(x_offset, y_offset, rect.w, rect.h);
+}
 
-    bitmap = images[id].data;
+int font_get_string_width(font_id id, const char* s) {
+    int w, h;
 
-    SDL_LockSurface( bitmap);
-    while( search_x < bitmap->w) {
-        GET_PIXEL_RGB( bitmap, search_x, 0, &red, &green, &blue);
+    assert(id < FONT_COUNT);
 
-        /* Increase pos counter if we have a "marker" pixel (255,0,255) */
-        if( red > 250 && green < 10 && blue > 250) {
-            search_pos++;
-            if( search_pos == pos) {
-                x = search_x;
-            } else if( search_pos == pos + 1) {
-                w = search_x - x;
-                break;
-            }
-        }
-
-        search_x++;
+    if (TTF_SizeText(fonts[id].data, s, &w, &h) != 0) {
+        return 0;
     }
-    SDL_UnlockSurface( bitmap);
-
-    if( wp != NULL) (*wp) = w;
-    if( xp != NULL) (*xp) = x;
-
-    cacheflag[ch][font_index]++;
-    xcache[ch][font_index] = x;
-    wcache[ch][font_index] = w;
 
     return w;
 }
 
-int font_draw_char( image_id id, char ch, int x_offset, int y_offset) {
-    SDL_Surface *bitmap;
-    SDL_Rect src, dst;
-    int x = -1, w = 0;
-
-    font_get_metrics( id, ch, &x, &w);
-    if( x == -1) return w;
-
-    bitmap = images[id].data;
-
-    dst.w = src.w = w;
-    dst.h = src.h = bitmap->h - 1;
-    src.x = x;
-    src.y = 1;
-    dst.x = x_offset;
-    dst.y = y_offset;
-
-    SDL_BlitSurface( bitmap, &src, screen, &dst);
-
-    return src.w;
-}
-
-void font_draw_string_alpha( image_id id, const char* s, int x_offset, int y_offset, int start, int animation, int opacity) {
-    int y = y_offset;
-    int x = x_offset;
-    int additional_x = 0, additional_y = 0;
-    float xw = 0.0, xw_diff = 0.0;
-    unsigned int i;
-    SDL_Surface *bitmap;
-
-    if( id > GR_COUNT) return;
-
-    bitmap = images[id].data;
-    SDL_SetAlpha( bitmap, SDL_SRCALPHA | SDL_RLEACCEL, opacity);
-
-    if( animation & ANIMATION_BUNGEE) {
-        xw = (25.0*sinf( start/10.0));
-        x -= xw / 2;
-    }
-
-    if( animation & ANIMATION_PENDULUM) {
-        x -= (int)(20.0*sinf( start/20.0));
-        additional_x += 21;
-    }
-
-    for( i=0; i<strlen(s); i++) {
-        if( animation & ANIMATION_WAVE) {
-            y = y_offset + (int)(3.0*sinf( start/10.0 + x/30.0));
-        }
-        x += font_draw_char( id, s[i], x, y);
-        if( animation & ANIMATION_BUNGEE) {
-            xw_diff += xw/strlen(s);
-            if( xw_diff > 1.0 || xw_diff < -1.0) {
-                x += (int)(xw_diff);
-                if( xw_diff > 1.0) {
-                    xw_diff -= 1.0;
-                } else {
-                    xw_diff += 1.0;
-                }
-            }
-        }
-    }
-    if (animation & ANIMATION_WAVE) {
-        additional_y += 4;
-    }
-    if (animation & ANIMATION_BUNGEE) {
-        additional_x += 26;
-    }
-    update_rect(x_offset-additional_x, y_offset-additional_y, x-x_offset+additional_x*2, get_image_height(id)+additional_y*2);
-}
-
-int font_get_string_width( image_id id, const char* s) {
-    int w = 0;
-    unsigned int i;
-
-    for( i=0; i<strlen(s); i++) {
-        w += font_get_metrics( id, s[i], NULL, NULL);
-    }
-
-    return w;
+int font_get_height(font_id id) {
+    assert(id < FONT_COUNT);
+    return TTF_FontHeight(fonts[id].data);
 }
 
 void draw_line_faded( int x1, int y1, int x2, int y2, int r, int g, int b, int r2, int g2, int b2) {

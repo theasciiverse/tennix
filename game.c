@@ -456,7 +456,7 @@ void render( GameState* s) {
         store_screen();
         show_sprite( GR_RACKET, 2*(s->winner-1), 4, WIDTH/2 - get_image_width( GR_RACKET)/8, HEIGHT/2 - get_image_height( GR_RACKET), 255);
         sprintf( s->game_score_str, "player %d wins the match with %s", s->winner, format_sets( s));
-        font_draw_string( GR_DKC2_FONT, s->game_score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->game_score_str))/2, HEIGHT/2 + 30, s->time/20, ANIMATION_WAVE | ANIMATION_BUNGEE);
+        font_draw_string(FONT_LARGE, s->game_score_str, (WIDTH-font_get_string_width(FONT_LARGE, s->game_score_str))/2, HEIGHT/2 + 30);
         updatescr();
         return;
     }
@@ -464,8 +464,8 @@ void render( GameState* s) {
         clear_screen();
         fill_image(s->location->court_type, 120, 120, 400, 250);
         show_image(GR_COURT, 0, 0, 255);
-        font_draw_string( GR_DKC2_FONT, s->game_score_str, 14, 14, 0, ANIMATION_NONE);
-        font_draw_string( GR_DKC2_FONT, s->sets_score_str, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->sets_score_str))-14, 14, 0, ANIMATION_NONE);
+        font_draw_string(FONT_XLARGE, s->game_score_str, 14, 14);
+        font_draw_string(FONT_XLARGE, s->sets_score_str, (WIDTH-font_get_string_width(FONT_XLARGE, s->sets_score_str))-14, 14);
         if (s->location->has_referee) {
 #ifdef EXTENDED_REFEREE
             switch (s->referee) {
@@ -537,7 +537,7 @@ void render( GameState* s) {
     }
     
 
-    font_draw_string( GR_DKC2_FONT, s->status, (WIDTH-font_get_string_width( GR_DKC2_FONT, s->status))/2, HEIGHT-50, s->time/30, ANIMATION_WAVE);
+    font_draw_string(FONT_MEDIUM, s->status, (WIDTH-font_get_string_width(FONT_MEDIUM, s->status))/2, HEIGHT-50);
 
     for (i=0; i<s->rain; i++) {
         x = rand()%WIDTH;

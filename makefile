@@ -54,10 +54,10 @@ ifeq ($(MAEMO),1)
 endif
 
 ifeq ($(TARGET),cocoa)
-  LIBS += SDLmain.m -framework SDL -framework Cocoa -framework SDL_image -framework SDL_mixer
-  CFLAGS += -I/Library/Frameworks/SDL.framework/Headers -I/Library/Frameworks/SDL_image.framework/Headers -I/Library/Frameworks/SDL_mixer.framework/Headers -DMACOSX
+  LIBS += SDLmain.m -framework SDL -framework Cocoa -framework SDL_image -framework SDL_mixer -framework SDL_ttf
+  CFLAGS += -I/Library/Frameworks/SDL.framework/Headers -I/Library/Frameworks/SDL_image.framework/Headers -I/Library/Frameworks/SDL_mixer.framework/Headers -I/Library/Frameworks/SDL_ttf.framework/Headers -DMACOSX
 else
-  LIBS += $$(sdl-config --libs) -lSDL_mixer -lSDL_image
+  LIBS += $$(sdl-config --libs) -lSDL_mixer -lSDL_image -lSDL_ttf
   CFLAGS += $$(sdl-config --cflags)
 endif
 
@@ -67,7 +67,7 @@ ifeq ($(MSYSTEM),MINGW32)
   OBJ += tennixres.o
 endif
 
-TOARCHIVE=$(wildcard data/*.ogg wildcard data/*.png voice/*.ogg)
+TOARCHIVE=$(wildcard data/*.ogg data/*.ttf wildcard data/*.png voice/*.ogg)
 
 WIN32LIBS = *.dll
 OSXAPP = Tennix.app

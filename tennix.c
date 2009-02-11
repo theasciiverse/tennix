@@ -300,7 +300,7 @@ int main( int argc, char** argv) {
 
                 /* add misc items to screen */
                 show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20, 255);
-                font_draw_string(GR_DKC2_FONT, "Where do you want to play?", MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER, 0, 0);
+                font_draw_string(FONT_LARGE, "Where do you want to play?", MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER);
 
                 store_screen();
                 break;
@@ -419,12 +419,12 @@ int main( int argc, char** argv) {
             show_image(GR_BTN_PLAY, WIDTH-get_image_width(GR_BTN_PLAY)+slide+(slide/7)+3-(3*(btn_hovering==MENU_START)), 150, 255);
             if (current_game != NULL) {
                 show_image(GR_BTN_RESUME, WIDTH-get_image_width(GR_BTN_RESUME)+slide+(slide/7)+3-(3*(btn_hovering==MENU_RESUME)), 230, 255);
-                font_draw_string(GR_DKC2_FONT, "current match:", 10, 10, 0, 0);
-                font_draw_string(GR_DKC2_FONT, current_game->sets_score_str, 10, 40, 0, 0);
+                font_draw_string(FONT_SMALL, "current match:", 10, 10);
+                font_draw_string(FONT_SMALL, current_game->sets_score_str, 10, 40);
             } else {
-                font_draw_string(GR_DKC2_FONT, "Tennix " VERSION, 10, 10, 0, 0);
+                font_draw_string(FONT_MEDIUM, "Tennix " VERSION, 10, 10);
             }
-            font_draw_string(GR_DKC2_FONT, URL, 10, HEIGHT-10-get_image_height(GR_DKC2_FONT), 0, 0);
+            font_draw_string_color(FONT_SMALL, URL, 10, HEIGHT-10-font_get_height(FONT_SMALL), 100, 100, 100);
             show_image(GR_BTN_QUIT, WIDTH-get_image_width(GR_BTN_QUIT)+slide+(slide/7)+3-(3*(btn_hovering==MENU_QUIT)), 350, 255);
         } else if (state == MENU_STATE_OPTIONS) {
             /* Options screen */
@@ -433,8 +433,8 @@ int main( int argc, char** argv) {
             draw_button_object(btn_start, mx, my);
             draw_button_object(btn_player1, mx, my);
             draw_button_object(btn_player2, mx, my);
-            font_draw_string(GR_DKC2_FONT, "Player 1", btn_player1.x, btn_player1.y-MENU_OPTIONS_BORDER, 0, 0);
-            font_draw_string(GR_DKC2_FONT, "Player 2", btn_player2.x, btn_player2.y-MENU_OPTIONS_BORDER, 0, 0);
+            font_draw_string(FONT_MEDIUM, "Player 1", btn_player1.x, btn_player1.y-MENU_OPTIONS_BORDER);
+            font_draw_string(FONT_MEDIUM, "Player 2", btn_player2.x, btn_player2.y-MENU_OPTIONS_BORDER);
         } else if (state == MENU_STATE_LOCATION) {
             /* Location selection screen */
             for (x=0; x<location_count(); x++) {
@@ -467,11 +467,12 @@ int main( int argc, char** argv) {
             }
             if (prepared_game != NULL) {
                 if (location_info_visible) {
+                    rectangle_alpha(location_info_xpos-5, location_info_ypos-5, 10+get_image_width(prepared_game->location->photo), get_image_height(prepared_game->location->photo)+100, 100, 0, 0, 200);
                     show_sprite(prepared_game->location->photo, (i/1000)%(prepared_game->location->photo_frames), prepared_game->location->photo_frames, location_info_xpos, location_info_ypos, 255);
-                font_draw_string(GR_DKC2_FONT, prepared_game->location->name, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200, 0, 0);
-                font_draw_string(GR_DKC2_FONT, prepared_game->location->area, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200+get_image_height(GR_DKC2_FONT), 0, 0);
-                font_draw_string(GR_DKC2_FONT, prepared_game->location->city, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200+2*get_image_height(GR_DKC2_FONT), 0, 0);
-                font_draw_string(GR_DKC2_FONT, prepared_game->location->court_type_name, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200+4*get_image_height(GR_DKC2_FONT), 0, 0);
+                font_draw_string(FONT_SMALL, prepared_game->location->name, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200);
+                font_draw_string(FONT_SMALL, prepared_game->location->area, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200+font_get_height(FONT_SMALL));
+                font_draw_string(FONT_SMALL, prepared_game->location->city, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200+2*font_get_height(FONT_SMALL));
+                font_draw_string(FONT_SMALL, prepared_game->location->court_type_name, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200+3*font_get_height(FONT_SMALL));
                 }
                 if (prepared_game->location != NULL) {
                     draw_button_object(btn_start, mx, my);

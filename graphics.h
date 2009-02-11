@@ -27,6 +27,7 @@
 #include "tennix.h"
 
 #include "SDL_image.h"
+#include "SDL_ttf.h"
 
 #define RECT_UPDATE_CACHE 150
 
@@ -39,6 +40,40 @@
 #define GET_PIXEL_RGB(surface,x,y,r,g,b) (SDL_GetRGB( GET_PIXEL_DATA(surface,x,y), surface->format, r, g, b))
 #define SET_PIXEL_RGB(surface,x,y,r,g,b) (GET_PIXEL_DATA(surface,x,y)=SDL_MapRGB(surface->format, r, g, b))
 
+struct _FreeListItem {
+    char* data;
+    struct _FreeListItem* next;
+};
+
+typedef struct _FreeListItem FreeListItem;
+
+typedef struct {
+    FreeListItem* head;
+} FreeList;
+
+FreeList* freelist_create();
+void freelist_append(FreeList* list, char* data);
+void freelist_free_all(FreeList* list);
+
+typedef struct {
+    TTF_Font* data;
+} Font;
+
+typedef struct {
+    const char *filename;
+    int size;
+    int style;
+} FontDescription;
+
+typedef unsigned int font_id;
+enum {
+    FONT_SMALL = 0,
+    FONT_MEDIUM,
+    FONT_LARGE,
+    FONT_XLARGE,
+    FONT_COUNT
+};
+
 typedef struct {
     SDL_Surface* data;
 } Image;
@@ -49,8 +84,6 @@ enum {
     GR_SHADOW,
     GR_RACKET,
     GR_BALL,
-    GR_SMALLISH_FONT,
-    GR_DKC2_FONT,
     GR_REFEREE,
     GR_CTT_HARD,
     GR_CTT_CLAY,
@@ -79,23 +112,8 @@ enum {
     GR_COUNT
 };
 
-#define GRAPHICS_FONT_FIRST GR_SMALLISH_FONT
-#define GRAPHICS_FONT_LAST GR_DKC2_FONT
-
-#define GRAPHICS_IS_FONT(id) ((id>=GRAPHICS_FONT_FIRST) && (id<=GRAPHICS_FONT_LAST))
-
-#define GRAPHICS_FONT_COUNT (GRAPHICS_FONT_LAST-GRAPHICS_FONT_FIRST+1)
-
 #define GR_CTT_FIRST GR_CTT_HARD
 #define GR_CTT_LAST GR_CTT_GRASS
-
-enum {
-    ANIMATION_NONE = 0,
-    ANIMATION_WAVE = 1,
-    ANIMATION_BUNGEE = 2,
-    ANIMATION_PENDULUM = 4,
-    ANIMATION_COUNT = 8
-};
 
 void init_graphics();
 void uninit_graphics();
@@ -124,11 +142,10 @@ void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h);
 void updatescr();
 void start_fade();
 
-int font_get_metrics(image_id id, unsigned char ch, int* xp, int* wp);
-int font_draw_char( image_id id, char ch, int x_offset, int y_offset);
-void font_draw_string_alpha( image_id id, const char* s, int x_offset, int y_offset, int start, int animation, int opacity);
-#define font_draw_string(id,s,x_offset,y_offset,start,animation) font_draw_string_alpha(id,s,x_offset,y_offset,start,animation,255)
-int font_get_string_width( image_id id, const char* s);
+void font_draw_string_color(font_id id, const char* s, int x_offset, int y_offset, Uint8 r, Uint8 g, Uint8 b);
+#define font_draw_string(id,s,x_offset,y_offset) font_draw_string_color(id,s,x_offset,y_offset,255,255,255)
+int font_get_string_width(font_id id, const char* s);
+int font_get_height(font_id id);
 
 void draw_line_faded( int x1, int y1, int x2, int y2, int r, int g, int b, int r2, int g2, int b2);
 #define draw_line(x1,y1,x2,y2,r,g,b) draw_line_faded(x1,y1,x2,y2,r,g,b,r,g,b)
