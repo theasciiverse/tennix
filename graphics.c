@@ -52,7 +52,7 @@ static FontDescription font_desc[] = {
     { "dustismo.ttf", 13, TTF_STYLE_NORMAL },
     { NULL, 20, TTF_STYLE_NORMAL },
     { "itwasntme.ttf", 22, TTF_STYLE_NORMAL },
-    { NULL, 30, TTF_STYLE_BOLD }
+    { NULL, 28, TTF_STYLE_NORMAL }
 };
 
 static SDL_Surface *buffer;
