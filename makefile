@@ -61,8 +61,8 @@ else
   CFLAGS += $$(sdl-config --cflags)
 endif
 
-SRC = tennix.c game.c graphics.c input.c util.c sound.c
-OBJ = tennix.o game.o graphics.o input.o util.o sound.o archive-lib.o SDL_rotozoom.o
+SRC = tennix.c game.c graphics.c input.c util.c sound.c animation.c
+OBJ = tennix.o game.o graphics.o input.o util.o sound.o animation.o archive-lib.o SDL_rotozoom.o
 ifeq ($(MSYSTEM),MINGW32)
   OBJ += tennixres.o
 endif
@@ -98,12 +98,13 @@ install: tennix
 	install -m 644 tennix.desktop $(DESTDIR)$(DATAROOTDIR)/applications/
 	install -m 644 tennix.tnx $(DESTDIR)$(DATADIR)/tennix/
 
-tennix.o: tennix.c tennix.h game.h graphics.h input.h util.h sound.h locations.h util.h
+tennix.o: tennix.c tennix.h game.h graphics.h input.h util.h animation.h sound.h locations.h util.h
 graphics.o: graphics.c graphics.h tennix.h archive.h sound.h
 game.o: game.c game.h graphics.h tennix.h sound.h input.h util.h
 sound.o: sound.c sound.h tennix.h archive.h graphics.h
-input.o: input.c input.h
-util.o: util.c util.h
+input.o: input.c input.h tennix.h
+util.o: util.c util.h tennix.h
+animation.o: animation.c animation.h graphics.h tennix.h
 SDL_rotozoom.o: SDL_rotozoom.c SDL_rotozoom.h
 
 archive-lib.o: archive.c archive.h

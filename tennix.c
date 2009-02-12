@@ -37,6 +37,7 @@
 #include "sound.h"
 #include "input.h"
 #include "util.h"
+#include "animation.h"
 
 #include "locations.h"
 
@@ -101,6 +102,8 @@ int main( int argc, char** argv) {
     GameState *current_game = NULL, *prepared_game = NULL;
     InputDevice* input_devices;
     unsigned int input_device_count;
+    Animation *intro;
+    AnimationState *intro_playback;
 
     MenuButton btn_back = {
         "Back to main menu",
@@ -241,6 +244,12 @@ int main( int argc, char** argv) {
         free(g);
         exit(0);
     }
+
+    intro = create_intro();
+    intro_playback = animation_state_new(intro);
+    animation_state_run(intro_playback, 1);
+    animation_state_free(intro_playback);
+    animation_free(intro);
 
     worldmap_xpos = (WIDTH-get_image_width(GR_WORLDMAP))/2;
     worldmap_ypos = (HEIGHT-get_image_height(GR_WORLDMAP))/2;
@@ -674,4 +683,5 @@ int main( int argc, char** argv) {
     SDL_Quit();
     return 0;
 }
+
 

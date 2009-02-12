@@ -28,6 +28,7 @@
 
 #include "SDL_image.h"
 #include "SDL_ttf.h"
+#include "SDL_rotozoom.h"
 
 #define RECT_UPDATE_CACHE 150
 
@@ -142,6 +143,21 @@ void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h);
 #define update_rect2(r) (update_rect(r.x, r.y, r.w, r.h))
 void updatescr();
 void start_fade();
+
+SDL_Surface* font_render_surface(font_id id, const char* text, Uint8 r,
+        Uint8 g, Uint8 b);
+
+#define font_render_surface_simple(id, text) \
+    (font_render_surface(id, text, 255, 255, 255))
+
+#define rotozoom_surface(surface, rotate, zoom) \
+    (rotozoomSurface(surface, rotate, zoom, SMOOTHING_OFF))
+
+void blit_surface(SDL_Surface* surface, int x, int y, int pos, int count);
+
+#define blit_surface_simple(surface, x, y) (blit_surface(surface, x, y, 0, 1))
+
+SDL_Surface* get_surface(image_id id);
 
 void font_draw_string_color(font_id id, const char* s, int x_offset, int y_offset, Uint8 r, Uint8 g, Uint8 b);
 #define font_draw_string(id,s,x_offset,y_offset) font_draw_string_color(id,s,x_offset,y_offset,255,255,255)

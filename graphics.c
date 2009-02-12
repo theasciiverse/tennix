@@ -280,25 +280,12 @@ int get_sprite_width( image_id id, int items) {
     return images[id].data->w / items;
 }
 
-void show_sprite( image_id id, int pos, int items, int x_offset, int y_offset, int opacity) {
-    SDL_Surface *bitmap;
-    SDL_Rect src, dst;
-
-    bitmap = images[id].data;
-
-    if( !bitmap) return;
-
-    SDL_SetAlpha( bitmap, SDL_SRCALPHA | SDL_RLEACCEL, opacity);
-
-    dst.w = src.w = bitmap->w/items;
-    dst.h = src.h = bitmap->h;
-    src.x = src.w*pos;
-    src.y = 0;
-    dst.x = x_offset;
-    dst.y = y_offset;
-
-    SDL_BlitSurface( bitmap, &src, screen, &dst);
-    update_rect2(dst);
+void show_sprite( image_id id, int pos, int items, int x_offset,
+        int y_offset, int opacity)
+{
+    assert(id < GR_COUNT);
+    SDL_SetAlpha(images[id].data, SDL_SRCALPHA | SDL_RLEACCEL, opacity);
+    blit_surface(images[id].data, x_offset, y_offset, pos, items);
 }
 
 void show_image_rotozoom(image_id id, int x, int y, float rotate, float zoom)
@@ -569,9 +556,10 @@ void start_fade() {
     fading_start = SDL_GetTicks();
 }
 
-void font_draw_string_color(font_id id, const char* s, int x_offset, int y_offset, Uint8 r, Uint8 g, Uint8 b) {
-    SDL_Surface *text;
-    SDL_Rect rect, rect2;
+SDL_Surface* font_render_surface(font_id id, const char* text, Uint8 r,
+        Uint8 g, Uint8 b)
+{
+    SDL_Surface *result;
     SDL_Color color;
 
     color.r = r;
@@ -580,19 +568,40 @@ void font_draw_string_color(font_id id, const char* s, int x_offset, int y_offse
 
     assert(id < FONT_COUNT);
 
-    text = TTF_RenderText_Blended(fonts[id].data, s, color);
-    if (text != NULL) {
-        rect.w = rect2.w = text->w;
-        rect.h = rect2.h = text->h;
-        rect.x = rect.y = 0;
-        rect2.x = x_offset;
-        rect2.y = y_offset;
-        SDL_SetAlpha(text, SDL_SRCALPHA | SDL_RLEACCEL, 255);
-        SDL_BlitSurface(text, &rect, screen, &rect2);
-        SDL_FreeSurface(text);
-    }
+    result = TTF_RenderText_Blended(fonts[id].data, text, color);
 
-    update_rect(x_offset, y_offset, rect.w, rect.h);
+    assert(result != NULL);
+
+    return result;
+}
+
+void blit_surface(SDL_Surface* surface, int x, int y, int pos, int count)
+{
+    SDL_Rect src, dst;
+
+    dst.w = src.w = surface->w/count;
+    dst.h = src.h = surface->h;
+    src.x = src.w*pos;
+    src.y = 0;
+    dst.x = x;
+    dst.y = y;
+
+    SDL_BlitSurface(surface, &src, screen, &dst);
+    update_rect2(dst);
+}
+
+SDL_Surface* get_surface(image_id id)
+{
+    assert(id < GR_COUNT);
+    return images[id].data;
+}
+
+void font_draw_string_color(font_id id, const char* s, int x_offset, int y_offset, Uint8 r, Uint8 g, Uint8 b) {
+    SDL_Surface *text;
+
+    text = font_render_surface(id, s, r, g, b);
+    blit_surface_simple(text, x_offset, y_offset);
+    SDL_FreeSurface(text);
 }
 
 int font_get_string_width(font_id id, const char* s) {
