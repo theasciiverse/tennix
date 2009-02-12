@@ -26,5 +26,14 @@
 
 void day_night(unsigned int width, unsigned int* start, unsigned int* end);
 
+/**
+ * These are provided here, because we had some problems with
+ * the math.h-provided "f[...]f" functions (e.g. fminf). Strange!
+ **/
+float minf(float, float);
+float maxf(float, float);
+float absf(float);
+
+
 #endif
 

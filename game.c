@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include <assert.h>
 
 #include "tennix.h"
@@ -32,6 +31,7 @@
 #include "graphics.h"
 #include "input.h"
 #include "sound.h"
+#include "util.h"
 
 
 GameState *gamestate_new() {
@@ -42,8 +42,8 @@ GameState *gamestate_new() {
         NULL,
         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6, false, -1, false },
         {
-            { NULL, -1, GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
-            { NULL, -1, GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
+            { NULL, -1, GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0.0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
+            { NULL, -1, GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0.0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
         },
         0,
         0,
@@ -181,10 +181,10 @@ bool step( GameState* s) {
         s->referee = REFEREE_NORMAL;
 
         /* bounce from the ground */
-        if (fabsf(s->ball.move_z) > 0.3) {
+        if (absf(s->ball.move_z) > 0.3) {
             s->sound_events |= SOUND_EVENT_GROUND;
-            sample_volume_group(SOUND_GROUND_FIRST, SOUND_GROUND_LAST, MAX(0.0, MIN(1.0, fabsf(s->ball.move_z)/2)));
-            pan_sample_group(SOUND_GROUND_FIRST, SOUND_GROUND_LAST, MAX(0.0, MIN(1.0, 0.5+0.8*(s->ball.x-GAME_X_MID)/WIDTH)));
+            sample_volume_group(SOUND_GROUND_FIRST, SOUND_GROUND_LAST, maxf(0.0, minf(1.0, absf(s->ball.move_z)/2)));
+            pan_sample_group(SOUND_GROUND_FIRST, SOUND_GROUND_LAST, maxf(0.0, minf(1.0, 0.5+0.8*(s->ball.x-GAME_X_MID)/WIDTH)));
             s->ball.move_z *= -s->ball.restitution;
         } else {
             s->ball.move_z = 0;
@@ -282,7 +282,7 @@ bool step( GameState* s) {
     } else {
         /* score is still undecided - do the racket swing thing */
         for (p=1; p<=2; p++) {
-            if (IS_NEAR_X(PLAYER(s, p).x, s->ball.x) && IS_NEAR_Y(PLAYER(s, p).y, s->ball.y-s->ball.z) && PLAYER(s, p).use_power && PLAYER(s, p).power > 30 && s->ball.last_hit_by != p) {
+            if (IS_NEAR_X(PLAYER(s, p).x, s->ball.x) && IS_NEAR_Y(PLAYER(s, p).y, s->ball.y-s->ball.z) && PLAYER(s, p).use_power && PLAYER(s, p).power > 30.0 && s->ball.last_hit_by != p) {
                 /* RACKET HIT */
                 if (!s->ball.ground_hit && s->ball.move_x != 0.0) {
                     s->status = "volley!";
@@ -404,9 +404,9 @@ bool step( GameState* s) {
     limit_value( &PLAYER(s, 2).y, PLAYER_Y_MIN, PLAYER_Y_MAX);
     
     if (s->ball.move_x > 0 && s->wind > 0) {
-        s->ball.x += fabsf(s->wind)/2;
+        s->ball.x += absf(s->wind)/2;
     } else if (s->ball.move_x < 0 && s->wind < 0) {
-        s->ball.x -= fabsf(s->wind)/2;
+        s->ball.x -= absf(s->wind)/2;
     }
 
     s->ball.z += s->ball.move_z;
@@ -419,7 +419,7 @@ bool step( GameState* s) {
 
     for (p=1; p<=MAXPLAYERS; p++) {
         if (PLAYER(s, p).use_power) {
-            PLAYER(s, p).power = MAX(0, MIN(PLAYER(s, p).power*PLAYER(s, p).power_down_factor, PLAYER_POWER_MAX));
+            PLAYER(s, p).power = maxf(0.0, minf(PLAYER(s, p).power*PLAYER(s, p).power_down_factor, PLAYER_POWER_MAX));
         }
     }
 
@@ -429,6 +429,8 @@ bool step( GameState* s) {
 void render( GameState* s) {
     int x, y, b;
     unsigned int i;
+    float zoom;
+    float rotate;
 #ifdef EXTENDED_REFEREE
     int t=1000;
 #endif
@@ -517,8 +519,8 @@ void render( GameState* s) {
     rectangle(10, HEIGHT-30, PLAYER_POWER_MAX, 10, 50, 50, 50);
     rectangle(WIDTH-PLAYER_POWER_MAX-10, HEIGHT-30, PLAYER_POWER_MAX, 10, 50, 50, 50);
 
-    rectangle(10, HEIGHT-30, PLAYER(s, 1).power, 10, 200, 200, 200);
-    rectangle(WIDTH-PLAYER_POWER_MAX-10, HEIGHT-30, PLAYER(s, 2).power, 10, 200, 200, 200);
+    rectangle(10, HEIGHT-30, (int)(PLAYER(s, 1).power), 10, 200, 200, 200);
+    rectangle(WIDTH-PLAYER_POWER_MAX-10, HEIGHT-30, (int)(PLAYER(s, 2).power), 10, 200, 200, 200);
     
     if( s->ball.move_x > 0) {
         b = (s->time/100)%BALL_STATES;
@@ -528,9 +530,13 @@ void render( GameState* s) {
         b = 0;
     }
 
-    show_image_rotozoom(GR_SHADOW, s->ball.x, s->ball.y+3, 0.0, MAX(0.5, MIN(1.0, (30-s->ball.z)/10)));
+    rotate = 0.0;
+    zoom = maxf(0.5, minf(1.0, (float)(30.-(s->ball.z))/10.));
+    show_image_rotozoom(GR_SHADOW, s->ball.x, s->ball.y+3, rotate, zoom);
 
-    show_image_rotozoom(GR_BALL, s->ball.x, s->ball.y - s->ball.z, -s->ball.move_x * (s->time/10), 1.0+MAX(0.0, (s->ball.z-10)/100));
+    rotate = (-s->ball.move_x * (float)((float)s->time/10.));
+    zoom = 1.0 + maxf(0.0, (s->ball.z-10.)/100.);
+    show_image_rotozoom(GR_BALL, s->ball.x, s->ball.y - s->ball.z, rotate, zoom);
 
     /* Player 1's mouse rectangle */
     if (!(PLAYER(s, 1).mouse_locked)) {
@@ -604,7 +610,7 @@ float get_move_y( GameState* s, unsigned char player) {
     move_x = s->ball.move_x;
 
     /* -1.0 .. 1.0 for racket hit position */
-    pct = MAX(-1.0, MIN(1.0, (by-py)/(pa/2)));
+    pct = maxf(-1.0, minf(1.0, (by-py)/(pa/2)));
 
     /* Y destination for ball */
     dest = GAME_Y_MID + pct*(GAME_Y_MAX-GAME_Y_MIN);
@@ -632,7 +638,7 @@ void input_human(GameState* s, int player) {
     smash = input_device_get_key(PLAYER(s, player).input, INPUT_KEY_SMASH);
 
     if (move_y != 0) {
-        if (fabsf(move_y) > fabsf(move_y*PLAYER(s, player).accelerate)) {
+        if (absf(move_y) > absf(move_y*PLAYER(s, player).accelerate)) {
             move_y *= PLAYER(s, player).accelerate;
         }
         PLAYER(s, player).y += move_y;
@@ -645,7 +651,7 @@ void input_human(GameState* s, int player) {
         PLAYER(s, player).desire = (topspin)?(DESIRE_TOPSPIN):(DESIRE_NORMAL);
         PLAYER(s, player).desire = (smash)?(DESIRE_SMASH):(PLAYER(s, player).desire);
 
-        PLAYER(s, player).power = MAX(10, MIN(PLAYER(s, player).power*PLAYER(s, player).power_up_factor, PLAYER_POWER_MAX));
+        PLAYER(s, player).power = maxf(10.0, minf(PLAYER(s, player).power*PLAYER(s, player).power_up_factor, PLAYER_POWER_MAX));
         PLAYER(s, player).use_power = false;
     } else {
         PLAYER(s, player).use_power = true;
@@ -664,23 +670,23 @@ void input_ai(GameState* s, int player) {
 
     /* FIXME - this is broken since the new physics model has been introduced */
 
-    if( fabsf( PLAYER(s, player).y - (s->ball.y-s->ball.z)) > RACKET_Y_MID*5) {
+    if (absf(PLAYER(s, player).y - (s->ball.y-s->ball.z)) > RACKET_Y_MID*5) {
         fact = 3.5;
     }
 
     if(1) {
         if( PLAYER(s, player).desire == DESIRE_NORMAL && !IS_NEAR_Y_AI(PLAYER(s, player).y, (s->ball.y-s->ball.z)) && ball_approaching) {
             if( PLAYER(s, player).y < (s->ball.y-s->ball.z)) {
-                PLAYER(s, player).y += fmin( 2*fact, (s->ball.y-s->ball.z) - PLAYER(s, player).y);
+                PLAYER(s, player).y += minf(2*fact, (s->ball.y-s->ball.z) - PLAYER(s, player).y);
             } else if( PLAYER(s, player).y > (s->ball.y-s->ball.z)) {
-                PLAYER(s, player).y -= fmin( 2*fact, PLAYER(s, player).y - (s->ball.y-s->ball.z));
+                PLAYER(s, player).y -= minf(2*fact, PLAYER(s, player).y - (s->ball.y-s->ball.z));
             }
         }
 
-        if (IS_NEAR_Y(PLAYER(s, player).y, (s->ball.y-s->ball.z)) && IS_NEAR_X_AI(PLAYER(s, player).x, s->ball.x) && PLAYER(s, player).power > 90) {
+        if (IS_NEAR_Y(PLAYER(s, player).y, (s->ball.y-s->ball.z)) && IS_NEAR_X_AI(PLAYER(s, player).x, s->ball.x) && PLAYER(s, player).power > 90.) {
             PLAYER(s, player).use_power = true;
         } else if (ball_approaching) {
-            PLAYER(s, player).power = MAX(10, MIN(PLAYER(s, player).power*PLAYER(s, player).power_up_factor, PLAYER_POWER_MAX));
+            PLAYER(s, player).power = maxf(10., minf(PLAYER(s, player).power*PLAYER(s, player).power_up_factor, PLAYER_POWER_MAX));
             PLAYER(s, player).use_power = false;
         }
     } else if( s->ngram_prediction > 0.0) {
@@ -689,9 +695,9 @@ void input_ai(GameState* s, int player) {
 
         if( PLAYER(s, player).desire == DESIRE_NORMAL && !IS_NEAR_Y_AI( PLAYER(s, player).y, target)) {
             if( PLAYER(s, player).y < target) {
-                PLAYER(s, player).y += fmin( fact, (target-PLAYER(s, player).y)/40.0);
+                PLAYER(s, player).y += minf(fact, (target-PLAYER(s, player).y)/40.0);
             } else if( PLAYER(s, player).y > target) {
-                PLAYER(s, player).y -= fmin( fact, (PLAYER(s, player).y-target)/40.0);
+                PLAYER(s, player).y -= minf(fact, (PLAYER(s, player).y-target)/40.0);
             }
         }
     }

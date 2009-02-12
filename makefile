@@ -50,7 +50,7 @@ ifeq ($(DEBUG),1)
 endif
 
 ifeq ($(MAEMO),1)
-  CFLAGS += -DMAEMO -mfpu=vfp -mfloat-abi=softfp -mcpu=arm1136j-s
+  CFLAGS += -DMAEMO
 endif
 
 ifeq ($(TARGET),cocoa)
@@ -100,7 +100,7 @@ install: tennix
 
 tennix.o: tennix.c tennix.h game.h graphics.h input.h util.h sound.h locations.h util.h
 graphics.o: graphics.c graphics.h tennix.h archive.h sound.h
-game.o: game.c game.h graphics.h tennix.h sound.h input.h
+game.o: game.c game.h graphics.h tennix.h sound.h input.h util.h
 sound.o: sound.c sound.h tennix.h archive.h graphics.h
 input.o: input.c input.h
 util.o: util.c util.h

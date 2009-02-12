@@ -39,3 +39,37 @@ void day_night(unsigned int width, unsigned int* start, unsigned int* end)
     *end = (unsigned int)(*start + width/2) % width;
 }
 
+/**
+ * The following functions are implemented, because we had problems
+ * with the math library functions on some target platforms. If these
+ * problems are fixed, and Tennix runs with the fminf/fmaxf/fabsf
+ * functions, these can be removed and the calls replaced.
+ **/
+
+float minf(float a, float b)
+{
+    if (a < b) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+float maxf(float a, float b)
+{
+    if (a > b) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+float absf(float a)
+{
+    if (a >= 0.0) {
+        return a;
+    } else {
+        return -a;
+    }
+}
+
