@@ -184,7 +184,7 @@ bool step( GameState* s) {
         if (absf(s->ball.move_z) > 0.3) {
             s->sound_events |= SOUND_EVENT_GROUND;
             sample_volume_group(SOUND_GROUND_FIRST, SOUND_GROUND_LAST, maxf(0.0, minf(1.0, absf(s->ball.move_z)/2)));
-            pan_sample_group(SOUND_GROUND_FIRST, SOUND_GROUND_LAST, maxf(0.0, minf(1.0, 0.5+0.8*(s->ball.x-GAME_X_MID)/WIDTH)));
+            pan_sample_group(SOUND_GROUND_FIRST, SOUND_GROUND_LAST, maxf(0.0, minf(1.0, (s->ball.x)/WIDTH)));
             s->ball.move_z *= -s->ball.restitution;
         } else {
             s->ball.move_z = 0;
