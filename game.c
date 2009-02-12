@@ -539,11 +539,16 @@ void render( GameState* s) {
     show_image_rotozoom(GR_BALL, s->ball.x, s->ball.y - s->ball.z, rotate, zoom);
 
     /* Player 1's mouse rectangle */
-    if (!(PLAYER(s, 1).mouse_locked)) {
-        rectangle(PLAYER(s, 1).x-2+5, PLAYER(s, 1).mouse_y-2, 4, 4, 255, 255, 255);
-        rectangle(PLAYER(s, 1).x-1+5, PLAYER(s, 1).mouse_y-1, 2, 2, 0, 0, 0);
+    if (PLAYER(s, 1).input != NULL && PLAYER(s, 1).input->type == INPUT_TYPE_MOUSE) {
+        rectangle(PLAYER(s, 1).x-2+5, PLAYER(s, 1).input->my-2, 4, 4, 255, 255, 255);
+        rectangle(PLAYER(s, 1).x-1+5, PLAYER(s, 1).input->my-1, 2, 2, 0, 0, 0);
     }
-    
+
+    /* Player 2's mouse rectangle */
+    if (PLAYER(s, 2).input != NULL && PLAYER(s, 2).input->type == INPUT_TYPE_MOUSE) {
+        rectangle(PLAYER(s, 2).x-2+5, PLAYER(s, 2).input->my-2, 4, 4, 255, 255, 255);
+        rectangle(PLAYER(s, 2).x-1+5, PLAYER(s, 2).input->my-1, 2, 2, 0, 0, 0);
+    }
 
     font_draw_string(FONT_MEDIUM, s->status, (WIDTH-font_get_string_width(FONT_MEDIUM, s->status))/2, HEIGHT-50);
 
@@ -630,6 +635,12 @@ float get_move_y( GameState* s, unsigned char player) {
 void input_human(GameState* s, int player) {
     bool hit, topspin, smash;
     float move_y;
+
+    /* For mouse input, hand the player coordinates to the InputDevice */
+    if (PLAYER(s, player).input->type == INPUT_TYPE_MOUSE) {
+        PLAYER(s, player).input->player_x = (int)(PLAYER(s, player).x);
+        PLAYER(s, player).input->player_y = (int)(PLAYER(s, player).y);
+    }
 
     move_y = PLAYER_MOVE_Y*input_device_get_axis(PLAYER(s, player).input, INPUT_AXIS_Y);
 

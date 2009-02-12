@@ -104,6 +104,7 @@ int main( int argc, char** argv) {
     unsigned int input_device_count;
     Animation *intro;
     AnimationState *intro_playback;
+    float wiggle;
 
     MenuButton btn_back = {
         "Back to main menu",
@@ -121,16 +122,16 @@ int main( int argc, char** argv) {
     };
     MenuButton btn_player1 = {
         NULL,
-        WIDTH/2-150,
-        180,
-        300, MENU_OPTIONS_BUTTON_HEIGHT,
+        CONTROLLER_SETUP_BORDER,
+        HEIGHT/2 + CONTROLLER_SETUP_SIZE/2 + 10,
+        CONTROLLER_SETUP_SIZE, MENU_OPTIONS_BUTTON_HEIGHT,
         50, 50, 255
     };
     MenuButton btn_player2 = {
         NULL,
-        WIDTH/2-150,
-        180+MENU_OPTIONS_BORDER*2+MENU_OPTIONS_BUTTON_HEIGHT,
-        300, MENU_OPTIONS_BUTTON_HEIGHT,
+        WIDTH-CONTROLLER_SETUP_SIZE-CONTROLLER_SETUP_BORDER,
+        HEIGHT/2 + CONTROLLER_SETUP_SIZE/2 + 10,
+        CONTROLLER_SETUP_SIZE, MENU_OPTIONS_BUTTON_HEIGHT,
         255, 50, 50
     };
 
@@ -297,6 +298,7 @@ int main( int argc, char** argv) {
                 state = MENU_STATE_LOCATION;
                 clear_screen();
 
+                rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
                 /* Draw and store the worldmap with day/night times */
                 show_image(GR_WORLDMAP, WIDTH/2-get_image_width(GR_WORLDMAP)/2, HEIGHT/2-get_image_height(GR_WORLDMAP)/2, 255);
                 day_night(get_image_width(GR_WORLDMAP), &night_start, &night_end);
@@ -308,13 +310,20 @@ int main( int argc, char** argv) {
                 }
 
                 /* add misc items to screen */
-                show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20, 255);
-                font_draw_string(FONT_LARGE, "Where do you want to play?", MENU_OPTIONS_BORDER, MENU_OPTIONS_BORDER);
+                font_draw_string(FONT_XLARGE, "Pick a location", (WIDTH-font_get_string_width(FONT_XLARGE, "Pick a location"))/2, 20);
 
                 store_screen();
                 break;
             case MENU_STATE_FADE_TO_OPTIONS:
+                start_fade();
                 clear_screen();
+                rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
+                rectangle(CONTROLLER_SETUP_BORDER, HEIGHT/2-CONTROLLER_SETUP_SIZE/2, CONTROLLER_SETUP_SIZE, CONTROLLER_SETUP_SIZE, 150, 150, 150);
+                rectangle(WIDTH-CONTROLLER_SETUP_BORDER-CONTROLLER_SETUP_SIZE, (HEIGHT-CONTROLLER_SETUP_SIZE)/2, CONTROLLER_SETUP_SIZE, CONTROLLER_SETUP_SIZE, 150, 150, 150);
+                font_draw_string(FONT_XLARGE, "Controller setup", (WIDTH-font_get_string_width(FONT_XLARGE, "Controller setup"))/2, 20);
+                font_draw_string(FONT_MEDIUM, "Player 1", 130 - font_get_string_width(FONT_MEDIUM, "Player 1")/2, (HEIGHT-CONTROLLER_SETUP_SIZE)/2 - 10 - font_get_height(FONT_MEDIUM));
+                font_draw_string(FONT_MEDIUM, "Player 1", 130 - font_get_string_width(FONT_MEDIUM, "Player 1")/2, (HEIGHT-CONTROLLER_SETUP_SIZE)/2 - 10 - font_get_height(FONT_MEDIUM));
+                font_draw_string(FONT_MEDIUM, "Player 2", WIDTH - CONTROLLER_SETUP_SIZE/2 - CONTROLLER_SETUP_BORDER - font_get_string_width(FONT_MEDIUM, "Player 2")/2, (HEIGHT-CONTROLLER_SETUP_SIZE)/2 - 10 - font_get_height(FONT_MEDIUM));
                 store_screen();
                 start_fade();
                 state = MENU_STATE_OPTIONS;
@@ -325,8 +334,13 @@ int main( int argc, char** argv) {
                 if (prepared_game == NULL) {
                     prepared_game = gamestate_new();
                     prepared_game->location = NULL;
-                    btn_player1.text = "computer (AI)";
+                    btn_player1.text = "default";
                     btn_player2.text = "computer (AI)";
+#ifdef MAEMO
+                    PLAYER(prepared_game, 1).input_device_index = 0;
+#else
+                    PLAYER(prepared_game, 1).input_device_index = 2;
+#endif
                     location_info_visible = false;
                     current_location = -1;
                     highlight_location = -1;
@@ -437,13 +451,21 @@ int main( int argc, char** argv) {
             show_image(GR_BTN_QUIT, WIDTH-get_image_width(GR_BTN_QUIT)+slide+(slide/7)+3-(3*(btn_hovering==MENU_QUIT)), 350, 255);
         } else if (state == MENU_STATE_OPTIONS) {
             /* Options screen */
-            show_image(GR_TENNIXLOGO, WIDTH-get_image_width(GR_SIDEBAR)-10, 20, 255);
             draw_button_object(btn_back, mx, my);
             draw_button_object(btn_start, mx, my);
             draw_button_object(btn_player1, mx, my);
             draw_button_object(btn_player2, mx, my);
-            font_draw_string(FONT_MEDIUM, "Player 1", btn_player1.x, btn_player1.y-MENU_OPTIONS_BORDER);
-            font_draw_string(FONT_MEDIUM, "Player 2", btn_player2.x, btn_player2.y-MENU_OPTIONS_BORDER);
+            wiggle = 15*sinf((float)ticks/300.);
+            if (PLAYER(prepared_game, 1).input_device_index > -1) {
+                show_image_rotozoom(input_devices[PLAYER(prepared_game, 1).input_device_index].icon, CONTROLLER_SETUP_BORDER + CONTROLLER_SETUP_SIZE/2, HEIGHT/2, wiggle, 1.0);
+            } else {
+                show_image_rotozoom(GR_INPUT_AI, CONTROLLER_SETUP_BORDER + CONTROLLER_SETUP_SIZE/2, HEIGHT/2, wiggle, 1.0);
+            }
+            if (PLAYER(prepared_game, 2).input_device_index > -1) {
+                show_image_rotozoom(input_devices[PLAYER(prepared_game, 2).input_device_index].icon, WIDTH-CONTROLLER_SETUP_BORDER-CONTROLLER_SETUP_SIZE/2, HEIGHT/2, -wiggle, 1.0);
+            } else {
+                show_image_rotozoom(GR_INPUT_AI, WIDTH-CONTROLLER_SETUP_BORDER-CONTROLLER_SETUP_SIZE/2, HEIGHT/2, -wiggle, 1.0);
+            }
         } else if (state == MENU_STATE_LOCATION) {
             /* Location selection screen */
             for (x=0; x<location_count(); x++) {
@@ -540,7 +562,7 @@ int main( int argc, char** argv) {
                 play_sample(SOUND_MOUSEOVER);
             }
 #else
-            play_sample(SOUND_MOUSEOVER);
+            /*play_sample(SOUND_MOUSEOVER);*/
 #endif
         }
 #endif
@@ -569,6 +591,9 @@ int main( int argc, char** argv) {
         updatescr();
 
         if( mb & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+            if (!mouse_pressed) {
+                play_sample(SOUND_MOUSEOVER);
+            }
             mouse_pressed = true;
         } else if (mouse_pressed == true) {
             /* Mouse button released */
@@ -580,7 +605,7 @@ int main( int argc, char** argv) {
                     play_sample(SOUND_MOUSECLICK);
                 }
 #else
-                play_sample(SOUND_MOUSECLICK);
+                /*play_sample(SOUND_MOUSEOVER);*/
 #endif
             }
             if (state == MENU_STATE_MAINMENU) {
@@ -635,6 +660,10 @@ int main( int argc, char** argv) {
                             PLAYER(prepared_game, 1).input_device_index = -1;
                         }
 
+                        if (input_devices[PLAYER(prepared_game, 1).input_device_index].exclusive_to_player == 2) {
+                            PLAYER(prepared_game, 1).input_device_index++;
+                        }
+
                         /* determine the selected input device */
                         if (PLAYER(prepared_game, 1).input_device_index == -1) {
                             PLAYER(prepared_game, 1).type = PLAYER_TYPE_AI;
@@ -649,6 +678,11 @@ int main( int argc, char** argv) {
                     case MENU_PLAYER2:
                         /* advance the input device index */
                         PLAYER(prepared_game, 2).input_device_index++;
+
+                        if (input_devices[PLAYER(prepared_game, 2).input_device_index].exclusive_to_player == 1) {
+                            PLAYER(prepared_game, 2).input_device_index++;
+                        }
+
                         if (PLAYER(prepared_game, 2).input_device_index == (signed int)input_device_count) {
                             PLAYER(prepared_game, 2).input_device_index = -1;
                         }

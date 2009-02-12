@@ -24,7 +24,10 @@
 #include <string.h>
 
 #include "tennix.h"
+#include "graphics.h"
+#include "game.h"
 #include "input.h"
+#include "util.h"
 
 static InputDevice devices[MAX_INPUT_DEVICES];
 static int devices_count;
@@ -35,6 +38,7 @@ void init_input()
 
     SDL_JoystickEventState(SDL_ENABLE);
 
+#ifndef MAEMO
     /* keyboard presets */
     devices[devices_count].type = INPUT_TYPE_KEYBOARD;
     devices[devices_count].up_key = 'w';
@@ -42,6 +46,8 @@ void init_input()
     devices[devices_count].input_keys[INPUT_KEY_HIT]= 'd';
     devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = 'e';
     devices[devices_count].input_keys[INPUT_KEY_SMASH] = 'f';
+    devices[devices_count].icon = GR_INPUT_KEYBOARD_WS;
+    devices[devices_count].exclusive_to_player = 1;
     strcpy(devices[devices_count].name, "Keyboard (WS/DEF)");
     devices_count++;
 
@@ -52,8 +58,11 @@ void init_input()
     devices[devices_count].input_keys[INPUT_KEY_HIT]= 'k';
     devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = 'i';
     devices[devices_count].input_keys[INPUT_KEY_SMASH] = 'j';
+    devices[devices_count].icon = GR_INPUT_KEYBOARD_OL;
+    devices[devices_count].exclusive_to_player = 2;
     strcpy(devices[devices_count].name, "Keyboard (OL/KIJ)");
     devices_count++;
+#endif
 
     /* keyboard presets */
     devices[devices_count].type = INPUT_TYPE_KEYBOARD;
@@ -62,7 +71,29 @@ void init_input()
     devices[devices_count].input_keys[INPUT_KEY_HIT]= SDLK_SPACE;
     devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = SDLK_LCTRL;
     devices[devices_count].input_keys[INPUT_KEY_SMASH] = SDLK_LALT;
+#ifdef MAEMO
+    devices[devices_count].icon = GR_INPUT_MAEMO_DPAD;
+    strcpy(devices[devices_count].name, "D-Pad");
+    devices[devices_count].input_keys[INPUT_KEY_HIT]= SDLK_RETURN;
+    /* FIXME: No TOPSPIN and SMASH keys on Maemo yet with d-pad */
+#else
+    devices[devices_count].icon = GR_INPUT_KEYBOARD_ARROWS;
     strcpy(devices[devices_count].name, "Keyboard (arrows + space, lctrl, lalt)");
+#endif
+    devices_count++;
+
+    /* mouse */
+    devices[devices_count].type = INPUT_TYPE_MOUSE;
+    devices[devices_count].input_keys[INPUT_KEY_HIT]= SDL_BUTTON(1);
+    devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = SDL_BUTTON(2);
+    devices[devices_count].input_keys[INPUT_KEY_SMASH] = SDL_BUTTON(3);
+#ifdef MAEMO
+    devices[devices_count].icon = GR_INPUT_TOUCHSCREEN;
+    strcpy(devices[devices_count].name, "Touchscreen");
+#else
+    devices[devices_count].icon = GR_INPUT_MOUSE;
+    strcpy(devices[devices_count].name, "Mouse");
+#endif
     devices_count++;
 
     /* joysticks */
@@ -76,6 +107,7 @@ void init_input()
         devices[devices_count].input_keys[INPUT_KEY_HIT]= 0;
         devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = 1;
         devices[devices_count].input_keys[INPUT_KEY_SMASH] = 2;
+        devices[devices_count].icon = GR_INPUT_GAMEPAD;
         devices_count++;
     }
 }
@@ -107,6 +139,8 @@ const char* input_device_get_name(InputDevice* d)
 
 float input_device_get_axis(InputDevice* d, unsigned const char axis) {
     Uint8 *keystate;
+    Uint8 mb;
+
     SDL_PumpEvents();
 
     if (d->type == INPUT_TYPE_KEYBOARD) {
@@ -122,6 +156,26 @@ float input_device_get_axis(InputDevice* d, unsigned const char axis) {
         } else {
             return JOYSTICK_PERCENTIZE(SDL_JoystickGetAxis(d->joystick, 1+d->y_axis*2));
         }
+    } else if (d->type == INPUT_TYPE_MOUSE) {
+        mb = SDL_GetMouseState(&d->mx, &d->my);
+        if (axis == INPUT_AXIS_X) {
+            /* Not x-movement yet (PLAYER_MOVE_X is not defined!) */
+            /*if (absf(d->mx - d->player_x) > PLAYER_MOVE_X) {
+                if (d->mx > d->player_x)  {
+                    return 1.0;
+                } else if (d->mx < d->player_x) {
+                    return -1.0;
+                }
+            }*/
+        } else {
+            if (absf(d->my - d->player_y) > PLAYER_MOVE_Y) {
+                if (d->my > d->player_y)  {
+                    return 1.0;
+                } else if (d->my < d->player_y) {
+                    return -1.0;
+                }
+            }
+        }
     } else {
         /* unimplemented */
     }
@@ -129,12 +183,16 @@ float input_device_get_axis(InputDevice* d, unsigned const char axis) {
 }
 
 char input_device_get_key(InputDevice* d, unsigned const char key) {
+    Uint8 mb;
     SDL_PumpEvents();
 
     if (d->type == INPUT_TYPE_KEYBOARD) {
         return SDL_GetKeyState(NULL)[d->input_keys[key]];
     } else if (d->type == INPUT_TYPE_JOYSTICK) {
         return SDL_JoystickGetButton(d->joystick, d->input_keys[key]);
+    } else if (d->type == INPUT_TYPE_MOUSE) {
+        mb = SDL_GetMouseState(NULL, NULL);
+        return (mb & d->input_keys[key]) != 0;
     } else {
         /* unimplemented */
     }

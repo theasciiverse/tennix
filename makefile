@@ -102,7 +102,7 @@ tennix.o: tennix.c tennix.h game.h graphics.h input.h util.h animation.h sound.h
 graphics.o: graphics.c graphics.h tennix.h archive.h sound.h
 game.o: game.c game.h graphics.h tennix.h sound.h input.h util.h
 sound.o: sound.c sound.h tennix.h archive.h graphics.h
-input.o: input.c input.h tennix.h
+input.o: input.c input.h tennix.h graphics.h game.h util.h
 util.o: util.c util.h tennix.h
 animation.o: animation.c animation.h graphics.h tennix.h
 SDL_rotozoom.o: SDL_rotozoom.c SDL_rotozoom.h

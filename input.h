@@ -24,6 +24,8 @@
 #ifndef __INPUT_H
 #define __INPUT_H
 
+#include "graphics.h"
+
 #define JOYSTICK_PERCENTIZE(x) ((float)(x)/(float)(32768))
 
 #define MAX_INPUT_DEVICES 16
@@ -31,6 +33,7 @@
 enum {
     INPUT_TYPE_KEYBOARD,
     INPUT_TYPE_JOYSTICK,
+    INPUT_TYPE_MOUSE,
     INPUT_TYPE_MAX
 };
 
@@ -57,7 +60,7 @@ typedef struct {
     int x_axis;
     int y_axis;
 
-    /* Joystick and keyboard */
+    /* Joystick, keyboard and mouse */
     int input_keys[INPUT_KEY_COUNT];
 
     /* Keyboard-specific items */
@@ -65,6 +68,18 @@ typedef struct {
     int down_key;
     int left_key;
     int right_key;
+
+    /* Mouse-specific items */
+    int mx;
+    int my;
+    int player_x;
+    int player_y;
+
+    /* The picture for this input device */
+    image_id icon;
+
+    /* If nonzero, be exclusive to this player ID */
+    int exclusive_to_player;
 } InputDevice;
 
 void init_input();

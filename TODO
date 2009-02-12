@@ -3,6 +3,18 @@ Todo and Idea List for Tennix
 
 RELEASE PARTY FEB 09 ("Tennix 2009 Edition")
 
+
+ANIMATION FRAMEWORK:
+
+             FROM --------------> TO
+               position (grav+x/y)
+                       zoom
+                     rotation
+                    opacity (??)
+
+
+               + "tween functions" (sin, 1-p, exp, ...)
+
 ==================================================================
 MENU AND NAVIGATION (COSMETIC)
 ==================================================================
