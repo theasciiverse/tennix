@@ -101,7 +101,7 @@ int main( int argc, char** argv) {
     unsigned int night_start, night_end;
     GameState *current_game = NULL, *prepared_game = NULL;
     InputDevice* input_devices;
-    unsigned int input_device_count;
+    unsigned int input_device_count, input_device_id;
     Animation *intro;
     AnimationState *intro_playback;
     float wiggle;
@@ -135,7 +135,6 @@ int main( int argc, char** argv) {
         255, 50, 50
     };
 
-    int current_location = -1;
     int highlight_location = -1;
     float highlight_location_distance = 0.0;
     float new_location_distance = 0.0;
@@ -229,6 +228,26 @@ int main( int argc, char** argv) {
     init_input();
 
     input_devices = find_input_devices(&input_device_count);
+
+    current_game = gamestate_load(GAMESTATE_FILE);
+    if (current_game != NULL) {
+        /* restore pointer to location */
+        current_game->location = &(locations[current_game->current_location]);
+        /* */
+        for (i=1; i<=MAXPLAYERS; i++) {
+            if (PLAYER(current_game, i).type == PLAYER_TYPE_HUMAN) {
+                input_device_id = PLAYER(current_game, i).input_device_index;
+                if (input_device_id < input_device_count) {
+                    /* ok, we still have that device around */
+                    PLAYER(current_game, i).input = &(input_devices[input_device_id]);
+                } else {
+                    /* the device vanished - set to AI (FIXME: select new device) */
+                    PLAYER(current_game, i).type = PLAYER_TYPE_AI;
+                    PLAYER(current_game, i).input = NULL;
+                }
+            }
+        }
+    }
 
 #ifdef ENABLE_FPS_LIMIT
     frames = 0;
@@ -341,8 +360,10 @@ int main( int argc, char** argv) {
 #else
                     PLAYER(prepared_game, 1).input_device_index = 2;
 #endif
+                    PLAYER(prepared_game, 1).type = PLAYER_TYPE_HUMAN;
+                    PLAYER(prepared_game, 1).input = &(input_devices[PLAYER(prepared_game, 1).input_device_index]);
                     location_info_visible = false;
-                    current_location = -1;
+                    prepared_game->current_location = -1;
                     highlight_location = -1;
                 }
                 break;
@@ -486,18 +507,17 @@ int main( int argc, char** argv) {
                     }
                 }
             }
-            if (!location_info_visible) {
-                for (x=0; x<location_count(); x++) {
-                    /* draw rectangle for location at "x"*/
-                    if (highlight_location != -1 && (unsigned int)highlight_location == x) {
-                        rectangle(worldmap_xpos + locations[x].worldmap_x-3, worldmap_ypos + locations[x].worldmap_y-3, 7, 7, 255*((i/10)%2), 0, 255*((i/10)%2));
-                    }
-
-                    rectangle(worldmap_xpos + locations[x].worldmap_x-2, worldmap_ypos + locations[x].worldmap_y-2, 5, 5, 255, 255*(current_location != -1 && x==(unsigned int)current_location), 0);
-                }
-            }
             if (prepared_game != NULL) {
-                if (location_info_visible) {
+                if (!location_info_visible) {
+                    for (x=0; x<location_count(); x++) {
+                        /* draw rectangle for location at "x"*/
+                        if (highlight_location != -1 && (unsigned int)highlight_location == x) {
+                            rectangle(worldmap_xpos + locations[x].worldmap_x-3, worldmap_ypos + locations[x].worldmap_y-3, 7, 7, 255*((i/10)%2), 0, 255*((i/10)%2));
+                        }
+
+                        rectangle(worldmap_xpos + locations[x].worldmap_x-2, worldmap_ypos + locations[x].worldmap_y-2, 5, 5, 255, 255*(prepared_game->current_location != -1 && x==(unsigned int)(prepared_game->current_location)), 0);
+                    }
+                } else {
                     rectangle_alpha(location_info_xpos-5, location_info_ypos-5, 10+get_image_width(prepared_game->location->photo), get_image_height(prepared_game->location->photo)+100, 100, 0, 0, 200);
                     show_sprite(prepared_game->location->photo, (i/1000)%(prepared_game->location->photo_frames), prepared_game->location->photo_frames, location_info_xpos, location_info_ypos, 255);
                 font_draw_string(FONT_SMALL, prepared_game->location->name, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200);
@@ -632,15 +652,15 @@ int main( int argc, char** argv) {
                         break;
                     default:
                         if (!location_info_visible && highlight_location != -1) {
-                            current_location = highlight_location;
-                            prepared_game->location = &(locations[current_location]);
+                            prepared_game->current_location = highlight_location;
+                            prepared_game->location = &(locations[prepared_game->current_location]);
                             location_info_xpos = MAX(0, MIN(WIDTH-320-50, mx-320/2));
                             location_info_ypos = MAX(0, MIN(HEIGHT-200-160, my-200/2));
                             location_info_visible = true;
                         } else {
                             location_info_visible = false;
-                            current_location = -1;
                             highlight_location = -1;
+                            prepared_game->current_location = -1;
                             prepared_game->location = NULL;
                         }
                         break;
@@ -709,6 +729,12 @@ int main( int argc, char** argv) {
         }
         frames++;
 #endif
+    }
+
+    if (current_game != NULL) {
+        if (gamestate_save(current_game, GAMESTATE_FILE) != 0) {
+            fprintf(stderr, "Warning: cannot save gamestate to %s\n", GAMESTATE_FILE);
+        }
     }
 
     uninit_graphics();

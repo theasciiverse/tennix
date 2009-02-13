@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <unistd.h>
 
 #include "tennix.h"
 #include "game.h"
@@ -40,6 +41,7 @@ GameState *gamestate_new() {
 
     GameState template = {
         NULL,
+        -1,
         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6, false, -1, false },
         {
             { NULL, -1, GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0.0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
@@ -92,6 +94,100 @@ GameState *gamestate_new() {
             }
         }
     }
+
+    return s;
+}
+
+
+int gamestate_save(GameState* s, const char* filename)
+{
+    Location *location;
+    const char* status;
+    InputDevice* input_devices[MAXPLAYERS];
+    int i, result = 0;
+    FILE* fp = NULL;
+#ifndef WIN32
+    char tmp[MAXPATHLEN];
+
+    assert(getcwd(tmp, MAXPATHLEN) == tmp);
+    assert(chdir(getenv("HOME")) == 0);
+#endif
+
+    /**
+     * Process-specific data (pointers to data
+     * structures only of interest to this process)
+     * has to be "removed" before saving.
+     *
+     * It can later be restored (in gamestate_load).
+     **/
+
+    fp = fopen(filename, "w");
+    if (fp == NULL) {
+        return -1;
+    }
+
+    /* Save data for later recovery + clear */
+    location = s->location;
+    s->location = NULL;
+    status = s->status;
+    s->status = NULL;
+    for (i=1; i<=MAXPLAYERS; i++) {
+        input_devices[i-1] = PLAYER(s, i).input;
+        PLAYER(s, i).input = NULL;
+    }
+
+    if (fwrite(s, sizeof(GameState), 1, fp) != 1) {
+        result = -2;
+    }
+
+    /* Restore process-specific data */
+    s->location = location;
+    s->status = status;
+    for (i=1; i<=MAXPLAYERS; i++) {
+        PLAYER(s, i).input = input_devices[i-1];
+    }
+
+    fclose(fp);
+
+#ifndef WIN32
+    assert(chdir(tmp) == 0);
+#endif
+
+    return result;
+}
+
+
+GameState* gamestate_load(const char* filename)
+{
+    FILE* fp;
+    GameState* s = NULL;
+#ifndef WIN32
+    char tmp[MAXPATHLEN];
+
+    assert(getcwd(tmp, MAXPATHLEN) == tmp);
+    assert(chdir(getenv("HOME")) == 0);
+#endif
+
+    fp = fopen(filename, "r");
+
+    if (fp != NULL) {
+        s = (GameState*)malloc(sizeof(GameState));
+        if (s != NULL) {
+            if (fread(s, sizeof(GameState), 1, fp) == 1) {
+                /* Restore/create process-specific data */
+                s->status = format_status(s);
+                /* FIXME: s->location, players' "input" */
+            } else {
+                free(s);
+                s = NULL;
+            }
+        }
+        fclose(fp);
+    }
+
+#ifndef WIN32
+    assert(chdir(tmp) == 0);
+#endif
 
     return s;
 }

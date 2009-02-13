@@ -37,6 +37,12 @@
 #define ARCHIVE_FILE "tennix.tnx"
 #define ARCHIVE_FILE_INSTALLED "/" PREFIX "/share/games/tennix/" ARCHIVE_FILE
 
+#ifdef WIN32
+#  define GAMESTATE_FILE "current_match-" VERSION ".tennix"
+#else
+#  define GAMESTATE_FILE ".tennix-current_match-" VERSION
+#endif
+
 #define COPYRIGHT "Copyright 2003, 2007, 2008, 2009 Thomas Perl"
 #define URL "http://icculus.org/tennix/"
 

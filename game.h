@@ -155,6 +155,7 @@ enum {
 
 typedef struct {
     Location* location;
+    int current_location; /* index of loc. in global location table */
     Ball ball;
     Player players[MAXPLAYERS];
     Uint32 time;
@@ -274,6 +275,8 @@ typedef struct {
 /* GameState handling*/
 GameState *gamestate_new();
 
+int gamestate_save(GameState* s, const char* filename);
+GameState* gamestate_load(const char* filename);
 
 /* Game module functions */
 void gameloop(GameState*);
