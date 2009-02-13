@@ -1,10 +1,43 @@
 Todo and Idea List for Tennix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-RELEASE PARTY FEB 09 ("Tennix 2009 Edition")
+Tennix 2009 Edition (2.0)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Target release date: 19.02.2009
+
+RELEASE-CRITICAL
+
+ 3. Always save running game and allow to restart later
+    (fwrite GameState, BUT check for input issues and pointers!)
+ 4. Make AI player a bit more intelligent & beatable
+10. Clean-up the menu appearance / style to be more consistent
+    (remove buttons as much as possible and replace with gfx)
+
+HIGH-PRIORITY
+
+ 1. Proper collision detection for ball <-> racket
+    (Different sound + random movement when edge hit)
+    Maybe: make racket less visible until power value is reached
+ 7. Allow navigating menu with joystick / keyboard in addition to
+    mouse ("cursor" state that is modified instead of directly
+    using the mouse my mx coordinates)
+ 8. Flip coin to determine which player serves
+    (Using the Animation framework + some inkscape'd pictures)
+
+LOW-PRIORITY
+
+ 2. Give a visual clue where the ball goes when serving (blinking)
+    (Only when power reaches a certain level)
+ 5. Rain moves ball in the negative direction (z -= RAINSPEED)
+ 6. Reduce current "power" value when moving in Y direction
+ 9. Retrieve the ball when it goes offscreen or into the net
+    (Either via Balljunge mode, long referee hand or "hand of god")
 
 
-ANIMATION FRAMEWORK:
+==================================================================
+ANIMATION FRAMEWORK
+==================================================================
 
              FROM --------------> TO
                position (grav+x/y)
@@ -24,26 +57,9 @@ MENU AND NAVIGATION (COSMETIC)
  -> NICE TO HAVE:
     Physikalischer Tennis-ball im Hauptmenü zum herumspielen
 
-
 ==================================================================
-IMPORTANT GAMEPLAY ISSUES (NEEDS FIXING!)
+PHYSICAL PROPERTIES
 ==================================================================
-
- => RAIN SHOULD NOT CONFLICT WITH ANYTHING (i.e. "out" sound should not
- stop rain sound from playing!)
-
-basic user experience testing results:
- * Fix "hit area" for racket -> make outside areas also hit the ball or
-                                add a sound to make it audible that the
-                                ball hit the edge area of the racket.
-                                 COLLISION DETECTION BEI RACKET!!!
- * Give a visual clue where the ball goes when serving
-
- * AI is currently broken
-   "Satz vom sportlichen Statistiker" (add statistics features to AI)
-
-
-** PHYSICAL PROPERTIES **
 
 GROUND
   * Restitution
@@ -57,29 +73,16 @@ BALL
   * Restitution
   * Elasticity (???)
 
-Regen erhöht gravity (oder ist fixes, negatives move_z??)
-
-
-[####--->    ]   "Power bar" für schlagstärke
-   => "während man läuft, schlägt man nicht so gut, wie wenn
-       man steht"
-
-
 ==================================================================
 PARTY MODE AND INPUT ISSUES
 ==================================================================
 
-Multiplayer with Input manager / Input selection (like Fifa 96)
+Input selection like Fifa 96 (left / right)
 Proper gamepad axis support (can we do this in general?)
 Tournament config / setup / frontend (GTK+/Qt/[...]?)
 
 read keyboard input mappings from config file and generate bindings
-dynamically or even allow new input devices configured in the UI
-
-allow menu navigation with joystick / keyboard in addition to mouse
-
-Münze werfen bei Spielbeginn
-
+dynamically or even allow new bindings configured in the UI
 
 
 ==================================================================
@@ -93,12 +96,10 @@ CAREER MODE
     stuff every now and then ("design charge" vs "current charge")
 
 
-
 ==================================================================
 LOCATIONS
 ==================================================================
 
-  * Grand slam locations
   * Weather-verlauf pro location gegeben über W-vtlg. mit anschl.
     berechnung des wetterverlaufs über simulierte stichprobe
 
@@ -113,27 +114,21 @@ IN-GAME FX
  * Snow (christmas edition?)
  * Sunshine (=current, normal behaviour)
 
-Balljunge (oder lange Schiri-Hand)
 Schiri spannt Schirm auf, wenns es regnet
 
-Ballgröße am Bildschirm verändert sich je nach Höhe (weil die
-Kamera von oben ist) --> selbiges mit Shadow!
-
-Shadow computer-generiert??
+Shadow computer-generiert?? (und für schläger zusätzlich?)
 Shadow x2/x4 wenn Nacht-Modus (weil scheinwerfer!!)
 
 Kleinere Schläger, dafür mehr Sprites für die Animation
 Schläger einfärben per SDL möglich? (HUE-verschiebung)
-Schatten für schläger (ebenfalls computergeneriert möglich?
 
 Sound effect groups: Group the same types of sounds (e.g. voice,
 racket, ground) in one sound "GROUP" that shares a channel.
 
-
 Trainings-Modus mit Zielscheibe
 
 Möglichkeit, ans netz zu gehen, aber dann kann man sich nur mehr
-einen kleine bereich auf- und abbewegen (mario).
+einen kleine bereich auf- und abbewegen (by mario).
 
 ==================================================================
 TECHNICAL DETAILS
@@ -142,12 +137,11 @@ TECHNICAL DETAILS
 librsvg for rendering the SVG source files in-game instead of
 shipping pre-rendered PNG files (would allow us to modify XML)
 
+"Satz vom sportlichen Statistiker" (add statistics features to AI)
+
 Garbage collector für c/c++?
 
 umsteigen auf c++?
-
-umsteigen auf SDL_ttf?
-=> /usr/share/fonts/truetype/dustin
 
 ==================================================================
 
@@ -165,14 +159,13 @@ rain: http://www.freesound.org/samplesViewSingle.php?id=34067
 MAEMO WISHLIST
 ~~~~~~~~~~~~~~
 Fix sounds (wav, mp3? - ogg doesn't seem to be supported)
-Widescreen support (??)
+Widescreen support - 800x480 (make "outer areas" input-accepting)
 
 
 Brainstorming
 ~~~~~~~~~~~~~
 Make sound deactivatable (or sound volume settings?)
 User-settable "sets to win" (2 or 3)
-Save game and continue game later on
 Highscore list
 Setting player names
 Change between full screen and windowed mode in Windows
