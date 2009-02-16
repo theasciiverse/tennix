@@ -26,14 +26,26 @@
 
 #include "graphics.h"
 
+#ifdef TENNIX_PYTHON
+#include <Python.h>
+#endif
+
 #define JOYSTICK_PERCENTIZE(x) ((float)(x)/(float)(32768))
 
 #define MAX_INPUT_DEVICES 16
 
 enum {
+    INPUT_COORD_TYPE_PLAYER,
+    INPUT_COORD_TYPE_BALL
+};
+
+enum {
     INPUT_TYPE_KEYBOARD,
     INPUT_TYPE_JOYSTICK,
     INPUT_TYPE_MOUSE,
+#ifdef TENNIX_PYTHON
+    INPUT_TYPE_AI_PYTHON,
+#endif
     INPUT_TYPE_MAX
 };
 
@@ -75,6 +87,17 @@ typedef struct {
     int player_x;
     int player_y;
 
+#ifdef TENNIX_PYTHON
+    /* Python-specific items */
+    char py_module_name[100];
+    PyObject* py_module;
+    PyObject* py_get_key_func;
+    PyObject* py_get_axis_func;
+    PyObject* py_ball_func;
+    PyObject* py_player_func;
+    PyObject* py_power_func;
+#endif
+
     /* The picture for this input device */
     image_id icon;
 
@@ -84,6 +107,14 @@ typedef struct {
 
 void init_input();
 void uninit_input();
+
+#ifdef TENNIX_PYTHON
+void tennixpy_init();
+void tennixpy_setup(InputDevice* device);
+void tennixpy_put_coords(InputDevice* device, char type, float x, float y);
+void tennixpy_set_power(InputDevice* device, float power);
+void tennixpy_uninit();
+#endif
 
 InputDevice* find_input_devices(unsigned int*);
 

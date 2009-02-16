@@ -32,11 +32,20 @@
 static InputDevice devices[MAX_INPUT_DEVICES];
 static int devices_count;
 
+#ifdef TENNIX_PYTHON
+/* This saves our current Python thread state */
+static PyThreadState* _py_save;
+#endif
+
 void init_input()
 {
     int n, x;
 
     SDL_JoystickEventState(SDL_ENABLE);
+
+#ifdef TENNIX_PYTHON
+    tennixpy_init();
+#endif
 
 #ifndef MAEMO
     /* keyboard presets */
@@ -82,6 +91,15 @@ void init_input()
 #endif
     devices_count++;
 
+#ifdef TENNIX_PYTHON
+    /* python ai */
+    devices[devices_count].type = INPUT_TYPE_AI_PYTHON;
+    devices[devices_count].icon = GR_INPUT_AI;
+    strcpy(devices[devices_count].py_module_name, "defaultbot");
+    tennixpy_setup(&(devices[devices_count]));
+    devices_count++;
+#endif
+
     /* mouse */
     devices[devices_count].type = INPUT_TYPE_MOUSE;
     devices[devices_count].input_keys[INPUT_KEY_HIT]= SDL_BUTTON(1);
@@ -122,6 +140,11 @@ void uninit_input()
             SDL_JoystickClose(devices[i].joystick);
         }
     }
+
+#ifdef TENNIX_PYTHON
+    tennixpy_uninit();
+#endif
+
     devices_count = 0;
 }
 
@@ -140,6 +163,11 @@ const char* input_device_get_name(InputDevice* d)
 float input_device_get_axis(InputDevice* d, unsigned const char axis) {
     Uint8 *keystate;
     Uint8 mb;
+#ifdef TENNIX_PYTHON
+    PyObject* r;
+    PyObject* args;
+    float result;
+#endif
 
     SDL_PumpEvents();
 
@@ -176,6 +204,26 @@ float input_device_get_axis(InputDevice* d, unsigned const char axis) {
                 }
             }
         }
+#ifdef TENNIX_PYTHON
+    } else if (d->type == INPUT_TYPE_AI_PYTHON) {
+        PyEval_RestoreThread(_py_save);
+        args = Py_BuildValue("(i)", (int)axis);
+        r = PyObject_CallObject(d->py_get_axis_func, args);
+        Py_DECREF(args);
+        if (r == NULL) {
+            PyErr_Print();
+        } else {
+            /* */
+            if (PyFloat_Check(r)) {
+                result = (float)PyFloat_AsDouble(r);
+            } else {
+                fprintf(stderr, "Unexpected value from python\n");
+            }
+        }
+        Py_DECREF(r);
+        _py_save = PyEval_SaveThread();
+        return result;
+#endif
     } else {
         /* unimplemented */
     }
@@ -184,6 +232,11 @@ float input_device_get_axis(InputDevice* d, unsigned const char axis) {
 
 char input_device_get_key(InputDevice* d, unsigned const char key) {
     Uint8 mb;
+#ifdef TENNIX_PYTHON
+    PyObject* r;
+    PyObject* args;
+    char result;
+#endif
     SDL_PumpEvents();
 
     if (d->type == INPUT_TYPE_KEYBOARD) {
@@ -193,10 +246,171 @@ char input_device_get_key(InputDevice* d, unsigned const char key) {
     } else if (d->type == INPUT_TYPE_MOUSE) {
         mb = SDL_GetMouseState(NULL, NULL);
         return (mb & d->input_keys[key]) != 0;
+#ifdef TENNIX_PYTHON
+    } else if (d->type == INPUT_TYPE_AI_PYTHON) {
+        PyEval_RestoreThread(_py_save);
+        args = Py_BuildValue("(i)", (int)key);
+        r = PyObject_CallObject(d->py_get_key_func, args);
+        Py_DECREF(args);
+        if (r == NULL) {
+            PyErr_Print();
+        } else {
+            if (r == Py_True) {
+                result = 1;
+            } else if (r == Py_False) {
+                result = 0;
+            } else {
+                fprintf(stderr, "Unexpected value from python\n");
+            }
+        }
+        Py_DECREF(r);
+        _py_save = PyEval_SaveThread();
+        return result;
+#endif
     } else {
         /* unimplemented */
     }
     return 0;
 }
 
+
+#ifdef TENNIX_PYTHON
+
+void tennixpy_init()
+{
+    /* Search for modules in CWD*/
+    setenv("PYTHONPATH", ".", 1);
+    PyEval_InitThreads();
+    Py_Initialize();
+    _py_save = PyEval_SaveThread();
+}
+
+void tennixpy_setup(InputDevice* device)
+{
+    PyObject *o;
+    PyObject *r;
+
+    PyEval_RestoreThread(_py_save);
+    if (device->type == INPUT_TYPE_AI_PYTHON) {
+        device->py_module = PyImport_ImportModule(device->py_module_name);
+        if (device->py_module != NULL) {
+            /* module loaded :) */
+            o = PyObject_GetAttrString(device->py_module, "loaded");
+            if (o == NULL) {
+                PyErr_Print();
+            }
+            r = PyObject_CallObject(o, NULL);
+            if (r == NULL) {
+                PyErr_Print();
+            }
+            Py_DECREF(r);
+            Py_DECREF(o);
+
+            o = PyObject_GetAttrString(device->py_module, "__name__");
+            if (PyString_Check(o)) {
+                strcpy(device->name, PyString_AsString(o));
+            } else {
+                fprintf(stderr, "Warning: __name__ not a string!\n");
+                strcpy(device->name, device->py_module_name);
+            }
+            Py_DECREF(o);
+
+            device->py_get_key_func = PyObject_GetAttrString(device->py_module, "get_key");
+            assert(device->py_get_key_func != NULL);
+            device->py_get_axis_func = PyObject_GetAttrString(device->py_module, "get_axis");
+            assert(device->py_get_axis_func != NULL);
+            device->py_ball_func = PyObject_GetAttrString(device->py_module, "set_ball_coords");
+            assert(device->py_ball_func != NULL);
+            device->py_player_func = PyObject_GetAttrString(device->py_module, "set_player_coords");
+            assert(device->py_player_func != NULL);
+            device->py_power_func = PyObject_GetAttrString(device->py_module, "set_player_power");
+            assert(device->py_power_func != NULL);
+        } else {
+            PyErr_Print();
+            exit(1);
+        }
+    }
+    _py_save = PyEval_SaveThread();
+}
+
+void tennixpy_put_coords(InputDevice* device, char type, float x, float y)
+{
+    PyObject *f;
+    PyObject *args;
+    PyObject *r;
+
+    PyEval_RestoreThread(_py_save);
+    if (device->type == INPUT_TYPE_AI_PYTHON) {
+        if (type == INPUT_COORD_TYPE_PLAYER) {
+            f = device->py_player_func;
+        } else if (type == INPUT_COORD_TYPE_BALL) {
+            f = device->py_ball_func;
+        } else {
+            assert(0);
+        }
+
+        args = Py_BuildValue("(dd)", (double)x, (double)y);
+        r = PyObject_CallObject(f, args);
+        Py_DECREF(args);
+        if (r == NULL) {
+            PyErr_Print();
+        } else {
+            Py_DECREF(r);
+        }
+    }
+    _py_save = PyEval_SaveThread();
+}
+
+void tennixpy_set_power(InputDevice* device, float power)
+{
+    PyObject *args;
+    PyObject *r;
+
+    PyEval_RestoreThread(_py_save);
+    if (device->type == INPUT_TYPE_AI_PYTHON) {
+        args = Py_BuildValue("(d)", (double)power);
+        r = PyObject_CallObject(device->py_power_func, args);
+        Py_DECREF(args);
+        if (r == NULL) {
+            PyErr_Print();
+        } else {
+            Py_DECREF(r);
+        }
+    }
+    _py_save = PyEval_SaveThread();
+}
+
+void tennixpy_uninit()
+{
+    int i;
+    PyObject* o;
+    PyObject *r;
+
+    PyEval_RestoreThread(_py_save);
+    for (i=0; i<devices_count; i++) {
+        if (devices[i].type == INPUT_TYPE_AI_PYTHON) {
+            /* Unloading module here */
+            o = PyObject_GetAttrString(devices[i].py_module, "unloaded");
+            if (o == NULL) {
+                PyErr_Print();
+            }
+            r = PyObject_CallObject(o, NULL);
+            if (r == NULL) {
+                PyErr_Print();
+            }
+            Py_DECREF(r);
+            Py_DECREF(o);
+            Py_DECREF(devices[i].py_get_key_func);
+            Py_DECREF(devices[i].py_get_axis_func);
+            Py_DECREF(devices[i].py_ball_func);
+            Py_DECREF(devices[i].py_player_func);
+            Py_DECREF(devices[i].py_power_func);
+            Py_DECREF(devices[i].py_module);
+        }
+    }
+
+    Py_Finalize();
+}
+
+#endif
 

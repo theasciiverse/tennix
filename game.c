@@ -736,6 +736,12 @@ void input_human(GameState* s, int player) {
     if (PLAYER(s, player).input->type == INPUT_TYPE_MOUSE) {
         PLAYER(s, player).input->player_x = (int)(PLAYER(s, player).x);
         PLAYER(s, player).input->player_y = (int)(PLAYER(s, player).y);
+#ifdef TENNIX_PYTHON
+    } else if (PLAYER(s, player).input->type == INPUT_TYPE_AI_PYTHON) {
+        tennixpy_put_coords(PLAYER(s, player).input, INPUT_COORD_TYPE_PLAYER, PLAYER(s, player).x, PLAYER(s, player).y);
+        tennixpy_put_coords(PLAYER(s, player).input, INPUT_COORD_TYPE_BALL, s->ball.x, s->ball.y);
+        tennixpy_set_power(PLAYER(s, player).input, PLAYER(s, player).power);
+#endif
     }
 
     move_y = PLAYER_MOVE_Y*input_device_get_axis(PLAYER(s, player).input, INPUT_AXIS_Y);

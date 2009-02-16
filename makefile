@@ -37,6 +37,14 @@ DATADIR ?= $(DATAROOTDIR)/games
 LIBS =
 CFLAGS += -std=c99 -W -Wall -ansi -pedantic -Wcast-qual -Wwrite-strings -DVERSION=\"$(RELEASE)\" -O2 -DPREFIX=\"$(PREFIX)\" -g
 
+USE_PYTHON ?= 1
+PYTHON_VERSION = 2.5
+
+ifeq ($(USE_PYTHON),1)
+  CFLAGS += -I/usr/include/python$(PYTHON_VERSION)/ -DTENNIX_PYTHON
+  LIBS += -lpython$(PYTHON_VERSION)
+endif
+
 ifeq ($(UPDRECTANGLE),1)
   CFLAGS += -DDRAW_UPDATE_RECTANGLE
 endif
