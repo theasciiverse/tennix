@@ -74,8 +74,11 @@ OBJ = tennix.o game.o graphics.o input.o util.o sound.o animation.o archive-lib.
 ifeq ($(MSYSTEM),MINGW32)
   OBJ += tennixres.o
 endif
+ifeq ($(USE_PYTHON),1)
+  OBJ += tennixpy.o
+endif
 
-TOARCHIVE=$(wildcard data/*.ogg data/*.ttf wildcard data/*.png voice/*.ogg)
+TOARCHIVE=$(wildcard data/*.ogg data/*.ttf wildcard data/*.png voice/*.ogg *.py)
 
 WIN32LIBS = *.dll
 OSXAPP = Tennix.app
@@ -110,9 +113,10 @@ tennix.o: tennix.c tennix.h game.h graphics.h input.h util.h animation.h sound.h
 graphics.o: graphics.c graphics.h tennix.h archive.h sound.h
 game.o: game.c game.h graphics.h tennix.h sound.h input.h util.h
 sound.o: sound.c sound.h tennix.h archive.h graphics.h
-input.o: input.c input.h tennix.h graphics.h game.h util.h
+input.o: input.c input.h tennix.h graphics.h game.h util.h tennixpy.h
 util.o: util.c util.h tennix.h
 animation.o: animation.c animation.h graphics.h tennix.h
+tennixpy.o: tennix.c tennix.h game.h archive.h
 SDL_rotozoom.o: SDL_rotozoom.c SDL_rotozoom.h
 
 archive-lib.o: archive.c archive.h

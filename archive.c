@@ -211,7 +211,9 @@ char* tnxar_get_current_filename(TennixArchive* tnxar)
 char* tnxar_read_current(TennixArchive* tnxar)
 {
     int size = tnxar_size_current(tnxar);
-    char* data = (char*)malloc(size);
+    char* data = (char*)malloc(size+1);
+    /* the last char is a null character, so this works for strings, too */
+    data[size]='\0';
     fseek(tnxar->fp, tnxar->items[tnxar->current_item].offset, SEEK_SET);
     assert(fread(data, size, 1, tnxar->fp) == 1);
     tnxar_xormem(data, size, tnxar->items[tnxar->current_item].key);
