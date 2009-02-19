@@ -252,10 +252,10 @@ typedef struct {
 
 #define PLAYER_AREA_Y RACKET_Y_MID
 #define PLAYER_AREA_X RACKET_X_MID
-#define IS_NEAR_Y(py,by) (absf((py)-(by))<(float)PLAYER_AREA_Y)
-#define IS_NEAR_Y_AI(py,by) (absf((py)-(by))<(float)PLAYER_AREA_Y/3.5)
-#define IS_NEAR_X(px,bx) (absf((px)-(bx))<(float)PLAYER_AREA_X)
-#define IS_NEAR_X_AI(px,bx) (absf((px)-(bx))<(float)PLAYER_AREA_X*2.)
+#define IS_NEAR_Y(py,by) (fabsf((py)-(by))<(float)PLAYER_AREA_Y)
+#define IS_NEAR_Y_AI(py,by) (fabsf((py)-(by))<(float)PLAYER_AREA_Y/3.5)
+#define IS_NEAR_X(px,bx) (fabsf((px)-(bx))<(float)PLAYER_AREA_X)
+#define IS_NEAR_X_AI(px,bx) (fabsf((px)-(bx))<(float)PLAYER_AREA_X*2.)
 
 #define PLAYER_MOVE_Y 5.0
 #define PLAYER_ACCEL_DEFAULT 0.2
