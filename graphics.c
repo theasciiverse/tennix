@@ -94,6 +94,8 @@ static const char* graphics[] = {
     "input_mouse.png",
     "input_touchscreen.png",
     "input_ai.png",
+    "back.png",
+    "forward.png",
     "loc_margaret_court_arena.png",
     "loc_stade_roland_garros.png",
     "loc_court_no_1.png",
@@ -366,8 +368,14 @@ void line_vert( int x, Uint8 r, Uint8 g, Uint8 b) {
 }
 
 void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b) {
-    Uint32 color = SDL_MapRGB( screen->format, r, g, b);
+    Uint32 color;
     SDL_Rect rect;
+
+    if (w <= 0 || h <= 0 || x < 0 || y < 0 || x+w > WIDTH || y+h > HEIGHT) {
+        return;
+    }
+
+    color = SDL_MapRGB(screen->format, r, g, b);
 
     rect.x = x;
     rect.y = y;
@@ -380,9 +388,15 @@ void rectangle( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b) {
 
 void rectangle_alpha(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, Uint8 opacity)
 {
-    Uint32 color = SDL_MapRGB(screen->format, r, g, b);
+    Uint32 color;
     SDL_Surface *buf;
     SDL_Rect rect, rect2;
+
+    if (w <= 0 || h <= 0 || x < 0 || y < 0 || x+w > WIDTH || y+h > HEIGHT) {
+        return;
+    }
+
+    color = SDL_MapRGB(screen->format, r, g, b);
 
     buf = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h,
                  screen->format->BitsPerPixel,
@@ -420,6 +434,15 @@ void draw_button_text(const char* s, int x, int y, int w, int h, Uint8 r, Uint8 
     font_x = x + w/2 - font_get_string_width(FONT_SMALL, s)/2 + pressed*BUTTON_BORDER;
     font_y = y + h/2 - font_get_height(FONT_SMALL)/2 + pressed*BUTTON_BORDER;
     font_draw_string_color(FONT_SMALL, s, font_x, font_y, (Uint8)(r*factor), (Uint8)(g*factor), (Uint8)(b*factor));
+}
+
+void draw_button_object(MenuButton* b, int mx, int my)
+{
+    if (b->image_id == GR_COUNT) {
+        draw_button_text(b->text, b->x, b->y, b->w, b->h, b->r, b->g, b->b, M_POS_BUTTON(*b, mx, my));
+    } else {
+        show_image_rotozoom(b->image_id, b->x+b->w/2, b->y+b->h/2, 0.0, 1.0+0.2*M_POS_BUTTON(*b, mx, my));
+    }
 }
 
 void clear_screen()

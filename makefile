@@ -45,6 +45,10 @@ ifeq ($(USE_PYTHON),1)
   LIBS += -lpython$(PYTHON_VERSION)
 endif
 
+ifeq ($(NONFREE_LOCATIONS),1)
+  CFLAGS += -DNONFREE_LOCATIONS
+endif
+
 ifeq ($(UPDRECTANGLE),1)
   CFLAGS += -DDRAW_UPDATE_RECTANGLE
 endif
@@ -115,7 +119,7 @@ game.o: game.c game.h graphics.h tennix.h sound.h input.h util.h
 sound.o: sound.c sound.h tennix.h archive.h graphics.h
 input.o: input.c input.h tennix.h graphics.h game.h util.h tennixpy.h
 util.o: util.c util.h tennix.h
-animation.o: animation.c animation.h graphics.h tennix.h
+animation.o: animation.c animation.h graphics.h tennix.h credits.h
 tennixpy.o: tennix.c tennix.h game.h archive.h
 SDL_rotozoom.o: SDL_rotozoom.c SDL_rotozoom.h
 

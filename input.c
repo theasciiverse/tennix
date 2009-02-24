@@ -82,14 +82,9 @@ void init_input()
     /* FIXME: No TOPSPIN and SMASH keys on Maemo yet with d-pad */
 #else
     devices[devices_count].icon = GR_INPUT_KEYBOARD_ARROWS;
-    strcpy(devices[devices_count].name, "Keyboard (arrows + space, lctrl, lalt)");
+    strcpy(devices[devices_count].name, "Keyboard (arrows)");
 #endif
     devices_count++;
-
-#ifdef TENNIX_PYTHON
-    /* This will init Python and load all available bots */
-    tennixpy_init();
-#endif
 
     /* mouse */
     devices[devices_count].type = INPUT_TYPE_MOUSE;
@@ -119,6 +114,12 @@ void init_input()
         devices[devices_count].icon = GR_INPUT_GAMEPAD;
         devices_count++;
     }
+
+#ifdef TENNIX_PYTHON
+    /* This will init Python and load all available bots */
+    tennixpy_init();
+#endif
+
 }
 
 void uninit_input()
@@ -264,7 +265,7 @@ void input_add_python_bot(PyObject* bot_class)
         devices[devices_count].icon = GR_INPUT_AI;
         devices[devices_count].py_bot_class = bot_class;
         tennixpy_get_bot_name(bot_class, devices[devices_count].name, INPUT_DEVICE_NAME_MAX);
-        fprintf(stderr, "Added new bot: %s\n", devices[devices_count].name);
+        fprintf(stderr, " %s", devices[devices_count].name);
         devices_count++;
     } else {
         fprintf(stderr, "Warning: Cannot add any more Python bots.\n");

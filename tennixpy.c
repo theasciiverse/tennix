@@ -294,12 +294,12 @@ void tennixpy_init()
         assert(tnxar != NULL);
     }
     if (tnxar_set_current_filename(tnxar, "defaultbot.py") != 0) {
-        fprintf(stderr, "loading defaultbot from archive\n");
+        fprintf(stderr, "Loading computer players:");
         data = tnxar_read_current(tnxar);
         if (PyRun_SimpleString(data) != 0) {
             PyErr_Print();
         } else {
-            fprintf(stderr, "Successfully parsed py from archive\n");
+            fprintf(stderr, ".\n");
         }
         free(data);
     }

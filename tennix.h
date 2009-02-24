@@ -117,12 +117,15 @@ typedef struct {
     Uint8 r;
     Uint8 g;
     Uint8 b;
+    unsigned int image_id;
 } MenuButton;
+
+void menu_button_init(MenuButton*);
 
 #define CONTROLLER_SETUP_BORDER 50
 #define CONTROLLER_SETUP_SIZE 200
 
-#define M_POS_BUTTON(button,mx,my) (mx>=button.x && mx<=button.x+button.w && my>=button.y && my<=button.y+button.h)
+#define M_POS_BUTTON(button,mx,my) (mx>=(button).x && mx<=(button).x+(button).w && my>=(button).y && my<=(button).y+(button).h)
 
 #define SQUARE_DISTANCE(xdiff, ydiff) (((xdiff)*(xdiff)) + ((ydiff)*(ydiff)))
 

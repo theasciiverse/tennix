@@ -9,14 +9,19 @@ import sys
 
 import tennix
 
+DEBUG = False
+
 class BasicBot(object):
     name = 'Unnamed Bot'
 
     def say(self, *args):
-        print self.name, 'says:', (' '.join(str(x) for x in args))
+        # FIXME: Expose debugging flag through "tennix" module
+        global DEBUG
+        if DEBUG:
+            print self.name, 'says:', (' '.join(str(x) for x in args))
 
 class DumbPythonBot(BasicBot):
-    name = 'Jon Python'
+    name = 'John McInpyre'
 
     GAME_Y_MID = 242
     DESIRED_POWER = { tennix.INPUT_KEY_HIT: 90, tennix.INPUT_KEY_TOPSPIN: 70, tennix.INPUT_KEY_SMASH: 70 }

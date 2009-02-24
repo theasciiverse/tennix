@@ -6,11 +6,6 @@ Tennix 2009 Edition (2.0)
 
 Target release date: 19.02.2009
 
-RELEASE-CRITICAL
-
-10. Clean-up the menu appearance / style to be more consistent
-    (remove buttons as much as possible and replace with gfx)
-
 HIGH-PRIORITY
 
  1. Proper collision detection for ball <-> racket
@@ -139,6 +134,8 @@ shipping pre-rendered PNG files (would allow us to modify XML)
 Garbage collector für c/c++?
 
 umsteigen auf c++?
+
+Clip rectangles and image blits to visible screen area
 
 ==================================================================
 

@@ -29,6 +29,8 @@
 #include "graphics.h"
 #include "animation.h"
 
+#include "credits.h"
+
 Animation* animation_new()
 {
     Animation* animation = (Animation*)calloc(1, sizeof(Animation));
@@ -173,7 +175,7 @@ void animation_part_display(AnimationPart* part, AnimationState* state)
     Uint32 start = state->started + part->start;
     Uint32 end = state->started + part->end;
     Uint32 x, y;
-    float p, pe;
+    float p;
     SDL_Surface* surface;
 
     if (state->current < start || state->current > end) {
@@ -201,6 +203,10 @@ void animation_part_display(AnimationPart* part, AnimationState* state)
             x = (WIDTH - surface->w)/2 + part->x;
             y = (HEIGHT - surface->h)/2 + part->y;
             break;
+        case GRAVITY_TOP:
+            x = (WIDTH - surface->w)/2 + part->x;
+            y = part->y;
+            break;
         case GRAVITY_TOPLEFT:
             /* fall-through to default */
         default:
@@ -218,7 +224,7 @@ void animation_part_display(AnimationPart* part, AnimationState* state)
     }
 
     if (part->effects & ANIMATION_SLIDE_RIGHT) {
-        x = (WIDTH-surface->w) * (1.-p) + x * pe;
+        x = (WIDTH-surface->w) * (1.-p) + x * p;
     }
 
     blit_surface_simple(surface, x, y);
@@ -263,5 +269,24 @@ Animation* create_intro()
     animation_append(intro, animation_part_new_from_surface(4000, 8000, ANIMATION_FADE_IN | ANIMATION_FADE_OUT | ANIMATION_ZOOM_2X, 0, 0, 0, GRAVITY_CENTER_SCREEN, get_surface(GR_TENNIXLOGO), 0, 0, 1));
 
     return intro;
+}
+
+Animation* create_credits()
+{
+    int pos = 0;
+    Animation* credits = animation_new();
+    while (credits_text[pos] != NULL) {
+        animation_append(credits,
+                animation_part_new_text(100+pos*CREDITS_OFFSET,
+                    100+pos*CREDITS_OFFSET + CREDITS_DURATION,
+                    ANIMATION_FADE_IN | ANIMATION_FADE_OUT | ANIMATION_FROM_BOTTOM,
+                    0, 0, 0,
+                    GRAVITY_TOP,
+                    FONT_MEDIUM,
+                    credits_text[pos],
+                    255, 255, 255));
+        pos++;
+    }
+    return credits;
 }
 

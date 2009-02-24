@@ -45,6 +45,7 @@ enum {
 
 enum {
     GRAVITY_TOPLEFT = 0,
+    GRAVITY_TOP,
     GRAVITY_CENTER_SCREEN,
     GRAVITY_CENTER_UPPERHALF,
     GRAVITY_CENTER_BOTTOMHALF
@@ -120,7 +121,7 @@ void animation_part_free(AnimationPart*);
 
 /* available animations */
 Animation* create_intro();
-
+Animation* create_credits();
 
 
 #endif

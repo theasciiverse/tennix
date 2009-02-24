@@ -59,12 +59,24 @@ http://commons.wikimedia.org/wiki/User:Vardion
 NON-FREE IMAGES
 ---------------
 
-We still need to get permission for these pictures to use them:
-
 loc_training_camp.png
 ---------------------
 Based on:
 http://flickr.com/photos/mthird3rd/471720012/
+
+Martin Third writes:
+  I'm happy to allow you to use the image for your Tennix game, but I'd
+  rather keep the "All rights reserved" copyright, if this is acceptable.
+
+License for this photo therefore:
+
+  Copyright (c) 2007 Martin Third <Mthird3rd@aol.com> All Rights Reserved.
+  Permission to use this image in Tennix.
+
+
+
+We still need to get permission for these pictures to use them (and try to
+not include it in the source tarball - you'll find it here in the Git repo):
 
 loc_austrian_open.png
 ---------------------

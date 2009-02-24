@@ -107,32 +107,36 @@ int main( int argc, char** argv) {
     float wiggle;
 
     MenuButton btn_back = {
-        "Back to main menu",
+        NULL, /* not needed for image-based button */
         MENU_OPTIONS_BORDER,
-        HEIGHT-(MENU_OPTIONS_BORDER+MENU_OPTIONS_BUTTON_HEIGHT),
-        MENU_OPTIONS_BUTTON_WIDTH, MENU_OPTIONS_BUTTON_HEIGHT,
-        255, 0, 0
+        HEIGHT-MENU_OPTIONS_BORDER,
+        0, -1, /* width and height will be set by menu_button_init */
+        255, 0, 0,
+        GR_BACK
     };
     MenuButton btn_start = {
-        "Start new game",
-        WIDTH-(MENU_OPTIONS_BORDER+MENU_OPTIONS_BUTTON_WIDTH),
-        HEIGHT-(MENU_OPTIONS_BORDER+MENU_OPTIONS_BUTTON_HEIGHT),
-        MENU_OPTIONS_BUTTON_WIDTH, MENU_OPTIONS_BUTTON_HEIGHT,
-        0, 255, 0
+        NULL, /* not needed for image-based button */
+        WIDTH-MENU_OPTIONS_BORDER,
+        HEIGHT-MENU_OPTIONS_BORDER,
+        -1, -1, /* width and height will be set by menu_button_init */
+        0, 255, 0,
+        GR_FORWARD
     };
     MenuButton btn_player1 = {
         NULL,
         CONTROLLER_SETUP_BORDER,
         HEIGHT/2 + CONTROLLER_SETUP_SIZE/2 + 10,
         CONTROLLER_SETUP_SIZE, MENU_OPTIONS_BUTTON_HEIGHT,
-        50, 50, 255
+        50, 50, 255,
+        GR_COUNT
     };
     MenuButton btn_player2 = {
         NULL,
         WIDTH-CONTROLLER_SETUP_SIZE-CONTROLLER_SETUP_BORDER,
         HEIGHT/2 + CONTROLLER_SETUP_SIZE/2 + 10,
         CONTROLLER_SETUP_SIZE, MENU_OPTIONS_BUTTON_HEIGHT,
-        255, 50, 50
+        255, 50, 50,
+        GR_COUNT
     };
 
     int highlight_location = -1;
@@ -226,6 +230,11 @@ int main( int argc, char** argv) {
     init_graphics();
     init_sound();
     init_input();
+
+    menu_button_init(&btn_back);
+    menu_button_init(&btn_start);
+    menu_button_init(&btn_player1);
+    menu_button_init(&btn_player2);
 
     input_devices = find_input_devices(&input_device_count);
 
@@ -355,8 +364,9 @@ int main( int argc, char** argv) {
                 if (prepared_game == NULL) {
                     prepared_game = gamestate_new();
                     prepared_game->location = NULL;
-                    btn_player1.text = "default";
-                    btn_player2.text = "computer (AI)";
+                    /* FIXME - this should not be written here, but taken from the input devices */
+                    btn_player1.text = "Keyboard (arrows)";
+                    btn_player2.text = "Carl Van Court";
 #ifdef MAEMO
                     PLAYER(prepared_game, 1).input_device_index = 0;
 #else
@@ -475,10 +485,10 @@ int main( int argc, char** argv) {
             show_image(GR_BTN_QUIT, WIDTH-get_image_width(GR_BTN_QUIT)+slide+(slide/7)+3-(3*(btn_hovering==MENU_QUIT)), 350, 255);
         } else if (state == MENU_STATE_OPTIONS) {
             /* Options screen */
-            draw_button_object(btn_back, mx, my);
-            draw_button_object(btn_start, mx, my);
-            draw_button_object(btn_player1, mx, my);
-            draw_button_object(btn_player2, mx, my);
+            draw_button_object(&btn_back, mx, my);
+            draw_button_object(&btn_start, mx, my);
+            draw_button_object(&btn_player1, mx, my);
+            draw_button_object(&btn_player2, mx, my);
             wiggle = 15*sinf((float)ticks/300.);
             if (PLAYER(prepared_game, 1).input_device_index > -1) {
                 show_image_rotozoom(input_devices[PLAYER(prepared_game, 1).input_device_index].icon, CONTROLLER_SETUP_BORDER + CONTROLLER_SETUP_SIZE/2, HEIGHT/2, wiggle, 1.0);
@@ -529,10 +539,10 @@ int main( int argc, char** argv) {
                 font_draw_string(FONT_SMALL, prepared_game->location->court_type_name, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200+3*font_get_height(FONT_SMALL));
                 }
                 if (prepared_game->location != NULL) {
-                    draw_button_object(btn_start, mx, my);
+                    draw_button_object(&btn_start, mx, my);
                 }
             }
-            draw_button_object(btn_back, mx, my);
+            draw_button_object(&btn_back, mx, my);
         }
 
         SDL_PollEvent( &e);
@@ -691,7 +701,7 @@ int main( int argc, char** argv) {
                         if (PLAYER(prepared_game, 1).input_device_index == -1) {
                             PLAYER(prepared_game, 1).type = PLAYER_TYPE_AI;
                             PLAYER(prepared_game, 1).input = NULL;
-                            btn_player1.text = "Computer (AI)";
+                            btn_player1.text = "Carl Van Court";
                         } else {
                             PLAYER(prepared_game, 1).type = PLAYER_TYPE_HUMAN;
                             PLAYER(prepared_game, 1).input = &(input_devices[PLAYER(prepared_game, 1).input_device_index]);
@@ -714,7 +724,7 @@ int main( int argc, char** argv) {
                         if (PLAYER(prepared_game, 2).input_device_index == -1) {
                             PLAYER(prepared_game, 2).type = PLAYER_TYPE_AI;
                             PLAYER(prepared_game, 2).input = NULL;
-                            btn_player2.text = "Computer (AI)";
+                            btn_player2.text = "Carl Van Court";
                         } else {
                             PLAYER(prepared_game, 2).type = PLAYER_TYPE_HUMAN;
                             PLAYER(prepared_game, 2).input = &(input_devices[PLAYER(prepared_game, 2).input_device_index]);
@@ -740,11 +750,41 @@ int main( int argc, char** argv) {
         }
     }
 
+    /* Play the credits */
+    intro = create_credits();
+    intro_playback = animation_state_new(intro);
+    animation_state_run(intro_playback, 1);
+    animation_state_free(intro_playback);
+    animation_free(intro);
+
     uninit_graphics();
     uninit_input();
 
     SDL_Quit();
     return 0;
+}
+
+
+void menu_button_init(MenuButton* b)
+{
+    int w, h;
+
+    if (b->image_id != GR_COUNT) {
+        /**
+         * If the button is an image, the "w" and "h" attributes of the
+         * MenuButton struct are simply factors with which the real width
+         * and height of the image (=button) should be multiplied and added
+         * to the "x" and "y" position and the "w" and "h" are replaced with
+         * the real size of the image for the collision detection
+         **/
+        w = b->w;
+        h = b->h;
+
+        b->w = get_image_width(b->image_id);
+        b->h = get_image_height(b->image_id);
+        b->x += w*b->w;
+        b->y += h*b->h;
+    }
 }
 
 

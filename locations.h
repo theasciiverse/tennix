@@ -100,6 +100,8 @@ static Location locations[] = {
         37,
         false
     },
+#if 0
+    /* We don't have permission for the following locations just yet... */
     {
         /* Austrian Open in Kitzbuhel, http://www.austrianopen.eu/ */
         "Center Court",
@@ -128,6 +130,7 @@ static Location locations[] = {
         64,
         true
     },
+#endif
 #endif
 
     /* End marker */

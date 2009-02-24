@@ -109,6 +109,8 @@ enum {
     GR_INPUT_MOUSE,
     GR_INPUT_TOUCHSCREEN,
     GR_INPUT_AI,
+    GR_BACK,
+    GR_FORWARD,
     GR_LOC_MARGARET_COURT_ARENA,
     GR_LOC_STADE_ROLAND_GARROS,
     GR_LOC_COURT_NO_1,
@@ -140,7 +142,7 @@ void fill_image_offset(image_id id, int x, int y, int w, int h, int offset_x, in
 #define fill_image(id, x, y, w, h) fill_image_offset(id, x, y, w, h, 0, 0)
 void draw_button( int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
 void draw_button_text(const char* s, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, char pressed);
-#define draw_button_object(button,mx,my) (draw_button_text(button.text, button.x, button.y, button.w, button.h, button.r, button.g, button.b, M_POS_BUTTON(button, mx, my)))
+void draw_button_object(MenuButton*, int, int);
 
 void clear_screen();
 void store_screen();
