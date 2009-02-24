@@ -49,7 +49,7 @@ static FontDescription font_desc[] = {
      * the second time in a row - this saves memory in the
      * loader function.
      **/
-    { "dustismo.ttf", 13, TTF_STYLE_NORMAL },
+    { "dustismo.ttf", 15, TTF_STYLE_NORMAL },
     { NULL, 20, TTF_STYLE_NORMAL },
     { "itwasntme.ttf", 22, TTF_STYLE_NORMAL },
     { NULL, 28, TTF_STYLE_NORMAL }

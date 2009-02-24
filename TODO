@@ -8,8 +8,6 @@ Target release date: 19.02.2009
 
 RELEASE-CRITICAL
 
- 4. Make AI player a bit more intelligent & beatable
-    -> Python-scriptable + events that it "sees"
 10. Clean-up the menu appearance / style to be more consistent
     (remove buttons as much as possible and replace with gfx)
 

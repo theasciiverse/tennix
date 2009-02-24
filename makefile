@@ -25,7 +25,7 @@ ifeq ($(MKCALLGRAPH),1)
   LD        =  nccld
 endif
 
-RELEASE   =  0.7.0
+RELEASE   =  1.0
 
 TARGET ?= default
 

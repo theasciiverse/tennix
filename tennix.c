@@ -170,7 +170,7 @@ int main( int argc, char** argv) {
             break;
     }
 #else
-    fprintf(stderr, "Tennix " VERSION "\n" COPYRIGHT "\n" URL "\n\n");
+    fprintf(stderr, "Tennix 2009 World Tennis Championship Tour (v" VERSION ")\n" COPYRIGHT "\n" URL "\n\n");
 
     i = 1;
     while (i < argc) {
@@ -219,7 +219,7 @@ int main( int argc, char** argv) {
         exit( 1);
     }   
 
-    SDL_WM_SetCaption( "Tennix " VERSION, "Tennix");
+    SDL_WM_SetCaption( "Tennix 2009 World Tennis Championship Tour", "Tennix 2009");
     SDL_ShowCursor( SDL_DISABLE);
     SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, 1);
 
@@ -270,6 +270,7 @@ int main( int argc, char** argv) {
     animation_state_run(intro_playback, 1);
     animation_state_free(intro_playback);
     animation_free(intro);
+    start_fade();
 
     worldmap_xpos = (WIDTH-get_image_width(GR_WORLDMAP))/2;
     worldmap_ypos = (HEIGHT-get_image_height(GR_WORLDMAP))/2;
@@ -287,6 +288,7 @@ int main( int argc, char** argv) {
                 break;
             case MENU_STATE_SLIDE_TO_MAINMENU:
                 clear_screen();
+                rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
                 store_screen();
                 slide = slide_start;
                 slide_direction = -1;
@@ -466,9 +468,10 @@ int main( int argc, char** argv) {
                 font_draw_string(FONT_SMALL, "current match:", 10, 10);
                 font_draw_string(FONT_SMALL, current_game->sets_score_str, 10, 40);
             } else {
-                font_draw_string(FONT_MEDIUM, "Tennix " VERSION, 10, 10);
+                font_draw_string(FONT_MEDIUM, "Tennix 2009 World Tennis Championship Tour", 10, 10);
             }
-            font_draw_string_color(FONT_SMALL, URL, 10, HEIGHT-10-font_get_height(FONT_SMALL), 100, 100, 100);
+            font_draw_string_color(FONT_MEDIUM, URL, 10-1, HEIGHT-10-1-font_get_height(FONT_MEDIUM), 130, 130, 130);
+            font_draw_string_color(FONT_MEDIUM, URL, 10, HEIGHT-10-font_get_height(FONT_MEDIUM), 30, 30, 30);
             show_image(GR_BTN_QUIT, WIDTH-get_image_width(GR_BTN_QUIT)+slide+(slide/7)+3-(3*(btn_hovering==MENU_QUIT)), 350, 255);
         } else if (state == MENU_STATE_OPTIONS) {
             /* Options screen */
@@ -518,7 +521,7 @@ int main( int argc, char** argv) {
                         rectangle(worldmap_xpos + locations[x].worldmap_x-2, worldmap_ypos + locations[x].worldmap_y-2, 5, 5, 255, 255*(prepared_game->current_location != -1 && x==(unsigned int)(prepared_game->current_location)), 0);
                     }
                 } else {
-                    rectangle_alpha(location_info_xpos-5, location_info_ypos-5, 10+get_image_width(prepared_game->location->photo), get_image_height(prepared_game->location->photo)+100, 100, 0, 0, 200);
+                    rectangle_alpha(location_info_xpos-5, location_info_ypos-5, 10+get_image_width(prepared_game->location->photo), get_image_height(prepared_game->location->photo)+100, 30, 30, 30, 200);
                     show_sprite(prepared_game->location->photo, (i/1000)%(prepared_game->location->photo_frames), prepared_game->location->photo_frames, location_info_xpos, location_info_ypos, 255);
                 font_draw_string(FONT_SMALL, prepared_game->location->name, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200);
                 font_draw_string(FONT_SMALL, prepared_game->location->area, location_info_xpos+MENU_OPTIONS_BORDER, location_info_ypos+MENU_OPTIONS_BORDER+200+font_get_height(FONT_SMALL));

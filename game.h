@@ -48,7 +48,6 @@ enum {
     true
 };
 
-#ifdef EXTENDED_REFEREE
 enum {
     REFEREE_NORMAL,
     REFEREE_OUT,
@@ -56,15 +55,6 @@ enum {
     REFEREE_PLAYER2,
     REFEREE_COUNT
 };
-#else
-enum {
-    REFEREE_NORMAL,
-    REFEREE_PLAYER1,
-    REFEREE_OUT,
-    REFEREE_PLAYER2,
-    REFEREE_COUNT
-};
-#endif
 
 enum {
     WINNER_NONE,

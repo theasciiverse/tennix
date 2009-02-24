@@ -96,7 +96,7 @@ void animation_state_run(AnimationState* state, int interruptible)
     while (animation_state_update(state)) {
         if (interruptible) {
             while (SDL_PollEvent(&e)) {
-                if (e.type == SDL_KEYDOWN || e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_QUIT) {
+                if (e.type == SDL_KEYDOWN || e.type == SDL_QUIT) {
                     return;
                 }
             }
@@ -259,9 +259,8 @@ Animation* create_intro()
     Animation* intro = animation_new();
 
     /* Just some weird demo of how the animations work */
-    animation_append(intro, animation_part_new_text(100, 4000, ANIMATION_FADE_IN | ANIMATION_FADE_OUT | ANIMATION_SLIDE_LEFT, 0, 0, 0, GRAVITY_CENTER_UPPERHALF, FONT_MEDIUM, "Deine Eltern sind", 255, 255, 255));
-    animation_append(intro, animation_part_new_text(1000, 4500, ANIMATION_FADE_IN | ANIMATION_FADE_OUT | ANIMATION_SLIDE_RIGHT, 0, 0, 0, GRAVITY_CENTER_BOTTOMHALF, FONT_MEDIUM, "auf einem Tennixturnier", 255, 255, 255));
-    animation_append(intro, animation_part_new_from_surface(2000, 5500, ANIMATION_FADE_IN | ANIMATION_FADE_OUT | ANIMATION_FROM_BOTTOM | ANIMATION_ZOOM_2X, 0, 0, 0, GRAVITY_CENTER_SCREEN, get_surface(GR_TENNIXLOGO), 0, 0, 1));
+    animation_append(intro, animation_part_new_text(100, 4000, ANIMATION_FADE_IN | ANIMATION_FADE_OUT, 0, 0, 0, GRAVITY_CENTER_SCREEN, FONT_MEDIUM, "thpinfo.com presents", 255, 255, 255));
+    animation_append(intro, animation_part_new_from_surface(4000, 8000, ANIMATION_FADE_IN | ANIMATION_FADE_OUT | ANIMATION_ZOOM_2X, 0, 0, 0, GRAVITY_CENTER_SCREEN, get_surface(GR_TENNIXLOGO), 0, 0, 1));
 
     return intro;
 }

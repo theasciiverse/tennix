@@ -267,6 +267,7 @@ void gameloop(GameState *s) {
     }
 
     clear_screen();
+    rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
     store_screen();
 
     stop_sample(SOUND_AUDIENCE);
@@ -536,9 +537,8 @@ void render( GameState* s) {
     unsigned int i;
     float zoom;
     float rotate;
-#ifdef EXTENDED_REFEREE
     int t=1000;
-#endif
+
     if (s->sound_events != 0) {
         if (s->sound_events & SOUND_EVENT_GROUND) {
             play_sample(SOUND_GROUND);
@@ -560,6 +560,7 @@ void render( GameState* s) {
             s->is_over = true;
         }
         clear_screen();
+        rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
         store_screen();
         show_sprite( GR_RACKET, 2*(s->winner-1), 4, WIDTH/2 - get_image_width( GR_RACKET)/8, HEIGHT/2 - get_image_height( GR_RACKET), 255);
         sprintf( s->game_score_str, "player %d wins the match with %s", s->winner, format_sets( s));
@@ -569,12 +570,12 @@ void render( GameState* s) {
     }
     if (s->displayed_court_type != s->location->court_type || s->text_changed || s->old_referee != s->referee) {
         clear_screen();
+        rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
         fill_image(s->location->court_type, 120, 120, 400, 250);
         show_image(GR_COURT, 0, 0, 255);
         font_draw_string(FONT_XLARGE, s->game_score_str, 14, 14);
         font_draw_string(FONT_XLARGE, s->sets_score_str, (WIDTH-font_get_string_width(FONT_XLARGE, s->sets_score_str))-14, 14);
         if (s->location->has_referee) {
-#ifdef EXTENDED_REFEREE
             switch (s->referee) {
                 case REFEREE_NORMAL:
                     t = 1000;
@@ -606,9 +607,6 @@ void render( GameState* s) {
             if (voice_finished_flag == 0) {
                 show_sprite(GR_TALK, (s->time/150)%2, 2, 280, 45, 255);
             }
-#else
-            show_sprite( GR_REFEREE, s->referee, 4, 250, 10, 255);
-#endif
         }
         s->displayed_court_type = s->location->court_type;
         s->text_changed = false;

@@ -88,7 +88,7 @@ static Location locations[] = {
 #ifdef NONFREE_LOCATIONS
     {
         /* Bunabhainneadar Tennis Club  */
-        "Training Camp Bunabhainneadar",
+        "Tennis Club Bunabhainneadar",
         "Husinish",
         "North Harris",
         GR_CTT_GRASS,
