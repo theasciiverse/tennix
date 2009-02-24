@@ -7,12 +7,13 @@ Cross-compiling on a Debian System (untested!)
 http://wiki.njh.eu/MinGW-Cross-Compiling_mit_SDL
 
 You also need the win32 development packages of
-SDL_mixer and SDL_image, these can be found here:
+SDL_mixer, SDL_image and SDL_ttf, these can be found here:
 
 http://www.libsdl.org/projects/SDL_mixer/
 http://www.libsdl.org/projects/SDL_image/
+http://www.libsdl.org/projects/SDL_ttf/
 
-For SDL_mixer and SDL_image, copy the *.h files
+For these libraries, copy the *.h files
 to c:\mingw\include\SDL\ and the *.lib files to 
 c:\mingw\lib\. The .dll files have to be copied 
 to the tennix source folder, so they can be 
@@ -68,4 +69,7 @@ Thomas Perl <thp@perli.net>, 2007-11-21
 
 Enjoy,
           thp     2007-05-12
+
+
+Updated: 2009-02-24
 

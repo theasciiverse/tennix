@@ -1,13 +1,13 @@
 
 
 
-          ###### #####  ##   ##  ##   ##  ##  ##   ##
-            ##   ##     ###  ##  ###  ##  ##  ### ###
-            ##   ####   ## # ##  ## # ##  ##    ###
+          thpinfo.com presents
+          ****** *****  **   **  **   **  **  **   **
+            **   **     ***  **  ***  **  **  *** ***
+            ==   ====   == = ==  == = ==  ==    ===
             ##   ##     ##  ###  ##  ###  ##  ### ###
             ##   #####  ##   ##  ##   ##  ##  ##   ##
-
-                                           SDL Port
+                  2009 World Tennix Championship Tour
 
  Copyright (C) 2003, 2007, 2008, 2009 Thomas Perl <thp@thpinfo.com>
  
@@ -66,33 +66,33 @@ INSTALLATION
 PLAYING TENNIX
 ==============
 
-   You can play in either single-player or multi-player mode. 
-   For single player, Player 1 will play against the computer 
-   and for multi player, Player 1 will play against Player 2.
+   You can play in either single-player or multi-player mode. You can even
+   let two AI players play against each other. This can be configured in
+   the controls screen.
+
+   THE POWERBAR
+
+   You have to keep your "hit" key pressed, so that your powerbar (on the
+   bottom of the screen) "fills up". The more power you have, the stronger
+   you will hit the ball (and the higher and longer it will fly). Too much
+   power could make the ball go into the OUT, so be sure to use it wisely.
 
    CONTROLS
 
-                         Player 1   |   Player 2
-                       ---------------------------
-   Move up                  W              O
-   Move down                S              L
-   Swing racket             D              K
-                       ---------------------------
-
-   See the manpage, tennix(6) for more controls (especially alternative
-   keyboard controls and mouse control, which is new since 0.6.0).
+   Select the controller you like from the input selection menu. Be sure
+   to connect gamepads and joysticks BEFORE starting Tennix, so they are
+   enumerated and detected correctly.
 
    FUNCTION KEYS
 
    Y  .... Make screenshot (save as screenshot.bmp)
    F  .... Toggle fullscreen (X11 only)
-   C  .... Switch type of court (grass, clay, etc..)
 
    Bonus (because you took the time to look at the README file):
    Obviously, there are some hidden easter eggs that are still not available
    via the UI, due to the fact that we didn't implement the UI for it yet :)
-   Think about [n]ight, [r]ain and fog (think fog[t], even..). Wind is also
-   available, but it's so broken, you'll have to look up the keys in game.c.
+   Think about [r]ain and fog (think fog[t], even..). Wind is also available,
+   but it's so broken, you'll have to look up the keys in game.c.
 
 
 DEVELOPMENT/DEBUGGING
@@ -103,6 +103,8 @@ DEVELOPMENT/DEBUGGING
    using "DEBUG=1 make" or exporting the environment variable for
    the current session, as in "export DEBUG=1" followed by "make".
 
+   See the HACKING and TODO files for more development information.
+
 
 CREDITS
 =======
@@ -112,6 +114,19 @@ CREDITS
    Thanks to Esad Hajdarevic and Stefan Doesinger for some optimizations
    done during the Effiziente Programme course in January 2009 :)
 
+   Public domain artwork (stadium photos) by
+   http://en.wikipedia.org/wiki/User:Ivan
+   http://fr.wikipedia.org/wiki/Utilisateur:Arnaud_25
+   http://en.wikipedia.org/wiki/User:Aleksmot
+   http://commons.wikimedia.org/wiki/User:Alexisrael
+   http://commons.wikimedia.org/wiki/User:Vardion
+
+   Additional artwork by
+   Martin Third (http://flickr.com/photos/mthird3rd/471720012/)
+
+   This project includes SDL_rotozoom by A. Schiffler
+
+   See data/COPYING and credits.h for more information about the data files.
 
 CONTACT
 =======
