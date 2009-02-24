@@ -139,10 +139,10 @@ tennix.tnx: archive $(TOARCHIVE)
 	./archive $@ $(TOARCHIVE)
 
 # Mac OS X-specific targets
-release-osx: tennix ChangeLog
+release-osx: tennix tennix.tnx ChangeLog
 	mkdir -p $(OSXAPP)/Contents/{MacOS,/Resources}
 	cp -rpv tennix $(OSXAPP)/Contents/MacOS/Tennix
-	cp -rpv $(DATAFILES) ChangeLog $(OSXAPP)/Contents/Resources/
+	cp -rpv tennix.tnx $(DATAFILES) ChangeLog $(OSXAPP)/Contents/Resources/
 	sed -e 's/TENNIX_VERSION/$(RELEASE)/' osxapp.plist >$(OSXAPP)/Contents/Info.plist
 	echo 'APPL????' >$(OSXAPP)/Contents/PkgInfo
 	zip -r tennix-$(RELEASE)-macosx.zip $(OSXAPP)

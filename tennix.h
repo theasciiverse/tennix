@@ -34,7 +34,11 @@
 #endif
 
 #define ARCHIVE_FILE "tennix.tnx"
-#define ARCHIVE_FILE_INSTALLED "/" PREFIX "/share/games/tennix/" ARCHIVE_FILE
+#ifdef MACOSX
+#  define ARCHIVE_FILE_INSTALLED "Tennix.app/Contents/Resources/" ARCHIVE_FILE
+#else
+#  define ARCHIVE_FILE_INSTALLED "/" PREFIX "/share/games/tennix/" ARCHIVE_FILE
+#endif
 
 #ifdef WIN32
 #  define GAMESTATE_FILE "current_match-" VERSION ".tennix"

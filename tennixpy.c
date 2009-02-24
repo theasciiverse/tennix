@@ -323,7 +323,11 @@ void tennixpy_unregister_bot(PyObject* bot)
 void tennixpy_uninit()
 {
     PyEval_RestoreThread(_py_save);
-    Py_Finalize();
+    /**
+     * FIXME: We _should_ run Py_Finalize here, but it makes
+     * Tennix crash, so we just tear it down without calling it.
+     **/
+    /*Py_Finalize();*/
 }
 
 #endif
