@@ -50,17 +50,41 @@ ABOUT
    being improved and updated since then.
 
 
-INSTALLATION
-============
+INSTALLATION AND BUILD INSTRUCTIONS
+===================================
 
    To build tennix, simply run "make" (on Unix-like systems) or 
    follow the instructions for your platform in the README.* files.
+   Be sure to install all the dependencies listed below and check out the
+   makefile for instructions on what you can enable/disable with the help
+   of environment variables (e.g. USE_PYTHON, NONFREE_LOCATIONS, DEBUG, ...)
 
-   Tennix is known to build on Debian GNU/Linux 4.0 (etch), 
-   Win32 (mingw32), Mac OS X 10.4 (using XCode tools) and in
-   the Maemo 4.0 SDK (for Nokia Internet Tables, IT OS2008).
+   Tennix is known to build on Debian GNU/Linux 4.0, Ubuntu 8.10, Windows XP
+   and Windows Vista (using MSYS/mingw32 - see README.win32), Mac OS X 10.4
+   and Mac OS X 10.5 (using XCode Tools - see README.MacOSX), the Maemo 4.0
+   and Maemo 4.1 SDKs (Chinook/Diablo - see README.Maemo).
 
-   Binaries of Tennix can be found on the webpage.
+   Dependencies:
+     · SDL       >= 1.2.13 (www.libsdl.org)
+     · SDL_image >= 1.2.6  (www.libsdl.org/projects/SDL_image)
+     · SDL_mixer >= 1.2.8  (www.libsdl.org/projects/SDL_mixer)
+     · SDL_ttf   >= 2.0.9  (www.libsdl.org/projects/SDL_ttf)
+
+   (Tennix might compile and work with earlier versions of the respective
+   libraries, but the versions here have been the ones that I've tested it
+   with, so if there are problems, try to use the versions specified here)
+
+   Optional dependencies:
+     · Python    =  2.5.x  (www.python.org)
+       => If you don't want to use the Python integration, set the variable
+          USE_PYTHON to a value other than 1 by specifying it on the "make"
+          command line like this:      make USE_PYTHON=0
+
+   On a Debian-based system, you can get all dependencies with the following
+   command line:
+
+    aptitude install libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev \
+                     libsdl-ttf2.0-dev python2.5-dev
 
 
 PLAYING TENNIX
