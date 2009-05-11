@@ -75,7 +75,7 @@ INSTALLATION AND BUILD INSTRUCTIONS
    with, so if there are problems, try to use the versions specified here)
 
    Optional dependencies:
-     · Python    =  2.5.x  (www.python.org)
+     · Python    >=  2.5.x  (www.python.org)
        => If you don't want to use the Python integration, set the variable
           USE_PYTHON to a value other than 1 by specifying it on the "make"
           command line like this:      make USE_PYTHON=0
@@ -84,7 +84,7 @@ INSTALLATION AND BUILD INSTRUCTIONS
    command line:
 
     aptitude install libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev \
-                     libsdl-ttf2.0-dev python2.5-dev
+                     libsdl-ttf2.0-dev python-dev
 
 
 PLAYING TENNIX
