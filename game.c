@@ -86,15 +86,6 @@ GameState *gamestate_new() {
 
     game_setup_serve(s);
 
-    /* smoothen n-gram */
-    for( x = 0; x<NGRAM_STEPS; x++) {
-        for( y = 0; y<NGRAM_STEPS; y++) {
-            for( z = 0; z<NGRAM_STEPS; z++) {
-                s->ngram[x][y][z] = 1;
-            }
-        }
-    }
-
     return s;
 }
 
@@ -380,10 +371,6 @@ bool step( GameState* s) {
             if (s->location->max_visitors > 100) {
                 s->sound_events |= SOUND_EVENT_APPLAUSE;
             }
-            /*FIXME n-gram predictor broken
-            s->history_size = 0;
-            s->history_is_locked = 0;
-            s->ngram_prediction = 0.0;*/
         }
     } else {
         /* score is still undecided - do the racket swing thing */
@@ -426,28 +413,6 @@ bool step( GameState* s) {
             }
         }
     }
-
-#if 0
-    FIXME n-gram predictor broken
-    if( IS_OUT_X(s->ball.x) || IS_OFFSCREEN_Y(s->ball.y)) {
-        if( IS_OUT_X(s->ball.x)) {
-            /*if( !s->history_is_locked && s->referee != REFEREE_OUT) {
-                s->history[s->history_size] = (int)(NGRAM_STEPS*s->ball.y/HEIGHT);
-                s->history_size++;
-                if( s->history_size == 3) {
-                    s->ngram[s->history[0]][s->history[1]][s->history[2]] += 10;
-                    s->ngram_prediction = ngram_predictor( s);
-                    s->history[0] = s->history[1];
-                    s->history[1] = s->history[2];
-                    s->history_size--;
-                }
-                s->history_is_locked = true;
-            }*/
-        }
-    } else {
-        /*s->history_is_locked = false;*/
-    }
-#endif
 
     SDL_PumpEvents();
     keys = SDL_GetKeyState(NULL);
@@ -803,17 +768,6 @@ void input_ai(GameState* s, int player) {
             PLAYER(s, player).power = fmaxf(10., fminf(PLAYER(s, player).power*PLAYER(s, player).power_up_factor, PLAYER_POWER_MAX));
             PLAYER(s, player).use_power = false;
         }
-    } else if( s->ngram_prediction > 0.0) {
-        target = s->ngram_prediction*((float)HEIGHT)/((float)(NGRAM_STEPS));
-        target = GAME_Y_MID + (target-GAME_Y_MID)*1.5;
-
-        if( PLAYER(s, player).desire == DESIRE_NORMAL && !IS_NEAR_Y_AI( PLAYER(s, player).y, target)) {
-            if( PLAYER(s, player).y < target) {
-                PLAYER(s, player).y += fminf(fact, (target-PLAYER(s, player).y)/40.0);
-            } else if( PLAYER(s, player).y > target) {
-                PLAYER(s, player).y -= fminf(fact, (PLAYER(s, player).y-target)/40.0);
-            }
-        }
     }
 }
 
@@ -831,32 +785,6 @@ void game_setup_serve( GameState* s) {
     } else {
         s->ball.x = GAME_X_MAX+RACKET_X_MID*1.5;
     }
-}
-
-float ngram_predictor( GameState* s) {
-    unsigned int count = 0;
-    unsigned long sum = 0;
-    int x, y, z;
-    float result;
-
-    if( s->history_size < 3) {
-        return 0.0;
-    }
-
-    x = s->history[1];
-    y = s->history[2];
-
-    for( z = 0; z<NGRAM_STEPS; z++) {
-        count += s->ngram[x][y][z];
-        sum += z * s->ngram[x][y][z];
-    }
-
-    result = ((float)(sum))/((float)(count));
-#ifdef DEBUG
-    printf( "predicting next = %.2f\n", result);
-#endif
-
-    return result;
 }
 
 int score_game(GameState* s) {

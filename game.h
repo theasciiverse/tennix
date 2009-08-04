@@ -32,8 +32,6 @@
 
 #define SETS_TO_WIN 3
 
-#define NGRAM_STEPS 6
-
 #define MAXPLAYERS 2
 
 #ifdef DELUXE_EDITION
@@ -159,11 +157,6 @@ typedef struct {
     int winner;
     bool is_over;
     image_id displayed_court_type;
-    unsigned int history[3];
-    unsigned int history_size;
-    bool history_is_locked;
-    unsigned char ngram[NGRAM_STEPS][NGRAM_STEPS][NGRAM_STEPS];
-    float ngram_prediction;
     unsigned int sound_events;
     float joystick_y;
     float joystick_x;
@@ -277,7 +270,6 @@ float get_move_y( GameState*, unsigned char);
 void input_human(GameState*, int);
 void input_ai(GameState*, int);
 void game_setup_serve( GameState*);
-float ngram_predictor( GameState*);
 
 int score_game(GameState*);
 char* format_sets( GameState*);

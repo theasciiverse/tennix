@@ -69,7 +69,7 @@ ifeq ($(UNAME),Darwin)
   LIBS += $$(sdl-config --static-libs) $(SDLLIBS)/libSDL_mixer.a $(SDLLIBS)/libSDL_image.a $(SDLLIBS)/libSDL_ttf.a $$(freetype-config --prefix)/lib/libfreetype.a
   CFLAGS += $$(sdl-config --cflags) -lz
 else
-  LIBS += $$(sdl-config --libs) -lSDL_mixer -lSDL_image -lSDL_ttf
+  LIBS += $$(sdl-config --libs) -lSDL_mixer -lSDL_image -lSDL_ttf -lSDL_net
   CFLAGS += $$(sdl-config --cflags)
 endif
 

@@ -274,7 +274,7 @@ int main( int argc, char** argv) {
         exit(0);
     }
 
-    intro = create_intro();
+    /*intro = create_intro();
     intro_playback = animation_state_new(intro);
     animation_state_run(intro_playback, 1);
     animation_state_free(intro_playback);
@@ -751,11 +751,11 @@ int main( int argc, char** argv) {
     }
 
     /* Play the credits */
-    intro = create_credits();
+    /*intro = create_credits();
     intro_playback = animation_state_new(intro);
     animation_state_run(intro_playback, 1);
     animation_state_free(intro_playback);
-    animation_free(intro);
+    animation_free(intro);*/
 
     uninit_graphics();
     uninit_input();
