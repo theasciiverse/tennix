@@ -61,11 +61,17 @@ enum {
 };
 
 enum {
+    SOUND_EVENT_NONE     = 0<<0,
     SOUND_EVENT_GROUND   = 1<<0,
     SOUND_EVENT_OUT      = 1<<1,
     SOUND_EVENT_APPLAUSE = 1<<2,
     SOUND_EVENT_RACKET   = 1<<3
 };
+
+#define SOUND_EVENT_COUNT 4
+
+typedef unsigned char soundevent_t;
+
 
 typedef struct {
     const char* name;
@@ -150,7 +156,7 @@ typedef struct {
     unsigned int current_set;
     int winner;
     image_id displayed_court_type;
-    unsigned int sound_events;
+    soundevent_t sound_events;
     unsigned int rain;
     unsigned int fog;
     bool night;
@@ -160,6 +166,10 @@ typedef struct {
     int score_event;
     unsigned int score_time;
 } GameState;
+
+typedef struct {
+    soundevent_t sound_events;
+} RenderState;
 
 #define PI 3.1415
 
@@ -251,7 +261,7 @@ GameState* gamestate_load(const char* filename);
 
 /* Game module functions */
 void gameloop(GameState*);
-void render( GameState*);
+void render( GameState*, RenderState*);
 bool step( GameState*);
 void limit_value( float*, float, float);
 float get_move_y( GameState*, unsigned char);
