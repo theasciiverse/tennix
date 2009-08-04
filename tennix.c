@@ -155,7 +155,7 @@ int main( int argc, char** argv) {
     Uint32 ft, frames; /* frame timer and frames */
 #endif
 
-#ifdef MAEMO
+#if defined(MAEMO) || defined(MACOSX)
     sdl_flags |= SDL_FULLSCREEN;
 #endif
 

@@ -27,7 +27,7 @@ endif
 
 RELEASE   =  1.0
 
-TARGET ?= default
+UNAME = $(shell uname)
 
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
@@ -65,9 +65,10 @@ ifeq ($(MAEMO),1)
   CFLAGS += -DMAEMO
 endif
 
-ifeq ($(TARGET),cocoa)
-  LIBS += SDLmain.m -framework SDL -framework Cocoa -framework SDL_image -framework SDL_mixer -framework SDL_ttf
-  CFLAGS += -I/Library/Frameworks/SDL.framework/Headers -I/Library/Frameworks/SDL_image.framework/Headers -I/Library/Frameworks/SDL_mixer.framework/Headers -I/Library/Frameworks/SDL_ttf.framework/Headers -DMACOSX
+ifeq ($(UNAME),Darwin)
+  SDLLIBS=$$(sdl-config --prefix)/lib
+  LIBS += $$(sdl-config --static-libs) $(SDLLIBS)/libSDL_mixer.a $(SDLLIBS)/libSDL_image.a $(SDLLIBS)/libSDL_ttf.a $$(freetype-config --prefix)/lib/libfreetype.a
+  CFLAGS += $$(sdl-config --cflags) -lz
 else
   LIBS += $$(sdl-config --libs) -lSDL_mixer -lSDL_image -lSDL_ttf
   CFLAGS += $$(sdl-config --cflags)
@@ -88,9 +89,7 @@ WIN32LIBS = *.dll
 OSXAPP = Tennix.app
 
 DATAFILES = README README.*
-ifeq ($(TARGET),cocoa)
-  DATAFILES += data/Tennix.icns
-endif
+DATAFILES_OSX = $(DATAFILES) data/Tennix.icns
 
 tennix: $(OBJ) tennix.tnx
 	$(CC) $(CFLAGS)   -o tennix $(OBJ) $(LIBS)
@@ -142,7 +141,7 @@ tennix.tnx: archive $(TOARCHIVE)
 release-osx: tennix tennix.tnx ChangeLog
 	mkdir -p $(OSXAPP)/Contents/{MacOS,/Resources}
 	cp -rpv tennix $(OSXAPP)/Contents/MacOS/Tennix
-	cp -rpv tennix.tnx $(DATAFILES) ChangeLog $(OSXAPP)/Contents/Resources/
+	cp -rpv tennix.tnx $(DATAFILES_OSX) ChangeLog $(OSXAPP)/Contents/Resources/
 	sed -e 's/TENNIX_VERSION/$(RELEASE)/' osxapp.plist >$(OSXAPP)/Contents/Info.plist
 	echo 'APPL????' >$(OSXAPP)/Contents/PkgInfo
 	zip -r tennix-$(RELEASE)-macosx.zip $(OSXAPP)

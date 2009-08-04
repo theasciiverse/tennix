@@ -33,6 +33,10 @@
 #  define NONFREE_LOCATIONS
 #endif
 
+#if defined(__MACH__) && defined(__APPLE__)
+#  define MACOSX
+#endif
+
 #define ARCHIVE_FILE "tennix.tnx"
 #ifdef MACOSX
 #  define ARCHIVE_FILE_INSTALLED "Tennix.app/Contents/Resources/" ARCHIVE_FILE
