@@ -55,12 +55,14 @@ enum {
     REFEREE_COUNT
 };
 
+typedef unsigned char winner_t;
 enum {
     WINNER_NONE,
     WINNER_PLAYER1,
     WINNER_PLAYER2
 };
 
+typedef unsigned char soundevent_t;
 enum {
     SOUND_EVENT_NONE     = 0<<0,
     SOUND_EVENT_GROUND   = 1<<0,
@@ -68,11 +70,7 @@ enum {
     SOUND_EVENT_APPLAUSE = 1<<2,
     SOUND_EVENT_RACKET   = 1<<3
 };
-
 #define SOUND_EVENT_COUNT 4
-
-typedef unsigned char soundevent_t;
-
 
 typedef struct {
     const char* name;
@@ -134,8 +132,9 @@ enum {
 };
 
 /* wait 2 seconds before we score the game */
-#define SCORING_DELAY 2000
+#define SCORING_DELAY 1000
 
+typedef unsigned char scoreevent_t;
 enum {
     SCORE_UNDECIDED,
     SCORE_EVENT_NET,
@@ -146,7 +145,7 @@ enum {
     SCORE_EVENT_MAX
 };
 
-typedef unsigned int eventcounter_t;
+typedef unsigned char eventcounter_t;
 enum {
     EVENTCOUNTER_RENDERSTATE_START = 0,
     EVENTCOUNTER_GAMESTATE_START = 1
@@ -168,17 +167,16 @@ enum {
 
 typedef struct {
     const Location* location;
-    int current_location; /* index of loc. in global location table */
+    char current_location; /* index of loc. in global location table */
     Ball ball;
     Player players[MAXPLAYERS];
-    Uint32 time;
-    unsigned int serving_player;
+    unsigned char serving_player;
     referee_t referee;
-    unsigned int current_set;
-    int winner;
+    unsigned char current_set;
+    winner_t winner;
     soundevent_t sound_events;
-    int score_event;
-    unsigned int score_time;
+    scoreevent_t score_event;
+    unsigned char score_time;
     eventcounter_t ec_game;
     eventcounter_t ec_sets;
     statusmessage_t status_message;
@@ -283,16 +281,16 @@ GameState* gamestate_load(const char* filename);
 
 /* Game module functions */
 void gameloop(GameState*);
+void step(GameState*);
+bool handle_input(GameState*);
 void render(const GameState*, RenderState*);
-bool step( GameState*);
-void limit_value( float*, float, float);
 float get_move_y( GameState*, unsigned char);
 void input_human(GameState*, int);
 void input_ai(GameState*, int);
 void game_setup_serve( GameState*);
 
 int score_game(GameState*);
-int game_get_winner( GameState*);
+winner_t game_get_winner(const GameState*);
 
 /* Helper functions for the renderer */
 const char* format_sets(const GameState*);

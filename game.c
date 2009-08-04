@@ -46,7 +46,6 @@ GameState *gamestate_new() {
             { NULL, -1, GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0.0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, 0, {0}, PLAYER_ACCEL_DEFAULT },
             { NULL, -1, GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0.0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, 0, {0}, PLAYER_ACCEL_DEFAULT },
         },
-        0,
         1,
         REFEREE_NORMAL,
         0,
@@ -72,7 +71,7 @@ GameState *gamestate_new() {
 
 int gamestate_save(GameState* s, const char* filename)
 {
-    Location *location;
+    const Location *location;
     InputDevice* input_devices[MAXPLAYERS];
     int i, result = 0;
     FILE* fp = NULL;
@@ -211,8 +210,8 @@ void gameloop(GameState *s) {
         ot = nt;
 
         while( accumulator >= dt) {
-            quit = step(s);
-            s->time += dt;
+            step(s);
+            quit = handle_input(s);
             accumulator -= dt;
         }
 
@@ -238,10 +237,25 @@ void gameloop(GameState *s) {
     stop_sample(SOUND_RAIN);
 }
 
-bool step( GameState* s) {
-    Uint8 *keys;
+void step(GameState* s) {
     bool ground_event = false;
     int p;
+
+    s->ball.z += s->ball.move_z;
+    if (!s->ball.inhibit_gravity) {
+        s->ball.move_z += GRAVITY;
+    }
+
+    s->ball.x += s->ball.move_x;
+    s->ball.y += s->ball.move_y;
+
+    for (p=1; p<=MAXPLAYERS; p++) {
+        if (PLAYER(s, p).use_power) {
+            PLAYER(s, p).power = fmaxf(0.0, fminf(
+                        PLAYER(s, p).power*PLAYER(s, p).power_down_factor,
+                        PLAYER_POWER_MAX));
+        }
+    }
 
     if (s->ball.z < 0) {
         /* ground event */
@@ -312,11 +326,11 @@ bool step( GameState* s) {
 
     if (s->score_event != SCORE_UNDECIDED) {
         /* we have some scoring to do */
-        if (s->score_time == 0) {
+        if (s->score_time < SCORING_DELAY/GAME_TICKS) {
             /* schedule scoring in the future */
-            s->score_time = s->time + SCORING_DELAY;
+            s->score_time++;
             s->referee = REFEREE_OUT;
-        } else if (s->time >= s->score_time) {
+        } else if (s->score_time >= SCORING_DELAY/GAME_TICKS) {
             /* time has ran out - score now */
             switch (score_game(s)) {
                 case WINNER_PLAYER1:
@@ -376,48 +390,41 @@ bool step( GameState* s) {
             }
         }
     }
+}
+
+bool handle_input(GameState* s) {
+    static GameState tmp;
+    Uint8* keys = NULL;
+    int p;
 
     SDL_PumpEvents();
     keys = SDL_GetKeyState(NULL);
 
-    if(s->winner == WINNER_NONE) {
+    if (keys['1']) {
+        memcpy(&tmp, s, sizeof(GameState));
+    } else if (keys['2']) {
+        memcpy(s, &tmp, sizeof(GameState));
+    }
+
+    if (s->winner == WINNER_NONE) {
         for (p=1; p<=MAXPLAYERS; p++) {
             if( PLAYER(s, p).type == PLAYER_TYPE_HUMAN) {
                 input_human(s, p);
             } else {
                 input_ai(s, p);
             }
+
+            /* Make sure player coordinates are valid */
+            if (PLAYER(s, p).y < PLAYER_Y_MIN) {
+                PLAYER(s, p).y = PLAYER_Y_MIN;
+            } else if (PLAYER(s, p).y > PLAYER_Y_MAX) {
+                PLAYER(s, p).y = PLAYER_Y_MAX;
+            }
         }
     }
     
-    /* Maemo: The "F6" button is the "Fullscreen" button */
-    /*if( keys['f'] || keys[SDLK_F6]) SDL_WM_ToggleFullScreen( screen);*/
-    if( keys['y']) SDL_SaveBMP( screen, "screenshot.bmp");
-
     /* Maemo: The "F4" button is the "Open menu" button */
-    if(keys[SDLK_ESCAPE] || keys['q']
-            || keys['p'] || keys[SDLK_F4]) {
-        return true;
-    }
-    
-    limit_value( &PLAYER(s, 1).y, PLAYER_Y_MIN, PLAYER_Y_MAX);
-    limit_value( &PLAYER(s, 2).y, PLAYER_Y_MIN, PLAYER_Y_MAX);
-    
-    s->ball.z += s->ball.move_z;
-    if (!s->ball.inhibit_gravity) {
-        s->ball.move_z += GRAVITY;
-    }
-
-    s->ball.x += s->ball.move_x;
-    s->ball.y += s->ball.move_y;
-
-    for (p=1; p<=MAXPLAYERS; p++) {
-        if (PLAYER(s, p).use_power) {
-            PLAYER(s, p).power = fmaxf(0.0, fminf(PLAYER(s, p).power*PLAYER(s, p).power_down_factor, PLAYER_POWER_MAX));
-        }
-    }
-
-    return false;
+    return (keys[SDLK_ESCAPE] || keys['q']);
 }
 
 void render(const GameState* s, RenderState* r) {
@@ -427,6 +434,7 @@ void render(const GameState* s, RenderState* r) {
     float rotate;
     int t=1000;
     soundevent_t sounds;
+    Uint32 time = SDL_GetTicks();
 
     /* The bits in sound_events flip when the sound should play */
     if ((sounds = (r->sound_events ^ s->sound_events)) != 0) {
@@ -506,7 +514,7 @@ void render(const GameState* s, RenderState* r) {
                     t = 400;
                     break;
             }
-            t = (s->time/t)%4;
+            t = (time/t)%4;
             switch (t) {
                 case 0:
                     t=0;
@@ -523,7 +531,7 @@ void render(const GameState* s, RenderState* r) {
             }
             show_sprite( GR_REFEREE, s->referee*3+t, 12, 250, 10, 255);
             if (voice_finished_flag == 0) {
-                show_sprite(GR_TALK, (s->time/150)%2, 2, 280, 45, 255);
+                show_sprite(GR_TALK, (time/150)%2, 2, 280, 45, 255);
             }
         }
         r->referee = s->referee;
@@ -542,9 +550,9 @@ void render(const GameState* s, RenderState* r) {
     rectangle(WIDTH-PLAYER_POWER_MAX-10, HEIGHT-30, (int)(PLAYER(s, 2).power), 10, 200, 200, 200);
     
     if( s->ball.move_x > 0) {
-        b = (s->time/100)%BALL_STATES;
+        b = (time/100)%BALL_STATES;
     } else if( s->ball.move_x < 0) {
-        b = BALL_STATES-1-(s->time/100)%BALL_STATES;
+        b = BALL_STATES-1-(time/100)%BALL_STATES;
     } else {
         b = 0;
     }
@@ -553,7 +561,7 @@ void render(const GameState* s, RenderState* r) {
     zoom = fmaxf(0.5, fminf(1.0, (float)(30.-(s->ball.z))/10.));
     show_image_rotozoom(GR_SHADOW, s->ball.x, s->ball.y+3, rotate, zoom);
 
-    rotate = (-s->ball.move_x * (float)((float)s->time/10.));
+    rotate = (-s->ball.move_x * (float)((float)time/10.));
     zoom = 1.0 + fmaxf(0.0, (s->ball.z-10.)/100.);
     show_image_rotozoom(GR_BALL, s->ball.x, s->ball.y - s->ball.z, rotate, zoom);
 
@@ -600,13 +608,13 @@ void render(const GameState* s, RenderState* r) {
     switch (s->location->fog) {
         default:
         case 4:
-            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -s->time/150, 0);
+            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -time/150, 0);
         case 3:
-            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, -s->time/100, 20);
+            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, -time/100, 20);
         case 2:
-            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -s->time/180, 80);
+            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -time/180, 80);
         case 1:
-            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, s->time/200, 0);
+            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, time/200, 0);
         case 0:
             break;
     }
@@ -615,14 +623,6 @@ void render(const GameState* s, RenderState* r) {
     }
 
     updatescr();
-}
-
-void limit_value( float* value, float min, float max) {
-    if( *value < min) {
-        *value = min;
-    } else if( *value > max) {
-        *value = max;
-    }
 }
 
 float get_move_y( GameState* s, unsigned char player) {
@@ -906,7 +906,7 @@ const char* format_status(const GameState* s) {
     }
 }
 
-int game_get_winner( GameState* s) {
+winner_t game_get_winner(const GameState* s) {
     unsigned int i;
     int sets[2] = {0};
 
