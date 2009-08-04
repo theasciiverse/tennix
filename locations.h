@@ -40,7 +40,10 @@ static Location locations[] = {
         1,
         422,
         187,
-        true
+        true,
+        false,
+        0,
+        0,
     },
     {
         /* French Open, http://en.wikipedia.org/wiki/French_Open */
@@ -54,7 +57,10 @@ static Location locations[] = {
         1,
         227,
         51,
-        true
+        true,
+        false,
+        10,
+        0,
     },
     {
         /* http://en.wikipedia.org/wiki/The_Championships,_Wimbledon */
@@ -68,7 +74,10 @@ static Location locations[] = {
         1,
         225,
         46,
-        true
+        true,
+        false,
+        50,
+        1,
     },
     {
         /* US Open, http://en.wikipedia.org/wiki/US_Open_(tennis) */
@@ -82,7 +91,10 @@ static Location locations[] = {
         1,
         125,
         64,
-        true
+        true,
+        false,
+        0,
+        2,
     },
 
 #ifdef NONFREE_LOCATIONS
@@ -98,7 +110,10 @@ static Location locations[] = {
         1,
         218,
         37,
-        false
+        false,
+        false,
+        0,
+        0,
     },
 #if 0
     /* We don't have permission for the following locations just yet... */
@@ -114,7 +129,10 @@ static Location locations[] = {
         1,
         243,
         53,
-        true
+        true,
+        false,
+        0,
+        0,
     },
     {
         /* http://en.wikipedia.org/wiki/Olympic_Green_Tennis_Centre */
@@ -128,7 +146,10 @@ static Location locations[] = {
         1,
         384,
         64,
-        true
+        true,
+        false,
+        0,
+        0,
     },
 #endif
 #endif

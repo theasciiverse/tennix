@@ -404,12 +404,6 @@ int main( int argc, char** argv) {
                     fprintf(stderr, "Game not yet prepared!\n");
                     exit(EXIT_FAILURE);
                 }
-                /* Set the day/night status */
-                if (night_start < night_end) {
-                    prepared_game->night = (prepared_game->location->worldmap_x > night_start && prepared_game->location->worldmap_x < night_end);
-                } else {
-                    prepared_game->night = (prepared_game->location->worldmap_x < night_end || prepared_game->location->worldmap_x > night_start);
-                }
 
                 /* Cancel a possibly started game */
                 free(current_game);
@@ -664,6 +658,12 @@ int main( int argc, char** argv) {
                     default:
                         if (!location_info_visible && highlight_location != -1) {
                             prepared_game->current_location = highlight_location;
+                            /* Set the day/night status */
+                            if (night_start < night_end) {
+                                locations[prepared_game->current_location].night = (locations[prepared_game->current_location].worldmap_x > night_start && locations[prepared_game->current_location].worldmap_x < night_end);
+                            } else {
+                                locations[prepared_game->current_location].night = (locations[prepared_game->current_location].worldmap_x < night_end || locations[prepared_game->current_location].worldmap_x > night_start);
+                            }
                             prepared_game->location = &(locations[prepared_game->current_location]);
                             location_info_xpos = MAX(0, MIN(WIDTH-320-50, mx-320/2));
                             location_info_ypos = MAX(0, MIN(HEIGHT-200-160, my-200/2));

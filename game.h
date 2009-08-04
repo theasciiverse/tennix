@@ -86,6 +86,9 @@ typedef struct {
     unsigned int worldmap_x;
     unsigned int worldmap_y;
     bool has_referee;
+    bool night;
+    unsigned int rain;
+    unsigned int fog;
 } Location;
 
 typedef struct {
@@ -164,7 +167,7 @@ enum {
 };
 
 typedef struct {
-    Location* location;
+    const Location* location;
     int current_location; /* index of loc. in global location table */
     Ball ball;
     Player players[MAXPLAYERS];
@@ -174,10 +177,6 @@ typedef struct {
     unsigned int current_set;
     int winner;
     soundevent_t sound_events;
-    unsigned int rain;
-    unsigned int fog;
-    bool night;
-    int wind;
     int score_event;
     unsigned int score_time;
     eventcounter_t ec_game;

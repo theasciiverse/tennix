@@ -52,10 +52,6 @@ GameState *gamestate_new() {
         0,
         WINNER_NONE,
         SOUND_EVENT_NONE, /* sound events */
-        0,
-        0,
-        false,
-        0,
         SCORE_UNDECIDED,
         0,
         EVENTCOUNTER_GAMESTATE_START,
@@ -189,7 +185,7 @@ void gameloop(GameState *s) {
     Uint32 ft, frames; /* frame timer and frames */
 #endif
 
-    if (s->rain > 0) {
+    if (s->location->rain > 0) {
         play_sample_background(SOUND_RAIN);
     }
     if (s->location->max_visitors > 100) {
@@ -389,24 +385,6 @@ bool step( GameState* s) {
     SDL_PumpEvents();
     keys = SDL_GetKeyState(NULL);
 
-    if( s->time%50==0) {
-        if (keys['r']) {
-            if (s->rain == 0) {
-                play_sample_background(SOUND_RAIN);
-            }
-            s->rain += 10;
-        }
-        if (keys['t']) {
-            s->fog++;
-        }
-        if (keys['1']) {
-            s->wind++;
-        }
-        if (keys['2']) {
-            s->wind--;
-        }
-    }
-
     if(!(SDL_GetTicks() < fading_start+FADE_DURATION) && s->winner == WINNER_NONE) {
         for (p=1; p<=MAXPLAYERS; p++) {
             if( PLAYER(s, p).type == PLAYER_TYPE_HUMAN) {
@@ -430,12 +408,6 @@ bool step( GameState* s) {
     limit_value( &PLAYER(s, 1).y, PLAYER_Y_MIN, PLAYER_Y_MAX);
     limit_value( &PLAYER(s, 2).y, PLAYER_Y_MIN, PLAYER_Y_MAX);
     
-    if (s->ball.move_x > 0 && s->wind > 0) {
-        s->ball.x += fabsf(s->wind)/2;
-    } else if (s->ball.move_x < 0 && s->wind < 0) {
-        s->ball.x -= fabsf(s->wind)/2;
-    }
-
     s->ball.z += s->ball.move_z;
     if (!s->ball.inhibit_gravity) {
         s->ball.move_z += GRAVITY;
@@ -596,12 +568,12 @@ void render(const GameState* s, RenderState* r) {
     font_draw_string(FONT_MEDIUM, r->text_status,
             (WIDTH-font_get_string_width(FONT_MEDIUM, r->text_status))/2, HEIGHT-50);
 
-    for (i=0; i<s->rain; i++) {
+    for (i=0; i<s->location->rain; i++) {
         x = rand()%WIDTH;
         y = rand()%HEIGHT;
-        draw_line_faded(x, y, x+10+s->wind*5, y+30, 0, 0, 255, 100, 200, 255);
+        draw_line_faded(x, y, x+10, y+30, 0, 0, 255, 100, 200, 255);
     }
-    if (s->rain) {
+    if (s->location->rain) {
         /**
          * Cheap-ish update of the whole screen. This can
          * probably be optimized.
@@ -621,7 +593,7 @@ void render(const GameState* s, RenderState* r) {
     line_horiz( GAME_Y_MIN, 100, 100, 100);
     line_horiz( GAME_Y_MAX, 100, 100, 100);
 #endif
-    switch (s->fog) {
+    switch (s->location->fog) {
         default:
         case 4:
             fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -s->time/150, 0);
@@ -634,7 +606,7 @@ void render(const GameState* s, RenderState* r) {
         case 0:
             break;
     }
-    if (s->night) {
+    if (s->location->night) {
         show_image(GR_NIGHT, 0, 0, 255);
     }
 
