@@ -278,7 +278,7 @@ int main( int argc, char** argv) {
     animation_state_run(intro_playback, 1);
     animation_state_free(intro_playback);
     animation_free(intro);
-    start_fade();
+    start_fade();*/
 
     worldmap_xpos = (WIDTH-get_image_width(GR_WORLDMAP))/2;
     worldmap_ypos = (HEIGHT-get_image_height(GR_WORLDMAP))/2;
@@ -474,8 +474,7 @@ int main( int argc, char** argv) {
             show_image(GR_BTN_PLAY, WIDTH-get_image_width(GR_BTN_PLAY)+slide+(slide/7)+3-(3*(btn_hovering==MENU_START)), 150, 255);
             if (current_game != NULL) {
                 show_image(GR_BTN_RESUME, WIDTH-get_image_width(GR_BTN_RESUME)+slide+(slide/7)+3-(3*(btn_hovering==MENU_RESUME)), 230, 255);
-                font_draw_string(FONT_SMALL, "current match:", 10, 10);
-                font_draw_string(FONT_SMALL, current_game->sets_score_str, 10, 40);
+                font_draw_string(FONT_SMALL, "match paused", 10, 10);
             } else {
                 font_draw_string(FONT_MEDIUM, "Tennix 2009 World Tennis Championship Tour", 10, 10);
             }

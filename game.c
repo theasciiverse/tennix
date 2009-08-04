@@ -36,7 +36,6 @@
 
 
 GameState *gamestate_new() {
-    int x, y, z;
     GameState *s;
 
     GameState template = {
@@ -49,22 +48,19 @@ GameState *gamestate_new() {
         },
         0,
         1,
-        "welcome to tennix " VERSION,
-        { 0 },
-        { 0 },
         REFEREE_NORMAL,
         0,
         WINNER_NONE,
-        GR_COUNT,
         SOUND_EVENT_NONE, /* sound events */
         0,
         0,
         false,
         0,
-        false,
-        REFEREE_COUNT,
         SCORE_UNDECIDED,
         0,
+        EVENTCOUNTER_GAMESTATE_START,
+        EVENTCOUNTER_GAMESTATE_START,
+        STATUSMSG_WELCOME,
     };
 
     s = (GameState*)malloc(sizeof(GameState));
@@ -81,7 +77,6 @@ GameState *gamestate_new() {
 int gamestate_save(GameState* s, const char* filename)
 {
     Location *location;
-    const char* status;
     InputDevice* input_devices[MAXPLAYERS];
     int i, result = 0;
     FILE* fp = NULL;
@@ -108,8 +103,6 @@ int gamestate_save(GameState* s, const char* filename)
     /* Save data for later recovery + clear */
     location = s->location;
     s->location = NULL;
-    status = s->status;
-    s->status = NULL;
     for (i=1; i<=MAXPLAYERS; i++) {
         input_devices[i-1] = PLAYER(s, i).input;
         PLAYER(s, i).input = NULL;
@@ -121,7 +114,6 @@ int gamestate_save(GameState* s, const char* filename)
 
     /* Restore process-specific data */
     s->location = location;
-    s->status = status;
     for (i=1; i<=MAXPLAYERS; i++) {
         PLAYER(s, i).input = input_devices[i-1];
     }
@@ -154,7 +146,6 @@ GameState* gamestate_load(const char* filename)
         if (s != NULL) {
             if (fread(s, sizeof(GameState), 1, fp) == 1) {
                 /* Restore/create process-specific data */
-                s->status = format_status(s);
                 /* FIXME: s->location, players' "input" */
             } else {
                 free(s);
@@ -180,15 +171,23 @@ void gameloop(GameState *s) {
     Uint32 accumulator = 0;
     bool quit = false;
     int p;
-    RenderState r = { s->sound_events };
+    RenderState r = {
+        SOUND_EVENT_NONE,
+        REFEREE_COUNT,
+        EVENTCOUNTER_RENDERSTATE_START,
+        EVENTCOUNTER_RENDERSTATE_START,
+        STATUSMSG_NONE,
+        NULL,
+        NULL,
+        NULL,
+    };
+
+    /* Catch-up with existing sound events */
+    r.sound_events = s->sound_events;
 
 #ifdef ENABLE_FPS_LIMIT
     Uint32 ft, frames; /* frame timer and frames */
 #endif
-
-    strcpy(s->game_score_str, format_game(s));
-    strcpy(s->sets_score_str, format_sets(s));
-    s->text_changed = true;
 
     if (s->rain > 0) {
         play_sample_background(SOUND_RAIN);
@@ -196,8 +195,6 @@ void gameloop(GameState *s) {
     if (s->location->max_visitors > 100) {
         play_sample_loop(SOUND_AUDIENCE);
     }
-    /* Reset the court type, so it is redrawn on first display */
-    s->displayed_court_type = GR_COUNT;
 
     for (p=1; p<=MAXPLAYERS; p++) {
         input_device_join_game(PLAYER(s, p).input, s, p);
@@ -247,7 +244,6 @@ void gameloop(GameState *s) {
 
 bool step( GameState* s) {
     Uint8 *keys;
-    SDL_Event e;
     bool ground_event = false;
     int p;
 
@@ -289,24 +285,24 @@ bool step( GameState* s) {
             /* the ball "fell" into the net  */
             s->score_event = SCORE_EVENT_NET;
             s->sound_events ^= SOUND_EVENT_OUT;
-            s->status = "net!";
+            s->status_message = STATUSMSG_NET;
         } else if (IS_OFFSCREEN(s->ball.x, s->ball.y)) {
             /* ball flew offscreen */
             s->score_event = SCORE_EVENT_OFFSCREEN;
             s->sound_events ^= SOUND_EVENT_OUT;
-            s->status = "out!";
+            s->status_message = STATUSMSG_OUT;
         } else if (ground_event) {
             /* the ball hit the ground on the screen */
             if (IS_OUT(s->ball.x, s->ball.y)) {
                 /* the ball bounced in the OUT area */
                 s->score_event = SCORE_EVENT_OUT;
                 s->sound_events ^= SOUND_EVENT_OUT;
-                s->status = "out!";
+                s->status_message = STATUSMSG_OUT;
             } else if (GROUND_IS_VALID(s->ball.last_hit_by, s->ball.x, s->ball.y)) {
                 if (s->ball.ground_hit) {
                     s->score_event = SCORE_EVENT_GROUND_VALID;
                     s->sound_events ^= SOUND_EVENT_OUT;
-                    s->status = "did not catch the ball!";
+                    s->status_message = STATUSMSG_DIDNTCATCH;
                 } else {
                     /* first ground hit in valid area */
                     s->ball.ground_hit = true;
@@ -315,7 +311,7 @@ bool step( GameState* s) {
                 /* ball hit somewhere invalid */
                 s->score_event = SCORE_EVENT_GROUND_INVALID;
                 s->sound_events ^= SOUND_EVENT_OUT;
-                s->status = "fault!";
+                s->status_message = STATUSMSG_FAULT;
             }
         }
     }
@@ -330,11 +326,11 @@ bool step( GameState* s) {
             /* time has ran out - score now */
             switch (score_game(s)) {
                 case WINNER_PLAYER1:
-                    s->status = "player 1 scores";
+                    s->status_message = STATUSMSG_P1SCORES;
                     s->referee = REFEREE_PLAYER1;
                     break;
                 case WINNER_PLAYER2:
-                    s->status = "player 2 scores";
+                    s->status_message = STATUSMSG_P2SCORES;
                     s->referee = REFEREE_PLAYER2;
                     break;
                 default:
@@ -342,10 +338,6 @@ bool step( GameState* s) {
                     break;
             }
             s->score_time = 0;
-
-            strcpy(s->game_score_str, format_game(s));
-            strcpy(s->sets_score_str, format_sets(s));
-            s->text_changed = true;
 
             game_setup_serve(s);
             if (s->location->max_visitors > 100) {
@@ -358,9 +350,9 @@ bool step( GameState* s) {
             if (IS_NEAR_X(PLAYER(s, p).x, s->ball.x) && IS_NEAR_Y(PLAYER(s, p).y, s->ball.y-s->ball.z) && PLAYER(s, p).use_power && PLAYER(s, p).power > 30.0 && s->ball.last_hit_by != p) {
                 /* RACKET HIT */
                 if (!s->ball.ground_hit && s->ball.move_x != 0.0) {
-                    s->status = "volley!";
+                    s->status_message = STATUSMSG_VOLLEY;
                 } else {
-                    s->status = format_status(s);
+                    s->status_message = STATUSMSG_DEFAULT;
                 }
                 switch (PLAYER(s, p).desire) {
                     case DESIRE_NORMAL:
@@ -461,7 +453,7 @@ bool step( GameState* s) {
     return false;
 }
 
-void render(GameState* s, RenderState* r) {
+void render(const GameState* s, RenderState* r) {
     int x, y, b;
     unsigned int i;
     float zoom;
@@ -470,7 +462,7 @@ void render(GameState* s, RenderState* r) {
     soundevent_t sounds;
 
     /* The bits in sound_events flip when the sound should play */
-    if (sounds = (r->sound_events ^ s->sound_events)) {
+    if ((sounds = (r->sound_events ^ s->sound_events)) != 0) {
         if (sounds & SOUND_EVENT_GROUND) {
             play_sample(SOUND_GROUND);
         }
@@ -491,18 +483,40 @@ void render(GameState* s, RenderState* r) {
         rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
         store_screen();
         show_sprite( GR_RACKET, 2*(s->winner-1), 4, WIDTH/2 - get_image_width( GR_RACKET)/8, HEIGHT/2 - get_image_height( GR_RACKET), 255);
-        sprintf( s->game_score_str, "player %d wins the match with %s", s->winner, format_sets( s));
-        font_draw_string(FONT_LARGE, s->game_score_str, (WIDTH-font_get_string_width(FONT_LARGE, s->game_score_str))/2, HEIGHT/2 + 30);
+        /*sprintf( s->game_score_str, "player %d wins the match with %s", s->winner, format_sets( s));
+        font_draw_string(FONT_LARGE, s->game_score_str, (WIDTH-font_get_string_width(FONT_LARGE, s->game_score_str))/2, HEIGHT/2 + 30);*/
         updatescr();
         return;
     }
-    if (s->displayed_court_type != s->location->court_type || s->text_changed || s->old_referee != s->referee) {
+    if ((r->referee != s->referee) ||
+            (r->ec_game != s->ec_game) ||
+            (r->ec_sets != s->ec_sets) ||
+            (r->status_message != s->status_message)) {
+        /* Update status message text */
+        if (r->status_message != s->status_message) {
+            r->text_status = format_status(s);
+            r->status_message = s->status_message;
+        }
+        /* Update game status text */
+        if (r->ec_game != s->ec_game) {
+            r->text_game = format_game(s);
+            r->ec_game = s->ec_game;
+        }
+        /* Update set status text */
+        if (r->ec_sets != s->ec_sets) {
+            r->text_sets = format_sets(s);
+            if (r->status_message == STATUSMSG_DEFAULT) {
+                r->text_status = format_status(s);
+            }
+            r->ec_sets = s->ec_sets;
+        }
         clear_screen();
         rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
         fill_image(s->location->court_type, 120, 120, 400, 250);
         show_image(GR_COURT, 0, 0, 255);
-        font_draw_string(FONT_XLARGE, s->game_score_str, 14, 14);
-        font_draw_string(FONT_XLARGE, s->sets_score_str, (WIDTH-font_get_string_width(FONT_XLARGE, s->sets_score_str))-14, 14);
+        font_draw_string(FONT_XLARGE, r->text_game, 14, 14);
+        font_draw_string(FONT_XLARGE, r->text_sets,
+                (WIDTH-font_get_string_width(FONT_XLARGE, r->text_sets))-14, 14);
         if (s->location->has_referee) {
             switch (s->referee) {
                 case REFEREE_NORMAL:
@@ -536,9 +550,7 @@ void render(GameState* s, RenderState* r) {
                 show_sprite(GR_TALK, (s->time/150)%2, 2, 280, 45, 255);
             }
         }
-        s->displayed_court_type = s->location->court_type;
-        s->text_changed = false;
-        s->old_referee = s->referee;
+        r->referee = s->referee;
         store_screen();
     }
     
@@ -581,7 +593,8 @@ void render(GameState* s, RenderState* r) {
         rectangle(PLAYER(s, 2).x-1+5, PLAYER(s, 2).input->my-1, 2, 2, 0, 0, 0);
     }
 
-    font_draw_string(FONT_MEDIUM, s->status, (WIDTH-font_get_string_width(FONT_MEDIUM, s->status))/2, HEIGHT-50);
+    font_draw_string(FONT_MEDIUM, r->text_status,
+            (WIDTH-font_get_string_width(FONT_MEDIUM, r->text_status))/2, HEIGHT-50);
 
     for (i=0; i<s->rain; i++) {
         x = rand()%WIDTH;
@@ -702,7 +715,6 @@ void input_human(GameState* s, int player) {
 
 void input_ai(GameState* s, int player) {
     float fact = 1.7;
-    float target;
     int ball_approaching = 0;
 
     if ((PLAYER(s, player).x < GAME_X_MID && s->ball.move_x <= 0) ||
@@ -795,10 +807,12 @@ int score_game(GameState* s) {
     assert(s->current_set < SETS_TO_WIN*2-1);
 
     winner->game++;
+    s->ec_game++;
     if( loser->game < winner->game-1) {
         if( winner->game >= 4) {
             winner->game = loser->game = 0;
             winner->sets[s->current_set]++;
+            s->ec_sets++;
 
             /* serving is changed when the "game" is over */
             s->serving_player = (s->serving_player==1)?(2):(1);
@@ -827,7 +841,7 @@ int score_game(GameState* s) {
     }
 }
 
-char* format_sets( GameState* s) {
+const char* format_sets(const GameState* s) {
     static char sets[100];
     static char tmp[100];
     int i, max = s->current_set;
@@ -847,7 +861,7 @@ char* format_sets( GameState* s) {
     return sets;
 }
 
-char* format_game( GameState* s) {
+const char* format_game(const GameState* s) {
     static char game[100];
     static const int game_scoring[] = { 0, 15, 30, 40 };
 
@@ -882,13 +896,38 @@ char* format_game( GameState* s) {
     return game;
 }
 
-char* format_status( GameState* s) {
+const char* format_status(const GameState* s) {
     static char status[100];
     static const char* set_names[] = { "first", "second", "third", "fourth", "fifth" };
 
-    sprintf( status, "%d:%d in %s set", PLAYER(s, 1).sets[s->current_set], PLAYER(s, 2).sets[s->current_set], set_names[s->current_set]);
-
-    return status;
+    switch (s->status_message) {
+        case STATUSMSG_NONE:
+            return "";
+        case STATUSMSG_WELCOME:
+            return "welcome to tennix " VERSION;
+        case STATUSMSG_DEFAULT:
+            sprintf(status, "%d:%d in %s set",
+                    PLAYER(s, 1).sets[s->current_set],
+                    PLAYER(s, 2).sets[s->current_set],
+                    set_names[s->current_set]);
+            return status;
+        case STATUSMSG_NET:
+            return "net!";
+        case STATUSMSG_OUT:
+            return "out!";
+        case STATUSMSG_FAULT:
+            return "fault!";
+        case STATUSMSG_P1SCORES:
+            return "player 1 scores.";
+        case STATUSMSG_P2SCORES:
+            return "player 2 scores.";
+        case STATUSMSG_VOLLEY:
+            return "volley!";
+        case STATUSMSG_DIDNTCATCH:
+            return "did not catch the ball.";
+        default:
+            return "";
+    }
 }
 
 int game_get_winner( GameState* s) {

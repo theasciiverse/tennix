@@ -46,6 +46,7 @@ enum {
     true
 };
 
+typedef unsigned char referee_t;
 enum {
     REFEREE_NORMAL,
     REFEREE_OUT,
@@ -142,6 +143,26 @@ enum {
     SCORE_EVENT_MAX
 };
 
+typedef unsigned int eventcounter_t;
+enum {
+    EVENTCOUNTER_RENDERSTATE_START = 0,
+    EVENTCOUNTER_GAMESTATE_START = 1
+};
+
+typedef unsigned char statusmessage_t;
+enum {
+    STATUSMSG_NONE,
+    STATUSMSG_WELCOME,
+    STATUSMSG_DEFAULT,
+    STATUSMSG_NET,
+    STATUSMSG_OUT,
+    STATUSMSG_FAULT,
+    STATUSMSG_P1SCORES,
+    STATUSMSG_P2SCORES,
+    STATUSMSG_VOLLEY,
+    STATUSMSG_DIDNTCATCH
+};
+
 typedef struct {
     Location* location;
     int current_location; /* index of loc. in global location table */
@@ -149,26 +170,30 @@ typedef struct {
     Player players[MAXPLAYERS];
     Uint32 time;
     unsigned int serving_player;
-    const char* status;
-    char game_score_str[50];
-    char sets_score_str[50];
-    unsigned char referee;
+    referee_t referee;
     unsigned int current_set;
     int winner;
-    image_id displayed_court_type;
     soundevent_t sound_events;
     unsigned int rain;
     unsigned int fog;
     bool night;
     int wind;
-    bool text_changed;
-    unsigned char old_referee;
     int score_event;
     unsigned int score_time;
+    eventcounter_t ec_game;
+    eventcounter_t ec_sets;
+    statusmessage_t status_message;
 } GameState;
 
 typedef struct {
     soundevent_t sound_events;
+    referee_t referee;
+    eventcounter_t ec_game;
+    eventcounter_t ec_sets;
+    statusmessage_t status_message;
+    const char* text_status;
+    const char* text_game;
+    const char* text_sets;
 } RenderState;
 
 #define PI 3.1415
@@ -261,7 +286,7 @@ GameState* gamestate_load(const char* filename);
 
 /* Game module functions */
 void gameloop(GameState*);
-void render( GameState*, RenderState*);
+void render(const GameState*, RenderState*);
 bool step( GameState*);
 void limit_value( float*, float, float);
 float get_move_y( GameState*, unsigned char);
@@ -270,10 +295,12 @@ void input_ai(GameState*, int);
 void game_setup_serve( GameState*);
 
 int score_game(GameState*);
-char* format_sets( GameState*);
-char* format_game( GameState*);
-char* format_status( GameState*);
 int game_get_winner( GameState*);
+
+/* Helper functions for the renderer */
+const char* format_sets(const GameState*);
+const char* format_game(const GameState*);
+const char* format_status(const GameState*);
 
 #endif
 
