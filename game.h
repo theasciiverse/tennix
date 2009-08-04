@@ -89,6 +89,8 @@ typedef struct {
     unsigned int fog;
 } Location;
 
+#define BALL_RESTITUTION .6
+
 typedef struct {
     float x;
     float y;
@@ -96,26 +98,23 @@ typedef struct {
     float move_x;
     float move_y;
     float move_z;
-    float restitution;
     bool ground_hit;
-    int last_hit_by;
+    char last_hit_by;
     bool inhibit_gravity;
 } Ball;
 
 typedef struct {
     InputDevice* input;
-    int input_device_index;
+    char input_device_index;
     float x;
     float y;
     float power;
-    float power_up_factor;
-    float power_down_factor;
     bool use_power;
-    unsigned int score;
+    unsigned char score;
     unsigned char desire;
     bool type; /* is this player ai-controlled or human? */
-    int game; /* score for the current game */
-    int sets[SETS_TO_WIN*2]; /* score for each set */
+    char game; /* score for the current game */
+    unsigned char sets[SETS_TO_WIN*2]; /* score for each set */
     float accelerate; /* a value [0..1] how fast the user accelerates */
 } Player;
 

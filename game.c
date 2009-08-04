@@ -33,6 +33,7 @@
 #include "input.h"
 #include "sound.h"
 #include "util.h"
+#include "network.h"
 
 
 GameState *gamestate_new() {
@@ -41,10 +42,10 @@ GameState *gamestate_new() {
     GameState template = {
         NULL,
         -1,
-        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6, false, -1, false },
+        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, false, -1, false },
         {
-            { NULL, -1, GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0.0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, 0, {0}, PLAYER_ACCEL_DEFAULT },
-            { NULL, -1, GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0.0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, 0, {0}, PLAYER_ACCEL_DEFAULT },
+            { NULL, -1, GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0.0, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, 0, {0}, PLAYER_ACCEL_DEFAULT },
+            { NULL, -1, GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0.0, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, 0, {0}, PLAYER_ACCEL_DEFAULT },
         },
         1,
         REFEREE_NORMAL,
@@ -240,6 +241,9 @@ void gameloop(GameState *s) {
 void step(GameState* s) {
     bool ground_event = false;
     int p;
+    fprintf(stderr, "ball(%f, %f, %f, %f, %f, %f)\n",
+            s->ball.x, s->ball.y, s->ball.z,
+            s->ball.move_x, s->ball.move_y, s->ball.move_z);
 
     s->ball.z += s->ball.move_z;
     if (!s->ball.inhibit_gravity) {
@@ -252,7 +256,7 @@ void step(GameState* s) {
     for (p=1; p<=MAXPLAYERS; p++) {
         if (PLAYER(s, p).use_power) {
             PLAYER(s, p).power = fmaxf(0.0, fminf(
-                        PLAYER(s, p).power*PLAYER(s, p).power_down_factor,
+                        PLAYER(s, p).power*POWER_DOWN_FACTOR,
                         PLAYER_POWER_MAX));
         }
     }
@@ -266,7 +270,7 @@ void step(GameState* s) {
         /* bounce from the ground */
         if (fabsf(s->ball.move_z) > 0.3) {
             s->sound_events ^= SOUND_EVENT_GROUND;
-            s->ball.move_z *= -s->ball.restitution;
+            s->ball.move_z *= -BALL_RESTITUTION;
         } else {
             s->ball.move_z = 0;
         }
@@ -393,7 +397,7 @@ void step(GameState* s) {
 }
 
 bool handle_input(GameState* s) {
-    static GameState tmp;
+    static NetworkGameState tmp;
     Uint8* keys = NULL;
     int p;
 
@@ -401,9 +405,9 @@ bool handle_input(GameState* s) {
     keys = SDL_GetKeyState(NULL);
 
     if (keys['1']) {
-        memcpy(&tmp, s, sizeof(GameState));
+        net_serialize_gamestate(s, &tmp);
     } else if (keys['2']) {
-        memcpy(s, &tmp, sizeof(GameState));
+        net_unserialize_gamestate(&tmp, s);
     }
 
     if (s->winner == WINNER_NONE) {
@@ -682,7 +686,7 @@ void input_human(GameState* s, int player) {
         PLAYER(s, player).desire = (topspin)?(DESIRE_TOPSPIN):(DESIRE_NORMAL);
         PLAYER(s, player).desire = (smash)?(DESIRE_SMASH):(PLAYER(s, player).desire);
 
-        PLAYER(s, player).power = fmaxf(10.0, fminf(PLAYER(s, player).power*PLAYER(s, player).power_up_factor, PLAYER_POWER_MAX));
+        PLAYER(s, player).power = fmaxf(10.0, fminf(PLAYER(s, player).power*POWER_UP_FACTOR, PLAYER_POWER_MAX));
         PLAYER(s, player).use_power = false;
     } else {
         PLAYER(s, player).use_power = true;
@@ -716,7 +720,7 @@ void input_ai(GameState* s, int player) {
         if (IS_NEAR_Y(PLAYER(s, player).y, (s->ball.y-s->ball.z)) && IS_NEAR_X_AI(PLAYER(s, player).x, s->ball.x) && PLAYER(s, player).power > 90.) {
             PLAYER(s, player).use_power = true;
         } else if (ball_approaching) {
-            PLAYER(s, player).power = fmaxf(10., fminf(PLAYER(s, player).power*PLAYER(s, player).power_up_factor, PLAYER_POWER_MAX));
+            PLAYER(s, player).power = fmaxf(10., fminf(PLAYER(s, player).power*POWER_UP_FACTOR, PLAYER_POWER_MAX));
             PLAYER(s, player).use_power = false;
         }
     }
