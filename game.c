@@ -44,10 +44,9 @@ GameState *gamestate_new() {
         -1,
         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6, false, -1, false },
         {
-            { NULL, -1, GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0.0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
-            { NULL, -1, GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0.0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, GAME_Y_MID, false, 0, {0}, 0, 0, PLAYER_ACCEL_DEFAULT, true },
+            { NULL, -1, GAME_X_MIN-RACKET_X_MID*2, GAME_Y_MID, 0.0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, 0, {0}, PLAYER_ACCEL_DEFAULT },
+            { NULL, -1, GAME_X_MAX+RACKET_X_MID*2, GAME_Y_MID, 0.0, POWER_UP_FACTOR, POWER_DOWN_FACTOR, true, 0, DESIRE_NORMAL, PLAYER_TYPE_AI, 0, {0}, PLAYER_ACCEL_DEFAULT },
         },
-        0,
         0,
         1,
         "welcome to tennix " VERSION,
@@ -56,22 +55,11 @@ GameState *gamestate_new() {
         REFEREE_NORMAL,
         0,
         WINNER_NONE,
-        false,
         GR_COUNT,
-        { 0 },
-        0,
-        false,
-        { { { 0 } } },
-        0.0,
         0, /* sound events */
-        0.0,
-        0.0,
-        0,
         0,
         0,
         false,
-        0,
-        0,
         0,
         false,
         REFEREE_COUNT,
@@ -231,16 +219,7 @@ void gameloop(GameState *s) {
         while( accumulator >= dt) {
             quit = step(s);
             s->time += dt;
-            s->windtime += s->wind*dt;
             accumulator -= dt;
-
-            if( s->was_stopped) {
-                ot = SDL_GetTicks();
-                s->was_stopped = false;
-            }
-        }
-        if (s->timelimit != 0 && s->time >= s->timelimit) {
-            quit = 1;
         }
 
 #ifdef ENABLE_FPS_LIMIT
@@ -435,7 +414,7 @@ bool step( GameState* s) {
         }
     }
 
-    if(!(SDL_GetTicks() < fading_start+FADE_DURATION) && !s->is_over) {
+    if(!(SDL_GetTicks() < fading_start+FADE_DURATION) && s->winner == WINNER_NONE) {
         for (p=1; p<=MAXPLAYERS; p++) {
             if( PLAYER(s, p).type == PLAYER_TYPE_HUMAN) {
                 input_human(s, p);
@@ -450,26 +429,10 @@ bool step( GameState* s) {
     if( keys['y']) SDL_SaveBMP( screen, "screenshot.bmp");
 
     /* Maemo: The "F4" button is the "Open menu" button */
-    if( keys['p'] || keys[SDLK_F4]) {
-        while( keys['p'] || keys[SDLK_F4]) {
-            SDL_PollEvent( &e);
-            keys = SDL_GetKeyState( NULL);
-            SDL_Delay( 10);
-        }
-        while( (keys['p'] || keys[SDLK_F4]) == 0) {
-            SDL_PollEvent( &e);
-            keys = SDL_GetKeyState( NULL);
-            SDL_Delay( 10);
-        }
-        while( keys['p'] || keys[SDLK_F4]) {
-            SDL_PollEvent( &e);
-            keys = SDL_GetKeyState( NULL);
-            SDL_Delay( 10);
-        }
-        s->was_stopped = true;
+    if(keys[SDLK_ESCAPE] || keys['q']
+            || keys['p'] || keys[SDLK_F4]) {
+        return true;
     }
-     
-    if( keys[SDLK_ESCAPE] || keys['q']) return true;
     
     limit_value( &PLAYER(s, 1).y, PLAYER_Y_MIN, PLAYER_Y_MAX);
     limit_value( &PLAYER(s, 2).y, PLAYER_Y_MIN, PLAYER_Y_MAX);
@@ -520,10 +483,6 @@ void render( GameState* s) {
         s->sound_events = 0;
     }
     if( s->winner != WINNER_NONE) {
-        if( !s->is_over) {
-            start_fade();
-            s->is_over = true;
-        }
         clear_screen();
         rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
         store_screen();
@@ -648,13 +607,13 @@ void render( GameState* s) {
     switch (s->fog) {
         default:
         case 4:
-            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -s->time/150-s->windtime/200, 0);
+            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -s->time/150, 0);
         case 3:
-            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, -s->time/100-s->windtime/150, 20);
+            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, -s->time/100, 20);
         case 2:
-            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -s->time/180-s->windtime/180, 80);
+            fill_image_offset(GR_FOG2, 0, 0, WIDTH, HEIGHT, -s->time/180, 80);
         case 1:
-            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, s->time/200-s->windtime/100, 0);
+            fill_image_offset(GR_FOG, 0, 0, WIDTH, HEIGHT, s->time/200, 0);
         case 0:
             break;
     }

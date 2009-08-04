@@ -106,14 +106,9 @@ typedef struct {
     unsigned int score;
     unsigned char desire;
     bool type; /* is this player ai-controlled or human? */
-    float ball_dest; /* prospective y-position of ball */
-    bool state_locked; /* enabled when user keeps pressing the "hit" key */
     int game; /* score for the current game */
     int sets[SETS_TO_WIN*2]; /* score for each set */
-    int mouse_x; /* x position of mouse */
-    int mouse_y; /* y position of mouse */
     float accelerate; /* a value [0..1] how fast the user accelerates */
-    bool mouse_locked; /* on start, ignore unpressed mouse state */
 } Player;
 
 enum {
@@ -147,7 +142,6 @@ typedef struct {
     Ball ball;
     Player players[MAXPLAYERS];
     Uint32 time;
-    bool was_stopped;
     unsigned int serving_player;
     const char* status;
     char game_score_str[50];
@@ -155,18 +149,12 @@ typedef struct {
     unsigned char referee;
     unsigned int current_set;
     int winner;
-    bool is_over;
     image_id displayed_court_type;
     unsigned int sound_events;
-    float joystick_y;
-    float joystick_x;
-    unsigned char joystick_a;
     unsigned int rain;
     unsigned int fog;
     bool night;
     int wind;
-    unsigned int windtime;
-    Uint32 timelimit;
     bool text_changed;
     unsigned char old_referee;
     int score_event;

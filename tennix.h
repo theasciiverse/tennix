@@ -56,7 +56,6 @@
 #define WIDTH 640
 #define HEIGHT 480
 
-#define BENCHMARK_TIMELIMIT 60 /* in seconds */
 #define MENU_BUTTON_HEIGHT 62
 #define MENU_BUTTON_WIDTH 185
 

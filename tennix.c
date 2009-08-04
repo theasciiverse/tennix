@@ -267,7 +267,6 @@ int main( int argc, char** argv) {
         GameState* g = gamestate_new();
         PLAYER(g, 1).type = PLAYER_TYPE_AI;
         PLAYER(g, 2).type = PLAYER_TYPE_AI;
-        g->timelimit = BENCHMARK_TIMELIMIT*1000;
         g->location = &(locations[0]);
         gameloop(g);
         free(g);
