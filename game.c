@@ -385,7 +385,7 @@ bool step( GameState* s) {
     SDL_PumpEvents();
     keys = SDL_GetKeyState(NULL);
 
-    if(!(SDL_GetTicks() < fading_start+FADE_DURATION) && s->winner == WINNER_NONE) {
+    if(s->winner == WINNER_NONE) {
         for (p=1; p<=MAXPLAYERS; p++) {
             if( PLAYER(s, p).type == PLAYER_TYPE_HUMAN) {
                 input_human(s, p);
@@ -642,7 +642,7 @@ float get_move_y( GameState* s, unsigned char player) {
     } else {
         x_len = s->ball.x - GAME_X_MIN;
     }
-    y_len = dest - by + MOVE_Y_SEED-rand()%MOVE_Y_SEED*2;
+    y_len = dest - by;
 
     /* return the should-be value for move_y */
     return (y_len*move_x)/(x_len);

@@ -270,8 +270,6 @@ typedef struct {
 #define POWER_DOWN_FACTOR 0.9
 #define PLAYER_POWER_MAX 100
 
-#define MOVE_Y_SEED 3
-
 #define PLAYER(s, num) (s->players[num-1])
 
 /* Comment out the following #define to enable mouse control */
