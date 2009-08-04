@@ -252,8 +252,6 @@ bool step( GameState* s) {
         /* bounce from the ground */
         if (fabsf(s->ball.move_z) > 0.3) {
             s->sound_events ^= SOUND_EVENT_GROUND;
-            sample_volume_group(SOUND_GROUND_FIRST, SOUND_GROUND_LAST, fmaxf(0.0, fminf(1.0, fabsf(s->ball.move_z)/2)));
-            pan_sample_group(SOUND_GROUND_FIRST, SOUND_GROUND_LAST, fmaxf(0.0, fminf(1.0, (s->ball.x)/WIDTH)));
             s->ball.move_z *= -s->ball.restitution;
         } else {
             s->ball.move_z = 0;
@@ -372,10 +370,7 @@ bool step( GameState* s) {
                 s->ball.ground_hit = false;
                 s->ball.inhibit_gravity = false;
                 s->ball.last_hit_by = p;
-                if (p==1) {
-                    pan_sample_group(SOUND_RACKET_FIRST, SOUND_RACKET_LAST, 0.3);
-                } else {
-                    pan_sample_group(SOUND_RACKET_FIRST, SOUND_RACKET_LAST, 0.7);
+                if (p==2) {
                     s->ball.move_x *= -1;
                 }
             }
@@ -436,6 +431,10 @@ void render(const GameState* s, RenderState* r) {
     /* The bits in sound_events flip when the sound should play */
     if ((sounds = (r->sound_events ^ s->sound_events)) != 0) {
         if (sounds & SOUND_EVENT_GROUND) {
+            sample_volume_group(SOUND_GROUND_FIRST, SOUND_GROUND_LAST,
+                    fmaxf(0.0, fminf(1.0, fabsf(s->ball.move_z)/2)));
+            pan_sample_group(SOUND_GROUND_FIRST, SOUND_GROUND_LAST,
+                    fmaxf(0.0, fminf(1.0, (s->ball.x)/WIDTH)));
             play_sample(SOUND_GROUND);
         }
         if (sounds & SOUND_EVENT_OUT) {
@@ -445,6 +444,11 @@ void render(const GameState* s, RenderState* r) {
             play_sample(SOUND_APPLAUSE);
         }
         if (sounds & SOUND_EVENT_RACKET) {
+            if (((s->ball.x)/WIDTH) < 0.5) {
+                pan_sample_group(SOUND_RACKET_FIRST, SOUND_RACKET_LAST, 0.3);
+            } else {
+                pan_sample_group(SOUND_RACKET_FIRST, SOUND_RACKET_LAST, 0.7);
+            }
             play_sample(SOUND_RACKET);
         }
         r->sound_events = s->sound_events;
