@@ -36,6 +36,7 @@
 #include "graphics.h"
 #include "sound.h"
 #include "input.h"
+#include "network.h"
 #include "util.h"
 #include "animation.h"
 
@@ -105,6 +106,11 @@ int main( int argc, char** argv) {
     Animation *intro;
     AnimationState *intro_playback;
     float wiggle;
+    TennixNet* connection = NULL;
+    char* net_host = NULL;
+    int net_port_local;
+    int net_port_remote;
+    bool net_master = false;
 
     MenuButton btn_back = {
         NULL, /* not needed for image-based button */
@@ -194,6 +200,20 @@ int main( int argc, char** argv) {
         else if (OPTION_SET("--benchmark", "-b")) {
             benchmark = true;
         }
+        else if (OPTION_SET("--network", "-n")) {
+            net_host = OPTION_VALUE;
+            assert(OPTION_VALUE != NULL);
+            OPTION_VALUE_PROCESSED;
+            net_port_local = atoi(OPTION_VALUE);
+            assert(OPTION_VALUE != NULL);
+            OPTION_VALUE_PROCESSED;
+            net_port_remote = atoi(OPTION_VALUE);
+            assert(OPTION_VALUE != NULL);
+            OPTION_VALUE_PROCESSED;
+        }
+        else if (OPTION_SET("--master", "-m")) {
+            net_master = true;
+        }
         else {
             fprintf(stderr, "Ignoring unknown option: %s\n", argv[i]);
         }
@@ -230,6 +250,12 @@ int main( int argc, char** argv) {
     init_graphics();
     init_sound();
     init_input();
+    init_network();
+
+    if (net_host != NULL) {
+        connection = network_connect(net_host, net_port_local, net_port_remote);
+        network_set_master(connection, net_master);
+    }
 
     menu_button_init(&btn_back);
     menu_button_init(&btn_start);
@@ -268,7 +294,7 @@ int main( int argc, char** argv) {
         PLAYER(g, 1).type = PLAYER_TYPE_AI;
         PLAYER(g, 2).type = PLAYER_TYPE_AI;
         g->location = &(locations[0]);
-        gameloop(g);
+        gameloop(g, connection);
         free(g);
         exit(0);
     }
@@ -416,7 +442,7 @@ int main( int argc, char** argv) {
                     exit(EXIT_FAILURE);
                 }
                 start_fade();
-                gameloop(current_game);
+                gameloop(current_game, connection);
                 SDL_Delay(150);
                 while(SDL_PollEvent(&e));
 #ifdef ENABLE_FPS_LIMIT
@@ -757,6 +783,7 @@ int main( int argc, char** argv) {
 
     uninit_graphics();
     uninit_input();
+    uninit_network();
 
     SDL_Quit();
     return 0;

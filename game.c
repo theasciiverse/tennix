@@ -159,7 +159,7 @@ GameState* gamestate_load(const char* filename)
 }
 
 
-void gameloop(GameState *s) {
+void gameloop(GameState *s, TennixNet* c) {
     Uint32 ot = SDL_GetTicks();
     Uint32 nt;
     Uint32 dt = GAME_TICKS;
@@ -167,6 +167,7 @@ void gameloop(GameState *s) {
     Uint32 accumulator = 0;
     bool quit = false;
     int p;
+    int i=0;
     RenderState r = {
         SOUND_EVENT_NONE,
         REFEREE_COUNT,
@@ -177,6 +178,8 @@ void gameloop(GameState *s) {
         NULL,
         NULL,
     };
+
+    assert(c != NULL);
 
     /* Catch-up with existing sound events */
     r.sound_events = s->sound_events;
@@ -212,7 +215,15 @@ void gameloop(GameState *s) {
 
         while( accumulator >= dt) {
             step(s);
-            quit = handle_input(s);
+
+            network_receive(c);
+            network_get_gamestate(c, s);
+
+            if ((i++) % 10 == 0) {
+                network_send_state(c, s);
+            }
+
+            quit = handle_input(s, c);
             accumulator -= dt;
         }
 
@@ -241,9 +252,6 @@ void gameloop(GameState *s) {
 void step(GameState* s) {
     bool ground_event = false;
     int p;
-    fprintf(stderr, "ball(%f, %f, %f, %f, %f, %f)\n",
-            s->ball.x, s->ball.y, s->ball.z,
-            s->ball.move_x, s->ball.move_y, s->ball.move_z);
 
     s->ball.z += s->ball.move_z;
     if (!s->ball.inhibit_gravity) {
@@ -396,8 +404,9 @@ void step(GameState* s) {
     }
 }
 
-bool handle_input(GameState* s) {
+bool handle_input(GameState* s, TennixNet* c) {
     static NetworkGameState tmp;
+    static NetworkInputData net_input;
     Uint8* keys = NULL;
     int p;
 
@@ -410,10 +419,18 @@ bool handle_input(GameState* s) {
         net_unserialize_gamestate(&tmp, s);
     }
 
+    network_get_input(c, &net_input);
     if (s->winner == WINNER_NONE) {
         for (p=1; p<=MAXPLAYERS; p++) {
             if( PLAYER(s, p).type == PLAYER_TYPE_HUMAN) {
+                if (PLAYER(s, p).input->type == INPUT_TYPE_NETWORK) {
+                    memcpy(&(PLAYER(s, p).input->net), &net_input,
+                            sizeof(NetworkInputData));
+                }
                 input_human(s, p);
+                if (PLAYER(s, p).input->type != INPUT_TYPE_NETWORK) {
+                    network_send_input(c, &(PLAYER(s, p).input->net));
+                }
             } else {
                 input_ai(s, p);
             }
@@ -678,6 +695,9 @@ void input_human(GameState* s, int player) {
         }
         PLAYER(s, player).y += move_y;
         PLAYER(s, player).accelerate *= PLAYER_ACCEL_INCREASE;
+        if (PLAYER(s, player).accelerate > 190) {
+            PLAYER(s, player).accelerate = 190;
+        }
     } else {
         PLAYER(s, player).accelerate = PLAYER_ACCEL_DEFAULT;
     }

@@ -43,12 +43,128 @@ unpack_float(Uint32 v, float min, float max)
     return v * (max-min) / (1U<<31) + min;
 }
 
+void
+init_network()
+{
+    SDLNet_Init();
+}
+
+void
+uninit_network()
+{
+    SDLNet_Quit();
+}
+
+TennixNet*
+network_connect(const char* host, Uint16 local_port, Uint16 remote_port)
+{
+    TennixNet* connection = (TennixNet*)malloc(sizeof(TennixNet));
+    assert(connection != NULL);
+
+    fprintf(stderr, "ports: %d and %d\n", local_port, remote_port);
+
+    assert(SDLNet_ResolveHost(&(connection->peer), (const char*)host, 0) == 0);
+    connection->base_port_local = local_port;
+    connection->base_port_remote = remote_port;
+    connection->input_packet = SDLNet_AllocPacket(sizeof(NetworkInputData));
+    connection->state_packet = SDLNet_AllocPacket(sizeof(NetworkGameState));
+    connection->input_available = false;
+    connection->state_available = false;
+    connection->send_input_socket = SDLNet_UDP_Open(0);
+    connection->send_state_socket = SDLNet_UDP_Open(0);
+    connection->recv_input_socket = SDLNet_UDP_Open(connection->base_port_local);
+    connection->recv_state_socket = SDLNet_UDP_Open(connection->base_port_local+1);
+    connection->master = false;
+
+    return connection;
+}
+
+void
+network_disconnect(TennixNet* connection)
+{
+    if (connection != NULL)
+    {
+        SDLNet_UDP_Close(connection->send_input_socket);
+        SDLNet_UDP_Close(connection->send_state_socket);
+        SDLNet_UDP_Close(connection->recv_input_socket);
+        SDLNet_UDP_Close(connection->recv_state_socket);
+        SDLNet_FreePacket(connection->input_packet);
+        SDLNet_FreePacket(connection->state_packet);
+        free(connection);
+    }
+}
+
+void
+network_set_master(TennixNet* connection, bool master)
+{
+    connection->master = master;
+}
+
+void
+network_send_input(TennixNet* connection, NetworkInputData* src)
+{
+    memcpy(connection->input_packet->data, src, sizeof(NetworkInputData));
+    connection->input_packet->address.host = connection->peer.host;
+    SDLNet_Write16(connection->base_port_remote, &(connection->input_packet->address.port));
+    connection->input_packet->channel = -1;
+    connection->input_packet->len = sizeof(NetworkInputData);
+    SDLNet_UDP_Send(connection->send_input_socket, -1, connection->input_packet);
+}
+
+void
+network_send_state(TennixNet* connection, GameState* src)
+{
+    if (connection->master) {
+        net_serialize_gamestate(src, (NetworkGameState*)(connection->state_packet->data));
+        connection->state_packet->address.host = connection->peer.host;
+        SDLNet_Write16(connection->base_port_remote+1, &(connection->state_packet->address.port));
+        connection->state_packet->channel = -1;
+        connection->state_packet->len = sizeof(NetworkGameState);
+        assert(SDLNet_UDP_Send(connection->send_state_socket, -1, connection->state_packet)!=0);
+    }
+}
+
+void
+network_receive(TennixNet* connection)
+{
+    connection->input_packet->len = sizeof(NetworkInputData);
+    while (SDLNet_UDP_Recv(connection->recv_input_socket, connection->input_packet)) {
+        connection->input_available = true;
+    }
+
+    if (!(connection->master)) {
+        connection->state_packet->len = sizeof(NetworkGameState);
+        while (SDLNet_UDP_Recv(connection->recv_state_socket, connection->state_packet)) {
+            connection->state_available = true;
+        }
+    }
+}
+
+void
+network_get_input(TennixNet* connection, NetworkInputData* dest)
+{
+    if (connection->input_available) {
+        memcpy(dest, connection->input_packet->data, sizeof(NetworkInputData));
+        connection->input_available = false;
+    }
+}
+
+void
+network_get_gamestate(TennixNet* connection, GameState* dest)
+{
+    if (connection->state_available) {
+        net_unserialize_gamestate((NetworkGameState*)
+                (connection->state_packet->data), dest);
+        connection->state_available = false;
+    }
+}
+
 
 void
 net_serialize_ball(const Ball* src, NetworkBall* dest)
 {
-    SDLNet_Write32(pack_float(src->x, -WIDTH, WIDTH), &(dest->x));
-    SDLNet_Write32(pack_float(src->y, -HEIGHT, HEIGHT), &(dest->y));
+    SDLNet_Write32(pack_float(src->x, -WIDTH, WIDTH*2), &(dest->x));
+    SDLNet_Write32(pack_float(src->y, -HEIGHT, HEIGHT*2), &(dest->y));
     SDLNet_Write32(pack_float(src->z, -50, 50), &(dest->z));
     SDLNet_Write32(pack_float(src->move_x, -50, 50), &(dest->move_x));
     SDLNet_Write32(pack_float(src->move_y, -50, 50), &(dest->move_y));
@@ -61,8 +177,8 @@ net_serialize_ball(const Ball* src, NetworkBall* dest)
 void
 net_unserialize_ball(const NetworkBall* src, Ball* dest)
 {
-    dest->x = unpack_float(SDLNet_Read32(&(src->x)), -WIDTH, WIDTH);
-    dest->y = unpack_float(SDLNet_Read32(&(src->y)), -HEIGHT, HEIGHT);
+    dest->x = unpack_float(SDLNet_Read32(&(src->x)), -WIDTH, WIDTH*2);
+    dest->y = unpack_float(SDLNet_Read32(&(src->y)), -HEIGHT, HEIGHT*2);
     dest->z = unpack_float(SDLNet_Read32(&(src->z)), -50, 50);
     dest->move_x = unpack_float(SDLNet_Read32(&(src->move_x)), -50, 50);
     dest->move_y = unpack_float(SDLNet_Read32(&(src->move_y)), -50, 50);
@@ -75,29 +191,29 @@ net_unserialize_ball(const NetworkBall* src, Ball* dest)
 void
 net_serialize_player(const Player* src, NetworkPlayer* dest)
 {
-    SDLNet_Write32(pack_float(src->x, 0, WIDTH), &(dest->x));
-    SDLNet_Write32(pack_float(src->y, 0, HEIGHT), &(dest->y));
+    SDLNet_Write32(pack_float(src->x, 0, WIDTH*1.2), &(dest->x));
+    SDLNet_Write32(pack_float(src->y, 0, HEIGHT*1.2), &(dest->y));
     SDLNet_Write32(pack_float(src->power, 0, 110), &(dest->power));
     dest->use_power = src->use_power;
     dest->score = src->score;
     dest->desire = src->desire;
     dest->game = src->game;
     memcpy(dest->sets, src->sets, sizeof(unsigned char)*(SETS_TO_WIN*2));
-    SDLNet_Write32(pack_float(src->accelerate, 0, 1), &(dest->accelerate));
+    SDLNet_Write32(pack_float(src->accelerate, 0, 200), &(dest->accelerate));
 }
 
 void
 net_unserialize_player(const NetworkPlayer* src, Player* dest)
 {
-    dest->x = unpack_float(SDLNet_Read32(&(src->x)), 0, WIDTH);
-    dest->y = unpack_float(SDLNet_Read32(&(src->y)), 0, HEIGHT);
+    dest->x = unpack_float(SDLNet_Read32(&(src->x)), 0, WIDTH*1.2);
+    dest->y = unpack_float(SDLNet_Read32(&(src->y)), 0, HEIGHT*1.2);
     dest->power = unpack_float(SDLNet_Read32(&(src->power)), 0, 110);
     dest->use_power = src->use_power;
     dest->score = src->score;
     dest->desire = src->desire;
     dest->game = src->game;
     memcpy(dest->sets, src->sets, sizeof(unsigned char)*(SETS_TO_WIN*2));
-    dest->accelerate = unpack_float(SDLNet_Read32(&(src->accelerate)), 0, 1);
+    dest->accelerate = unpack_float(SDLNet_Read32(&(src->accelerate)), 0, 200);
 }
 
 void

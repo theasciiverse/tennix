@@ -43,6 +43,7 @@ enum {
     INPUT_TYPE_KEYBOARD,
     INPUT_TYPE_JOYSTICK,
     INPUT_TYPE_MOUSE,
+    INPUT_TYPE_NETWORK,
 #ifdef TENNIX_PYTHON
     INPUT_TYPE_AI_PYTHON,
 #endif
@@ -60,6 +61,18 @@ enum {
     INPUT_KEY_SMASH,
     INPUT_KEY_COUNT
 };
+
+enum {
+    NET_KEY_HIT     = 1 << INPUT_KEY_HIT,
+    NET_KEY_TOPSPIN = 1 << INPUT_KEY_TOPSPIN,
+    NET_KEY_SMASH   = 1 << INPUT_KEY_SMASH
+};
+
+typedef struct {
+    unsigned char x;
+    unsigned char y;
+    unsigned char keys; /* bitfield (0 = key pressed, 1 = not pressed) */
+} NetworkInputData;
 
 #define INPUT_DEVICE_NAME_MAX 100
 
@@ -86,6 +99,9 @@ typedef struct {
     int my;
     int player_x;
     int player_y;
+
+    /* Network-specific items */
+    NetworkInputData net;
 
 #ifdef TENNIX_PYTHON
     /* Python-specific items */

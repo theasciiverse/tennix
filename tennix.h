@@ -27,6 +27,33 @@
 #include <sys/param.h>
 
 #include <SDL/SDL.h>
+#include <SDL/SDL_net.h>
+
+typedef unsigned char bool;
+enum {
+    false,
+    true
+};
+
+typedef struct {
+    UDPsocket send_input_socket;
+    UDPsocket recv_input_socket;
+    UDPsocket send_state_socket;
+    UDPsocket recv_state_socket;
+
+    UDPpacket* input_packet;
+    UDPpacket* state_packet;
+
+    IPaddress peer;
+
+    bool input_available;
+    bool state_available;
+
+    Uint16 base_port_local;
+    Uint16 base_port_remote;
+
+    bool master;
+} TennixNet;
 
 #ifdef DELUXE_EDITION
 #  define HAVE_VOICE_FILES

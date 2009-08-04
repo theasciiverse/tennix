@@ -30,6 +30,7 @@
 #include "graphics.h"
 #include "input.h"
 
+
 #define SETS_TO_WIN 3
 
 #define MAXPLAYERS 2
@@ -39,12 +40,6 @@
 #else
 #  define BALL_STATES 4
 #endif
-
-typedef unsigned char bool;
-enum {
-    false,
-    true
-};
 
 typedef unsigned char referee_t;
 enum {
@@ -279,9 +274,9 @@ int gamestate_save(GameState* s, const char* filename);
 GameState* gamestate_load(const char* filename);
 
 /* Game module functions */
-void gameloop(GameState*);
+void gameloop(GameState*, TennixNet*);
 void step(GameState*);
-bool handle_input(GameState*);
+bool handle_input(GameState*, TennixNet*);
 void render(const GameState*, RenderState*);
 float get_move_y( GameState*, unsigned char);
 void input_human(GameState*, int);

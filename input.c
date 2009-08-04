@@ -100,6 +100,12 @@ void init_input()
 #endif
     devices_count++;
 
+    /* network peer */
+    devices[devices_count].type = INPUT_TYPE_NETWORK;
+    devices[devices_count].icon = GR_INPUT_AI; /* FIXME - network icon! */
+    strcpy(devices[devices_count].name, "Network player");
+    devices_count++;
+
     /* joysticks */
     n = SDL_NumJoysticks();
     for (x=0; x<n && devices_count<MAX_INPUT_DEVICES; x++) {
@@ -142,6 +148,24 @@ void uninit_input()
 #endif
 
     devices_count = 0;
+}
+
+Uint8
+input_pack_axis(float v)
+{
+    static const float min = -1.2;
+    static const float max = 1.2;
+    assert(v >= min && v < max);
+    return (Uint8)((1U<<7) * (v-min) / (max-min));
+}
+
+float
+input_unpack_axis(Uint8 v)
+{
+    static const float min = -1.2;
+    static const float max = 1.2;
+    assert(v < (1U<<7));
+    return v * (max-min) / (1U<<7) + min;
 }
 
 
@@ -188,21 +212,23 @@ const char* input_device_get_name(InputDevice* d)
 float input_device_get_axis(InputDevice* d, unsigned const char axis) {
     Uint8 *keystate;
     Uint8 mb;
+    Uint8 net_value;
+    float result = 0.0;
 
     SDL_PumpEvents();
 
     if (d->type == INPUT_TYPE_KEYBOARD) {
         keystate = SDL_GetKeyState(NULL);
         if (axis == INPUT_AXIS_X) {
-            return 1.0*keystate[d->right_key] + -1.0*keystate[d->left_key];
+            result =  1.0*keystate[d->right_key] + -1.0*keystate[d->left_key];
         } else {
-            return 1.0*keystate[d->down_key] + -1.0*keystate[d->up_key];
+            result = 1.0*keystate[d->down_key] + -1.0*keystate[d->up_key];
         }
     } else if (d->type == INPUT_TYPE_JOYSTICK) {
         if (axis == INPUT_AXIS_X) {
-            return JOYSTICK_PERCENTIZE(SDL_JoystickGetAxis(d->joystick, d->x_axis*2));
+            result = JOYSTICK_PERCENTIZE(SDL_JoystickGetAxis(d->joystick, d->x_axis*2));
         } else {
-            return JOYSTICK_PERCENTIZE(SDL_JoystickGetAxis(d->joystick, 1+d->y_axis*2));
+            result = JOYSTICK_PERCENTIZE(SDL_JoystickGetAxis(d->joystick, 1+d->y_axis*2));
         }
     } else if (d->type == INPUT_TYPE_MOUSE) {
         mb = SDL_GetMouseState(&d->mx, &d->my);
@@ -218,41 +244,66 @@ float input_device_get_axis(InputDevice* d, unsigned const char axis) {
         } else {
             if (fabsf(d->my - d->player_y) > PLAYER_MOVE_Y) {
                 if (d->my > d->player_y)  {
-                    return 1.0;
+                    result = 1.0;
                 } else if (d->my < d->player_y) {
-                    return -1.0;
+                    result = -1.0;
                 }
             }
         }
 #ifdef TENNIX_PYTHON
     } else if (d->type == INPUT_TYPE_AI_PYTHON) {
-        return tennixpy_bot_get_axis(d->py_bot, axis);
+        result = tennixpy_bot_get_axis(d->py_bot, axis);
 #endif
+    } else if (d->type == INPUT_TYPE_NETWORK) {
+        if (axis == INPUT_AXIS_X) {
+            result = input_unpack_axis(d->net.x);
+        } else if (axis == INPUT_AXIS_Y) {
+            result = input_unpack_axis(d->net.y);
+        }
     } else {
-        /* unimplemented */
+        assert(0/*unimplemented*/);
     }
-    return 0.0;
+
+    net_value = input_pack_axis(result);
+    if (axis == INPUT_AXIS_X) {
+        d->net.x = net_value;
+    } else if (axis == INPUT_AXIS_Y) {
+        d->net.y = net_value;
+    }
+
+    return result;
 }
 
 char input_device_get_key(InputDevice* d, unsigned const char key) {
     Uint8 mb;
+    char result = 0;
     SDL_PumpEvents();
 
     if (d->type == INPUT_TYPE_KEYBOARD) {
-        return SDL_GetKeyState(NULL)[d->input_keys[key]];
+        result = SDL_GetKeyState(NULL)[d->input_keys[key]];
     } else if (d->type == INPUT_TYPE_JOYSTICK) {
-        return SDL_JoystickGetButton(d->joystick, d->input_keys[key]);
+        result = SDL_JoystickGetButton(d->joystick, d->input_keys[key]);
     } else if (d->type == INPUT_TYPE_MOUSE) {
         mb = SDL_GetMouseState(NULL, NULL);
-        return (mb & d->input_keys[key]) != 0;
+        result = (mb & d->input_keys[key]) != 0;
 #ifdef TENNIX_PYTHON
     } else if (d->type == INPUT_TYPE_AI_PYTHON) {
-        return tennixpy_bot_get_key(d->py_bot, key);
+        result = tennixpy_bot_get_key(d->py_bot, key);
 #endif
+    } else if (d->type == INPUT_TYPE_NETWORK) {
+        result = (d->net.keys & (1<<key));
     } else {
-        /* unimplemented */
+        assert(0/*unimplemented*/);
     }
-    return 0;
+
+    /* Update the input device's NetworkInputData struct */
+    if(result) {
+        d->net.keys |= (1<<key);
+    } else {
+        d->net.keys &= ~(1<<key);
+    }
+
+    return result;
 }
 
 

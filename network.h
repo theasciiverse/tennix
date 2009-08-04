@@ -25,6 +25,12 @@
 #define __NETWORK_H
 
 #include "game.h"
+#include "input.h"
+
+#include <SDL/SDL_net.h>
+
+#define TENNIXNET_STATE_PORT 1448
+#define TENNIXNET_INPUT_PORT 1449
 
 typedef struct {
     Uint32 x;
@@ -45,9 +51,9 @@ typedef struct {
     bool use_power;
     unsigned char score;
     unsigned char desire;
-    char game; /* score for the current game */
-    unsigned char sets[SETS_TO_WIN*2]; /* score for each set */
-    Uint32 accelerate; /* a value [0..1] how fast the user accelerates */
+    char game;
+    unsigned char sets[SETS_TO_WIN*2];
+    Uint32 accelerate;
 } NetworkPlayer;
 
 typedef struct {
@@ -64,6 +70,36 @@ typedef struct {
     eventcounter_t ec_sets;
     statusmessage_t status_message;
 } NetworkGameState;
+
+void
+init_network();
+
+void
+uninit_network();
+
+TennixNet*
+network_connect(const char* host, Uint16 local_port, Uint16 remote_port);
+
+void
+network_disconnect(TennixNet* connection);
+
+void
+network_set_master(TennixNet* connection, bool master);
+
+void
+network_send_input(TennixNet* connection, NetworkInputData* src);
+
+void
+network_send_state(TennixNet* connection, GameState* src);
+
+void
+network_receive(TennixNet* connection);
+
+void
+network_get_input(TennixNet* connection, NetworkInputData* dest);
+
+void
+network_get_gamestate(TennixNet* connection, GameState* dest);
 
 void
 net_serialize_ball(const Ball* src, NetworkBall* dest);
