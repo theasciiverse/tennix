@@ -36,9 +36,8 @@ enum {
 };
 
 typedef struct {
-    UDPsocket send_input_socket;
+    UDPsocket send_socket;
     UDPsocket recv_input_socket;
-    UDPsocket send_state_socket;
     UDPsocket recv_state_socket;
 
     UDPpacket* input_packet;

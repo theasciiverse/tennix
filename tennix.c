@@ -108,8 +108,6 @@ int main( int argc, char** argv) {
     float wiggle;
     TennixNet* connection = NULL;
     char* net_host = NULL;
-    int net_port_local;
-    int net_port_remote;
     bool net_master = false;
 
     MenuButton btn_back = {
@@ -200,18 +198,16 @@ int main( int argc, char** argv) {
         else if (OPTION_SET("--benchmark", "-b")) {
             benchmark = true;
         }
-        else if (OPTION_SET("--network", "-n")) {
+        else if (OPTION_SET("--slave", "-s")) {
             net_host = OPTION_VALUE;
             assert(OPTION_VALUE != NULL);
             OPTION_VALUE_PROCESSED;
-            net_port_local = atoi(OPTION_VALUE);
-            assert(OPTION_VALUE != NULL);
-            OPTION_VALUE_PROCESSED;
-            net_port_remote = atoi(OPTION_VALUE);
-            assert(OPTION_VALUE != NULL);
-            OPTION_VALUE_PROCESSED;
+            net_master = false;
         }
         else if (OPTION_SET("--master", "-m")) {
+            net_host = OPTION_VALUE;
+            assert(OPTION_VALUE != NULL);
+            OPTION_VALUE_PROCESSED;
             net_master = true;
         }
         else {
@@ -253,8 +249,7 @@ int main( int argc, char** argv) {
     init_network();
 
     if (net_host != NULL) {
-        connection = network_connect(net_host, net_port_local, net_port_remote);
-        network_set_master(connection, net_master);
+        connection = network_connect(net_host, net_master);
     }
 
     menu_button_init(&btn_back);

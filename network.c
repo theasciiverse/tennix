@@ -56,25 +56,22 @@ uninit_network()
 }
 
 TennixNet*
-network_connect(const char* host, Uint16 local_port, Uint16 remote_port)
+network_connect(const char* host, bool master)
 {
     TennixNet* connection = (TennixNet*)malloc(sizeof(TennixNet));
     assert(connection != NULL);
 
-    fprintf(stderr, "ports: %d and %d\n", local_port, remote_port);
-
     assert(SDLNet_ResolveHost(&(connection->peer), (const char*)host, 0) == 0);
-    connection->base_port_local = local_port;
-    connection->base_port_remote = remote_port;
+    connection->base_port_local = (master)?(TENNIXNET_PORT_MASTER):(TENNIXNET_PORT_SLAVE);
+    connection->base_port_remote = (master)?(TENNIXNET_PORT_SLAVE):(TENNIXNET_PORT_MASTER);
     connection->input_packet = SDLNet_AllocPacket(sizeof(NetworkInputData));
     connection->state_packet = SDLNet_AllocPacket(sizeof(NetworkGameState));
     connection->input_available = false;
     connection->state_available = false;
-    connection->send_input_socket = SDLNet_UDP_Open(0);
-    connection->send_state_socket = SDLNet_UDP_Open(0);
+    connection->send_socket = SDLNet_UDP_Open(0);
     connection->recv_input_socket = SDLNet_UDP_Open(connection->base_port_local);
     connection->recv_state_socket = SDLNet_UDP_Open(connection->base_port_local+1);
-    connection->master = false;
+    connection->master = master;
 
     return connection;
 }
@@ -84,20 +81,13 @@ network_disconnect(TennixNet* connection)
 {
     if (connection != NULL)
     {
-        SDLNet_UDP_Close(connection->send_input_socket);
-        SDLNet_UDP_Close(connection->send_state_socket);
+        SDLNet_UDP_Close(connection->send_socket);
         SDLNet_UDP_Close(connection->recv_input_socket);
         SDLNet_UDP_Close(connection->recv_state_socket);
         SDLNet_FreePacket(connection->input_packet);
         SDLNet_FreePacket(connection->state_packet);
         free(connection);
     }
-}
-
-void
-network_set_master(TennixNet* connection, bool master)
-{
-    connection->master = master;
 }
 
 void
@@ -110,7 +100,7 @@ network_send_input(TennixNet* connection, NetworkInputData* src)
         SDLNet_Write16(connection->base_port_remote, &(connection->input_packet->address.port));
         connection->input_packet->channel = -1;
         connection->input_packet->len = sizeof(NetworkInputData);
-        SDLNet_UDP_Send(connection->send_input_socket, -1, connection->input_packet);
+        SDLNet_UDP_Send(connection->send_socket, -1, connection->input_packet);
     }
 }
 
@@ -124,7 +114,7 @@ network_send_state(TennixNet* connection, GameState* src)
         SDLNet_Write16(connection->base_port_remote+1, &(connection->state_packet->address.port));
         connection->state_packet->channel = -1;
         connection->state_packet->len = sizeof(NetworkGameState);
-        assert(SDLNet_UDP_Send(connection->send_state_socket, -1, connection->state_packet)!=0);
+        assert(SDLNet_UDP_Send(connection->send_socket, -1, connection->state_packet)!=0);
     }
 }
 

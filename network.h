@@ -29,8 +29,9 @@
 
 #include <SDL/SDL_net.h>
 
-#define TENNIXNET_STATE_PORT 1448
-#define TENNIXNET_INPUT_PORT 1449
+/* Vanity ports "STNX" and "MTNX" */
+#define TENNIXNET_PORT_SLAVE 7869
+#define TENNIXNET_PORT_MASTER 6869
 
 typedef struct {
     Uint32 x;
@@ -78,13 +79,10 @@ void
 uninit_network();
 
 TennixNet*
-network_connect(const char* host, Uint16 local_port, Uint16 remote_port);
+network_connect(const char* host, bool master);
 
 void
 network_disconnect(TennixNet* connection);
-
-void
-network_set_master(TennixNet* connection, bool master);
 
 void
 network_send_input(TennixNet* connection, NetworkInputData* src);
