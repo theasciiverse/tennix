@@ -179,8 +179,6 @@ void gameloop(GameState *s, TennixNet* c) {
         NULL,
     };
 
-    assert(c != NULL);
-
     /* Catch-up with existing sound events */
     r.sound_events = s->sound_events;
 

@@ -103,18 +103,22 @@ network_set_master(TennixNet* connection, bool master)
 void
 network_send_input(TennixNet* connection, NetworkInputData* src)
 {
-    memcpy(connection->input_packet->data, src, sizeof(NetworkInputData));
-    connection->input_packet->address.host = connection->peer.host;
-    SDLNet_Write16(connection->base_port_remote, &(connection->input_packet->address.port));
-    connection->input_packet->channel = -1;
-    connection->input_packet->len = sizeof(NetworkInputData);
-    SDLNet_UDP_Send(connection->send_input_socket, -1, connection->input_packet);
+    assert(src != NULL);
+    if (connection != NULL) {
+        memcpy(connection->input_packet->data, src, sizeof(NetworkInputData));
+        connection->input_packet->address.host = connection->peer.host;
+        SDLNet_Write16(connection->base_port_remote, &(connection->input_packet->address.port));
+        connection->input_packet->channel = -1;
+        connection->input_packet->len = sizeof(NetworkInputData);
+        SDLNet_UDP_Send(connection->send_input_socket, -1, connection->input_packet);
+    }
 }
 
 void
 network_send_state(TennixNet* connection, GameState* src)
 {
-    if (connection->master) {
+    assert(src != NULL);
+    if (connection != NULL && connection->master) {
         net_serialize_gamestate(src, (NetworkGameState*)(connection->state_packet->data));
         connection->state_packet->address.host = connection->peer.host;
         SDLNet_Write16(connection->base_port_remote+1, &(connection->state_packet->address.port));
@@ -127,15 +131,17 @@ network_send_state(TennixNet* connection, GameState* src)
 void
 network_receive(TennixNet* connection)
 {
-    connection->input_packet->len = sizeof(NetworkInputData);
-    while (SDLNet_UDP_Recv(connection->recv_input_socket, connection->input_packet)) {
-        connection->input_available = true;
-    }
+    if (connection != NULL) {
+        connection->input_packet->len = sizeof(NetworkInputData);
+        while (SDLNet_UDP_Recv(connection->recv_input_socket, connection->input_packet)) {
+            connection->input_available = true;
+        }
 
-    if (!(connection->master)) {
-        connection->state_packet->len = sizeof(NetworkGameState);
-        while (SDLNet_UDP_Recv(connection->recv_state_socket, connection->state_packet)) {
-            connection->state_available = true;
+        if (!(connection->master)) {
+            connection->state_packet->len = sizeof(NetworkGameState);
+            while (SDLNet_UDP_Recv(connection->recv_state_socket, connection->state_packet)) {
+                connection->state_available = true;
+            }
         }
     }
 }
@@ -143,7 +149,8 @@ network_receive(TennixNet* connection)
 void
 network_get_input(TennixNet* connection, NetworkInputData* dest)
 {
-    if (connection->input_available) {
+    assert(dest != NULL);
+    if (connection != NULL && connection->input_available) {
         memcpy(dest, connection->input_packet->data, sizeof(NetworkInputData));
         connection->input_available = false;
     }
@@ -152,7 +159,8 @@ network_get_input(TennixNet* connection, NetworkInputData* dest)
 void
 network_get_gamestate(TennixNet* connection, GameState* dest)
 {
-    if (connection->state_available) {
+    assert(dest != NULL);
+    if (connection != NULL && connection->state_available) {
         net_unserialize_gamestate((NetworkGameState*)
                 (connection->state_packet->data), dest);
         connection->state_available = false;
@@ -163,6 +171,7 @@ network_get_gamestate(TennixNet* connection, GameState* dest)
 void
 net_serialize_ball(const Ball* src, NetworkBall* dest)
 {
+    assert(src != NULL && dest != NULL);
     SDLNet_Write32(pack_float(src->x, -WIDTH, WIDTH*2), &(dest->x));
     SDLNet_Write32(pack_float(src->y, -HEIGHT, HEIGHT*2), &(dest->y));
     SDLNet_Write32(pack_float(src->z, -50, 50), &(dest->z));
@@ -177,6 +186,7 @@ net_serialize_ball(const Ball* src, NetworkBall* dest)
 void
 net_unserialize_ball(const NetworkBall* src, Ball* dest)
 {
+    assert(src != NULL && dest != NULL);
     dest->x = unpack_float(SDLNet_Read32(&(src->x)), -WIDTH, WIDTH*2);
     dest->y = unpack_float(SDLNet_Read32(&(src->y)), -HEIGHT, HEIGHT*2);
     dest->z = unpack_float(SDLNet_Read32(&(src->z)), -50, 50);
@@ -191,6 +201,7 @@ net_unserialize_ball(const NetworkBall* src, Ball* dest)
 void
 net_serialize_player(const Player* src, NetworkPlayer* dest)
 {
+    assert(src != NULL && dest != NULL);
     SDLNet_Write32(pack_float(src->x, 0, WIDTH*1.2), &(dest->x));
     SDLNet_Write32(pack_float(src->y, 0, HEIGHT*1.2), &(dest->y));
     SDLNet_Write32(pack_float(src->power, 0, 110), &(dest->power));
@@ -205,6 +216,7 @@ net_serialize_player(const Player* src, NetworkPlayer* dest)
 void
 net_unserialize_player(const NetworkPlayer* src, Player* dest)
 {
+    assert(src != NULL && dest != NULL);
     dest->x = unpack_float(SDLNet_Read32(&(src->x)), 0, WIDTH*1.2);
     dest->y = unpack_float(SDLNet_Read32(&(src->y)), 0, HEIGHT*1.2);
     dest->power = unpack_float(SDLNet_Read32(&(src->power)), 0, 110);
@@ -221,6 +233,8 @@ net_serialize_gamestate(const GameState* src, NetworkGameState* dest)
 {
     int p;
 
+    assert(src != NULL && dest != NULL);
+
     net_serialize_ball(&(src->ball), &(dest->ball));
     for (p=0; p<MAXPLAYERS; p++) {
         net_serialize_player(&(src->players[p]), &(dest->players[p]));
@@ -234,14 +248,14 @@ net_serialize_gamestate(const GameState* src, NetworkGameState* dest)
     dest->ec_game = src->ec_game;
     dest->ec_sets = src->ec_sets;
     dest->status_message = src->status_message;
-
-    fprintf(stderr, "size = %lu\n", sizeof(NetworkGameState));
 }
 
 void
 net_unserialize_gamestate(const NetworkGameState* src, GameState* dest)
 {
     int p;
+
+    assert(src != NULL && dest != NULL);
 
     net_unserialize_ball(&(src->ball), &(dest->ball));
     for (p=0; p<MAXPLAYERS; p++) {
