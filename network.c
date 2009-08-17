@@ -71,6 +71,12 @@ network_connect(const char* host, bool master)
     connection->send_socket = SDLNet_UDP_Open(0);
     connection->recv_input_socket = SDLNet_UDP_Open(connection->base_port_local);
     connection->recv_state_socket = SDLNet_UDP_Open(connection->base_port_local+1);
+
+    /* Fill with invalid data for first-time update */
+    connection->input_data.x = 0xFF;
+    connection->input_data.y = 0xFF;
+    connection->input_data.keys = 0xFF;
+
     connection->master = master;
 
     return connection;
@@ -94,13 +100,16 @@ void
 network_send_input(TennixNet* connection, NetworkInputData* src)
 {
     assert(src != NULL);
-    if (connection != NULL) {
+    if (connection != NULL && memcmp(&(connection->input_data),
+                src, sizeof(NetworkInputData)) != 0) {
         memcpy(connection->input_packet->data, src, sizeof(NetworkInputData));
         connection->input_packet->address.host = connection->peer.host;
         SDLNet_Write16(connection->base_port_remote, &(connection->input_packet->address.port));
         connection->input_packet->channel = -1;
         connection->input_packet->len = sizeof(NetworkInputData);
         SDLNet_UDP_Send(connection->send_socket, -1, connection->input_packet);
+        /* Remember what we sent (what the remote end "sees") right now */
+        memcpy(&(connection->input_data), src, sizeof(NetworkInputData));
     }
 }
 

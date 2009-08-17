@@ -36,6 +36,13 @@ enum {
 };
 
 typedef struct {
+    unsigned char x;
+    unsigned char y;
+    unsigned char keys; /* bitfield (0 = key pressed, 1 = not pressed) */
+} NetworkInputData;
+
+
+typedef struct {
     UDPsocket send_socket;
     UDPsocket recv_input_socket;
     UDPsocket recv_state_socket;
@@ -50,6 +57,8 @@ typedef struct {
 
     Uint16 base_port_local;
     Uint16 base_port_remote;
+
+    NetworkInputData input_data;
 
     bool master;
 } TennixNet;

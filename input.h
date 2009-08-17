@@ -68,12 +68,6 @@ enum {
     NET_KEY_SMASH   = 1 << INPUT_KEY_SMASH
 };
 
-typedef struct {
-    unsigned char x;
-    unsigned char y;
-    unsigned char keys; /* bitfield (0 = key pressed, 1 = not pressed) */
-} NetworkInputData;
-
 #define INPUT_DEVICE_NAME_MAX 100
 
 typedef struct {
