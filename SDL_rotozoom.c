@@ -6,10 +6,6 @@
 
 */
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 

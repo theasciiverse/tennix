@@ -67,9 +67,18 @@ Thomas Perl <thp@perli.net>, 2007-11-21
 =====================
 
 
-Enjoy,
-          thp     2007-05-12
+#######======------ --- -- -  -
+Additional notes on libraries on Win32
+#######======------ --- -- -  -
 
+You might have to add some libraries for Tennix 1.0 (and later) to compile
+correctly under mingw32:
 
-Updated: 2009-02-24
+  -lws2_32 -lkernel32
+
+This can be set as LDFLAGS and/or LIBS variable in the makefile. For some
+specific makefile targets (e.g. the "archive" utility), you might have to
+specify "-lws2_32" directly in the target to get the build going.
+
+#######======------ --- -- -  -
 
