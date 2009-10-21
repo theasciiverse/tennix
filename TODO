@@ -164,3 +164,23 @@ Implement tie break
 Implement "hit in the right area on serving"
 Correct serve repeat when serving into the out
 
+
+problems w/ tennix on the n900 (as reported by timeless)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+0. most golf/sport games which use things like this have demos that walk you
+   through strokes
+1. the animation for the racket is wrong the head should move, not the handle
+3. scoring doesn't use "all" or "love"
+4. when i first used it, the background was black, and it was basically
+   impossible to see stuff
+5. there needs to be a pause key! (esc <-> backspace)
+6. sentences should start w/ capital letters (Out, Player %d scores,
+   Fault!,...)
+7. you're supposed to let me Fault and then Double Fault before the other guy
+   gets a point :)
+8. you let me fault on a return - which is wrong :)
+9. you gave the computer players names iirc, please use them instead of "player
+   2"s
+
+
