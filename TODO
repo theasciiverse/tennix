@@ -23,6 +23,15 @@ LOW-PRIORITY
  9. Retrieve the ball when it goes offscreen or into the net
     (Either via Balljunge mode, long referee hand or "hand of god")
 
+==================================================================
+MAEMO 5 VIBRA SUPPORT
+==================================================================
+
+https://git.maemo.org/projects/rfk/gitweb?p=rfk;a=blob;f=rfk.c
+
+ + GLIB-Mainloop integration (aka while(g_main_iteration(FALSE));)
+ http://library.gnome.org/devel/glib/unstable/glib-The-Main-Event-Loop.html
+
 
 ==================================================================
 ANIMATION FRAMEWORK
