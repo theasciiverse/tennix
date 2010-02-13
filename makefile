@@ -76,7 +76,7 @@ else
   CFLAGS += $$(sdl-config --cflags)
 endif
 
-SRC = tennix.c game.c graphics.cc input.c util.c sound.cc animation.c network.c
+SRC = tennix.cc game.c graphics.cc input.c util.c sound.cc animation.c network.c
 OBJ = tennix.o game.o graphics.o input.o util.o sound.o animation.o archive.o SDL_rotozoom.o network.o
 ifeq ($(MSYSTEM),MINGW32)
   OBJ += tennixres.o
@@ -115,14 +115,14 @@ install: tennix
 	install -m 644 tennix.tnx $(DESTDIR)$(DATADIR)/tennix/
 
 archive.o: archive.cc archive.cc
-tennix.o: tennix.c tennix.h game.h graphics.h input.h util.h animation.h sound.h locations.h util.h
+tennix.o: tennix.cc tennix.h game.h graphics.h input.h util.h animation.h sound.h locations.h util.h archive.hh
 graphics.o: graphics.cc graphics.h tennix.h archive.hh sound.h
 game.o: game.c game.h graphics.h tennix.h sound.h input.h util.h network.h
 sound.o: sound.cc sound.h tennix.h archive.hh graphics.h
-input.o: input.c input.h tennix.h graphics.h game.h util.h tennixpy.h
+input.o: input.c input.h tennix.h graphics.h game.h util.h tennixpy.h archive.hh
 util.o: util.c util.h tennix.h
 animation.o: animation.c animation.h graphics.h tennix.h credits.h
-tennixpy.o: tennixpy.cc tennix.c tennix.h game.h archive.hh
+tennixpy.o: tennixpy.cc tennix.h game.h archive.hh
 network.o: network.c network.h game.h
 SDL_rotozoom.o: SDL_rotozoom.c SDL_rotozoom.h
 

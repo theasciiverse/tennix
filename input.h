@@ -24,6 +24,7 @@
 #ifndef __INPUT_H
 #define __INPUT_H
 
+#include "archive.hh"
 #include "graphics.h"
 
 #ifdef TENNIX_PYTHON
@@ -110,7 +111,7 @@ typedef struct {
     int exclusive_to_player;
 } InputDevice;
 
-void init_input();
+void init_input(TennixArchive& tnxar);
 void uninit_input();
 
 #ifdef TENNIX_PYTHON

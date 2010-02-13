@@ -24,6 +24,7 @@
 #ifndef __GRAPHICS_H
 #define __GRAPHICS_H
 
+#include "archive.hh"
 #include "tennix.h"
 
 #include "SDL_image.h"
@@ -126,7 +127,7 @@ enum {
 #define GR_CTT_FIRST GR_CTT_HARD
 #define GR_CTT_LAST GR_CTT_GRASS
 
-void init_graphics();
+void init_graphics(TennixArchive& tnxar);
 void uninit_graphics();
 int get_image_width(image_id);
 int get_image_height(image_id);

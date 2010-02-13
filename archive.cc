@@ -21,6 +21,7 @@
  *
  **/
 
+#include <iostream>
 
 #include <libgen.h>
 #include <stdio.h>
@@ -36,9 +37,12 @@
 
 #include "archive.hh"
 
-TennixArchive::TennixArchive(const char* filename)
+TennixArchive::TennixArchive(const char* filename, const char* fallback)
 {
     fp = fopen(filename, "rb");
+    if (fp == NULL && fallback != NULL) {
+        fp = fopen(fallback, "rb");
+    }
     assert(fp != NULL);
 
     offset = sizeof(TennixArchiveHeader)*fread(&(header), sizeof(TennixArchiveHeader), 1, fp);
@@ -65,23 +69,28 @@ TennixArchive::TennixArchive(const char* filename)
     building = 0;
 }
 
-
-void
-TennixArchive::dump()
+std::ostream&
+operator<<(std::ostream& out, TennixArchiveHeader& header)
 {
-    int x;
-    fprintf(stderr, "Tennix Archive\n");
-    fprintf(stderr, "Header: %s\n", header.header);
-    fprintf(stderr, "Version: %d.%d\n", header.versionmajor, header.versionminor);
-    fprintf(stderr, "Master key: %d\n", header.key);
-    fprintf(stderr, "Items: %d\n", header.items);
-    for (x = 0; x < header.items; x++) {
-        fprintf(stderr, "===========\n");
-        fprintf(stderr, "File: %s (#%d)\n", items[x].filename, x);
-        fprintf(stderr, "Size: %d\n", items[x].length);
-        fprintf(stderr, "Offset: %d\n", items[x].offset);
-        fprintf(stderr, "Key: %d\n", items[x].key);
-    }
+    out << "Header: " << header.header << std::endl;
+    out << "Version: " <<
+        (int)header.versionmajor << '.' <<
+        (int)header.versionminor << std::endl;
+    out << "Master key: " << header.key << std::endl;
+    out << "Items: " << header.items;
+
+    return out;
+}
+
+std::ostream&
+operator<<(std::ostream& out, TennixArchiveItem& item)
+{
+    out << "File: " << item.filename << std::endl;
+    out << "Size: " << item.length << std::endl;
+    out << "Offset: " << item.offset << std::endl;
+    out << "Key: " << (int)item.key;
+
+    return out;
 }
 
 int
@@ -189,5 +198,20 @@ TennixArchive::buildFile(char* filename)
 
     free(memsize);
     free(blobs);
+}
+
+std::ostream&
+operator<<(std::ostream& out, TennixArchive& archive)
+{
+    out << "Tennix Archive" << std::endl;
+    out << archive.header << std::endl;
+
+    for (int i=0; i<archive.header.items; i++) {
+        out << "=======================" << std::endl;
+        out << archive.items[i] << std::endl;
+    }
+    out << "=== END OF ARCHIVE ====" << std::endl;
+
+    return out;
 }
 

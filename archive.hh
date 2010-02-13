@@ -23,6 +23,8 @@
  *
  **/
 
+#include <iostream>
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -48,6 +50,9 @@ struct _TennixArchiveItem {
 
 typedef struct _TennixArchiveItem TennixArchiveItem;
 
+std::ostream&
+operator<<(std::ostream& out, TennixArchiveItem& item);
+
 struct _TennixArchiveHeader {
     char header[TENNIX_ARCHIVE_HEADER_LEN];
     uint8_t versionmajor; /* major file version */
@@ -58,6 +63,8 @@ struct _TennixArchiveHeader {
 
 typedef struct _TennixArchiveHeader TennixArchiveHeader;
 
+std::ostream&
+operator<<(std::ostream& out, TennixArchiveHeader& header);
 
 class TennixArchive {
     private:
@@ -79,7 +86,7 @@ class TennixArchive {
             fp = NULL;
         }
 
-        TennixArchive(const char* filename);
+        TennixArchive(const char* filename, const char* fallback=NULL);
 
         ~TennixArchive() {
             if (fp != NULL) {
@@ -111,7 +118,12 @@ class TennixArchive {
         /* only for building/utility mode: */
         void appendItem(char* filename, char* data, uint32_t length);
         void buildFile(char* filename);
-        void dump();
+
+        friend std::ostream& operator<<(std::ostream& out, TennixArchive& archive);
 };
+
+/* Used for dumping the contents of a TennixArchive */
+std::ostream&
+operator<<(std::ostream& out, TennixArchive& archive);
 
 #endif

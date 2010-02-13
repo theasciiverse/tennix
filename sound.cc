@@ -109,11 +109,10 @@ static int voice_queue_position = 0;
 int voice_finished_flag = 1;
 static int available_channels = 0;
 
-void init_sound() {
+void init_sound(TennixArchive& tnxar) {
     int i;
     char *d;
     Mix_Chunk* data;
-    TennixArchive* tnxar;
 
     if( Mix_OpenAudio( 44100, AUDIO_S16SYS, 2, 1024) < 0) {
         fprintf( stderr, "Error initializing SDL_mixer: %s\n", Mix_GetError());
@@ -123,7 +122,6 @@ void init_sound() {
 
     draw_button(40, (HEIGHT-40)/2, WIDTH-80, 40, 100, 100, 100, 1);
     store_screen();
-    updatescr();
 
     /* +1 because of zero-based indexing AND +1 for voice channel */
     available_channels = Mix_AllocateChannels(LAST_SOUNDEFFECT_ID+1+1);
@@ -134,19 +132,10 @@ void init_sound() {
                 LAST_SOUNDEFFECT_ID+1+1);
     }
 
-    tnxar = new TennixArchive(ARCHIVE_FILE);
-#if 0
-    if (tnxar == NULL) {
-        /* not found in cwd - try installed... */
-        tnxar = tnxar_open(ARCHIVE_FILE_INSTALLED);
-        assert(tnxar != NULL);
-    }
-#endif
-
     for( i=0; i<SOUND_MAX; i++) {
-        if (tnxar->setItemFilename(samples[i]) != 0) {
-            d = tnxar->getItemBytes();
-            data = Mix_LoadWAV_RW(SDL_RWFromMem(d, tnxar->getItemSize()), 0);
+        if (tnxar.setItemFilename(samples[i]) != 0) {
+            d = tnxar.getItemBytes();
+            data = Mix_LoadWAV_RW(SDL_RWFromMem(d, tnxar.getItemSize()), 0);
             free(d);
         } else {
             fprintf(stderr, "Cannot find %s\n", samples[i]);
@@ -163,8 +152,6 @@ void init_sound() {
         rectangle(40+BUTTON_BORDER, (HEIGHT-40)/2+20, (WIDTH-80)*(GR_COUNT+i)/(SOUND_MAX+GR_COUNT)-2*BUTTON_BORDER, 10, 170, 250, 170);
         updatescr();
     }
-
-    delete tnxar;
 
     clear_screen();
     store_screen();

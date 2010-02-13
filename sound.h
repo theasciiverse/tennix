@@ -24,6 +24,8 @@
 #ifndef __SOUND_H
 #define __SOUND_H
 
+#include "archive.hh"
+
 #include "SDL_mixer.h"
 
 #define FADE_OUT_MS 500
@@ -137,7 +139,7 @@ typedef struct {
     Mix_Chunk* data;
 } Sound;
 
-void init_sound();
+void init_sound(TennixArchive& tnxar);
 
 void play_sample_n(sound_id id, int n);
 #define play_sample(id) play_sample_n(id,0)

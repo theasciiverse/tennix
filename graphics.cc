@@ -107,12 +107,11 @@ static const char* graphics[] = {
 #endif
 };
 
-void init_graphics() {
+void init_graphics(TennixArchive& tnxar) {
     int i;
     char *d;
     SDL_Surface* data;
     SDL_Surface* tmp;
-    TennixArchive* tnxar;
     struct SDL_RWops* rw;
     const char* font_data = NULL;
 
@@ -147,26 +146,17 @@ void init_graphics() {
         fprintf( stderr, "Cannot create buffer surface: %s\n", SDL_GetError());
     }
 
-    tnxar = new TennixArchive(ARCHIVE_FILE);
-#if 0
-    if (tnxar == NULL) {
-        /* not found in cwd - try installed... */
-        tnxar = tnxar_open(ARCHIVE_FILE_INSTALLED);
-        assert(tnxar != NULL);
-    }
-#endif
-
     font_freelist = freelist_create();
 
     /* Load fonts from resource file */
     for (i=0; i<FONT_COUNT; i++) {
         if (font_desc[i].filename != NULL) {
-            assert(tnxar->setItemFilename(font_desc[i].filename) != 0);
-            font_data = tnxar->getItemBytes();
+            assert(tnxar.setItemFilename(font_desc[i].filename) != 0);
+            font_data = tnxar.getItemBytes();
             freelist_append(font_freelist, font_data);
         }
         assert(font_data != NULL);
-        rw = SDL_RWFromMem((void*)font_data, tnxar->getItemSize());
+        rw = SDL_RWFromMem((void*)font_data, tnxar.getItemSize());
         fonts[i].data = TTF_OpenFontRW(rw, 1, font_desc[i].size);
         if (fonts[i].data == NULL) {
             fprintf(stderr, "TTF error: %s\n", TTF_GetError());
@@ -180,9 +170,9 @@ void init_graphics() {
     updatescr();
 
     for( i=0; i<GR_COUNT; i++) {
-        if (tnxar->setItemFilename(graphics[i]) != 0 ) {
-            d = tnxar->getItemBytes();
-            tmp = IMG_Load_RW(SDL_RWFromMem(d, tnxar->getItemSize()), 1);
+        if (tnxar.setItemFilename(graphics[i]) != 0 ) {
+            d = tnxar.getItemBytes();
+            tmp = IMG_Load_RW(SDL_RWFromMem(d, tnxar.getItemSize()), 1);
             free(d);
         } else {
             fprintf(stderr, "Cannot find file: %s\n", graphics[i]);
@@ -207,8 +197,6 @@ void init_graphics() {
         rectangle(40+BUTTON_BORDER*2, (HEIGHT-40)/2+20+BUTTON_BORDER, (WIDTH-80)*i/(GR_COUNT+SOUND_MAX)-BUTTON_BORDER*2, 10, 170, 250, 170);
         updatescr();
     }
-
-    delete tnxar;
 }
 
 void uninit_graphics() {

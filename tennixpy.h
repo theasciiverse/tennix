@@ -27,6 +27,8 @@
 
 #ifdef TENNIX_PYTHON
 
+#include "archive.hh"
+
 extern PyThreadState* _py_save;
 
 PyObject* tennixpy_register_bot(PyObject* self, PyObject* bot_class);
@@ -45,7 +47,7 @@ PyObject* tennixpy_get_position(PyObject* self, PyObject* args);
 
 PyObject* tennixpy_create_module(void);
 
-void tennixpy_init();
+void tennixpy_init(TennixArchive& tnxar);
 void tennixpy_uninit();
 
 #endif

@@ -72,9 +72,8 @@ int main(int argc, char* argv[])
             fprintf(stderr, "Usage: %s archive.tnx\n", bn);
             exit(EXIT_FAILURE);
         }
-        tnxar = new TennixArchive(argv[1]);
-        tnxar->dump();
-        delete tnxar;
+        TennixArchive archive(argv[1]);
+        std::cerr << archive << std::endl;
     } else if(strcmp(bn, "extract") == 0) {
         if (argc < 2 || argc > 3) {
             fprintf(stderr, "Usage: %s archive.tnx [file]\n", bn);

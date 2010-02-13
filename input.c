@@ -28,6 +28,7 @@
 #include "game.h"
 #include "input.h"
 #include "util.h"
+#include "archive.hh"
 
 static InputDevice devices[MAX_INPUT_DEVICES];
 static int devices_count;
@@ -36,7 +37,7 @@ static int devices_count;
 #include "tennixpy.h"
 #endif
 
-void init_input()
+void init_input(TennixArchive& tnxar)
 {
     int n, x;
 
@@ -123,7 +124,7 @@ void init_input()
 
 #ifdef TENNIX_PYTHON
     /* This will init Python and load all available bots */
-    tennixpy_init();
+    tennixpy_init(tnxar);
 #endif
 
 }

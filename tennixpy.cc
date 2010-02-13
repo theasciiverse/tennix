@@ -266,13 +266,12 @@ PyObject* tennixpy_get_position(PyObject* self, PyObject* args)
     }
 }
 
-void tennixpy_init()
+void tennixpy_init(TennixArchive& tnxar)
 {
     PyObject* tennix_module;
     /*PyObject* bot_module;*/
     /*FILE* fp;*/
     char* data;
-    TennixArchive* tnxar;
     /*const char* argv[] = {""};*/
 
     /* Search for modules in CWD */
@@ -287,19 +286,9 @@ void tennixpy_init()
     }
     Py_DECREF(bot_module);*/
 
-    tnxar = new TennixArchive(ARCHIVE_FILE);
-
-#if 0
-    if (tnxar == NULL) {
-        /* not found in cwd - try installed... */
-        tnxar = tnxar_open(ARCHIVE_FILE_INSTALLED);
-        assert(tnxar != NULL);
-    }
-#endif
-
-    if (tnxar->setItemFilename("defaultbot.py") != 0) {
+    if (tnxar.setItemFilename("defaultbot.py") != 0) {
         fprintf(stderr, "Loading computer players:");
-        data = tnxar->getItemBytes();
+        data = tnxar.getItemBytes();
         if (PyRun_SimpleString(data) != 0) {
             PyErr_Print();
         } else {
@@ -307,7 +296,6 @@ void tennixpy_init()
         }
         free(data);
     }
-    delete tnxar;
 
     /*fp = fopen("defaultbot.py", "r");
     PyRun_SimpleFile(fp, "defaultbot.py");

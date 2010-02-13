@@ -32,6 +32,7 @@
 #endif
 
 #include "tennix.h"
+#include "archive.hh"
 #include "game.h"
 #include "graphics.h"
 #include "sound.h"
@@ -109,6 +110,7 @@ int main( int argc, char** argv) {
     TennixNet* connection = NULL;
     char* net_host = NULL;
     bool net_master = false;
+    TennixArchive* tnxar = NULL;
 
     MenuButton btn_back = {
         NULL, /* not needed for image-based button */
@@ -243,10 +245,12 @@ int main( int argc, char** argv) {
     SDL_ShowCursor( SDL_DISABLE);
     SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, 1);
 
-    init_graphics();
-    init_sound();
-    init_input();
+    tnxar = new TennixArchive(ARCHIVE_FILE, ARCHIVE_FILE_INSTALLED);
+    init_graphics(*tnxar);
+    init_sound(*tnxar);
+    init_input(*tnxar);
     init_network();
+    delete tnxar;
 
     if (net_host != NULL) {
         connection = network_connect(net_host, net_master);
