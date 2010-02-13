@@ -42,7 +42,7 @@
 #define SET_PIXEL_RGB(surface,x,y,r,g,b) (GET_PIXEL_DATA(surface,x,y)=SDL_MapRGB(surface->format, r, g, b))
 
 struct _FreeListItem {
-    char* data;
+    const char* data;
     struct _FreeListItem* next;
 };
 
@@ -53,7 +53,7 @@ typedef struct {
 } FreeList;
 
 FreeList* freelist_create();
-void freelist_append(FreeList* list, char* data);
+void freelist_append(FreeList* list, const char* data);
 void freelist_free_all(FreeList* list);
 
 typedef struct {

@@ -39,7 +39,7 @@
 GameState *gamestate_new() {
     GameState *s;
 
-    GameState template = {
+    GameState gs_template = {
         NULL,
         -1,
         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, false, -1, false },
@@ -62,7 +62,7 @@ GameState *gamestate_new() {
     s = (GameState*)malloc(sizeof(GameState));
     if (s == NULL) abort();
 
-    memcpy(s, &template, sizeof(GameState));
+    memcpy(s, &gs_template, sizeof(GameState));
 
     game_setup_serve(s);
 

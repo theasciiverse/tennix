@@ -27,7 +27,7 @@
 #include <Python.h>
 
 #include "game.h"
-#include "archive.h"
+#include "archive.hh"
 #include "tennixpy.h"
 
 /* This saves our current Python thread state */
@@ -287,15 +287,19 @@ void tennixpy_init()
     }
     Py_DECREF(bot_module);*/
 
-    tnxar = tnxar_open(ARCHIVE_FILE);
+    tnxar = new TennixArchive(ARCHIVE_FILE);
+
+#if 0
     if (tnxar == NULL) {
         /* not found in cwd - try installed... */
         tnxar = tnxar_open(ARCHIVE_FILE_INSTALLED);
         assert(tnxar != NULL);
     }
-    if (tnxar_set_current_filename(tnxar, "defaultbot.py") != 0) {
+#endif
+
+    if (tnxar->setItemFilename("defaultbot.py") != 0) {
         fprintf(stderr, "Loading computer players:");
-        data = tnxar_read_current(tnxar);
+        data = tnxar->getItemBytes();
         if (PyRun_SimpleString(data) != 0) {
             PyErr_Print();
         } else {
@@ -303,7 +307,7 @@ void tennixpy_init()
         }
         free(data);
     }
-    tnxar_close(tnxar);
+    delete tnxar;
 
     /*fp = fopen("defaultbot.py", "r");
     PyRun_SimpleFile(fp, "defaultbot.py");

@@ -32,7 +32,7 @@
 
 #include "tennix.h"
 #include "graphics.h"
-#include "archive.h"
+#include "archive.hh"
 #include "sound.h"
 
 #include "SDL_rotozoom.h"
@@ -112,9 +112,9 @@ void init_graphics() {
     char *d;
     SDL_Surface* data;
     SDL_Surface* tmp;
-    TennixArchive *tnxar;
+    TennixArchive* tnxar;
     struct SDL_RWops* rw;
-    char *font_data = NULL;
+    const char* font_data = NULL;
 
     if (TTF_Init() == -1) {
         fprintf(stderr, "Cannot init TTF: %s\n", TTF_GetError());
@@ -147,26 +147,31 @@ void init_graphics() {
         fprintf( stderr, "Cannot create buffer surface: %s\n", SDL_GetError());
     }
 
-    tnxar = tnxar_open(ARCHIVE_FILE);
+    tnxar = new TennixArchive(ARCHIVE_FILE);
+#if 0
     if (tnxar == NULL) {
         /* not found in cwd - try installed... */
         tnxar = tnxar_open(ARCHIVE_FILE_INSTALLED);
         assert(tnxar != NULL);
     }
+#endif
 
     font_freelist = freelist_create();
 
     /* Load fonts from resource file */
     for (i=0; i<FONT_COUNT; i++) {
         if (font_desc[i].filename != NULL) {
-            assert(tnxar_set_current_filename(tnxar, font_desc[i].filename) != 0);
-            font_data = tnxar_read_current(tnxar);
+            assert(tnxar->setItemFilename(font_desc[i].filename) != 0);
+            font_data = tnxar->getItemBytes();
             freelist_append(font_freelist, font_data);
         }
         assert(font_data != NULL);
-        rw = SDL_RWFromMem(font_data, tnxar_size_current(tnxar));
+        rw = SDL_RWFromMem((void*)font_data, tnxar->getItemSize());
         fonts[i].data = TTF_OpenFontRW(rw, 1, font_desc[i].size);
-        assert(fonts[i].data != NULL);
+        if (fonts[i].data == NULL) {
+            fprintf(stderr, "TTF error: %s\n", TTF_GetError());
+            assert(fonts[i].data != NULL);
+        }
         TTF_SetFontStyle(fonts[i].data, font_desc[i].style);
     }
 
@@ -175,9 +180,9 @@ void init_graphics() {
     updatescr();
 
     for( i=0; i<GR_COUNT; i++) {
-        if (tnxar_set_current_filename(tnxar, graphics[i]) != 0) {
-            d = tnxar_read_current(tnxar);
-            tmp = IMG_Load_RW(SDL_RWFromMem(d, tnxar_size_current(tnxar)), 1);
+        if (tnxar->setItemFilename(graphics[i]) != 0 ) {
+            d = tnxar->getItemBytes();
+            tmp = IMG_Load_RW(SDL_RWFromMem(d, tnxar->getItemSize()), 1);
             free(d);
         } else {
             fprintf(stderr, "Cannot find file: %s\n", graphics[i]);
@@ -202,7 +207,8 @@ void init_graphics() {
         rectangle(40+BUTTON_BORDER*2, (HEIGHT-40)/2+20+BUTTON_BORDER, (WIDTH-80)*i/(GR_COUNT+SOUND_MAX)-BUTTON_BORDER*2, 10, 170, 250, 170);
         updatescr();
     }
-    tnxar_close(tnxar);
+
+    delete tnxar;
 }
 
 void uninit_graphics() {
@@ -246,7 +252,7 @@ FreeList* freelist_create()
     return list;
 }
 
-void freelist_append(FreeList* list, char* data)
+void freelist_append(FreeList* list, const char* data)
 {
     FreeListItem* new_item = (FreeListItem*)malloc(sizeof(FreeListItem));
 
@@ -269,7 +275,7 @@ void freelist_free_all(FreeList* list)
     while (list->head != NULL) {
         /* Remove one item from the head of the list */
         next = list->head->next;
-        free(list->head->data);
+        free((void*)list->head->data);
         free(list->head);
         list->head = next;
     }

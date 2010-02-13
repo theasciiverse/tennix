@@ -1,10 +1,10 @@
-#ifndef __ARCHIVE_H
-#define __ARCHIVE_H
+#ifndef __ARCHIVE_HH
+#define __ARCHIVE_HH
 
 /**
  *
  * Tennix Archive File Format
- * Copyright (C) 2009 Thomas Perl <thp@thpinfo.com>
+ * Copyright (C) 2009-2010 Thomas Perl <thp@thpinfo.com>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,8 +23,10 @@
  *
  **/
 
-
+#include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define TENNIX_ARCHIVE_HEADER "thpinfo.com/2009/tennix/afmt "
 #define TENNIX_ARCHIVE_HEADER_LEN 30
@@ -57,42 +59,59 @@ struct _TennixArchiveHeader {
 typedef struct _TennixArchiveHeader TennixArchiveHeader;
 
 
+class TennixArchive {
+    private:
+        FILE* fp;
+        TennixArchiveHeader header;
+        TennixArchiveItem* items;
+        char** blobs;
+        size_t offset;
+        int current_item;
+        int building;
 
-/* architecture-dependent (in-memory) structs */
+        static void xormem(char* mem, uint32_t length, char key);
 
-struct _TennixArchive {
-    FILE *fp;
-    TennixArchiveHeader header;
-    TennixArchiveItem *items;
-    char** blobs;
-    size_t offset;
-    int current_item;
+    public:
+        TennixArchive() {
+            strcpy(header.header, TENNIX_ARCHIVE_HEADER);
+            header.items = 0;
+            building = 1;
+            fp = NULL;
+        }
+
+        TennixArchive(const char* filename);
+
+        ~TennixArchive() {
+            if (fp != NULL) {
+                fclose(fp);
+            }
+            free(items);
+        }
+
+        int setItemFilename(const char* filename);
+
+        const char* getItemFilename() {
+            return items[current_item].filename;
+        }
+
+        char* getItemBytes();
+
+        size_t getItemSize() {
+            return items[current_item].length;
+        }
+
+        int endOfFile() {
+            return current_item >= header.items;
+        }
+
+        void next() {
+            current_item++;
+        }
+
+        /* only for building/utility mode: */
+        void appendItem(char* filename, char* data, uint32_t length);
+        void buildFile(char* filename);
+        void dump();
 };
-
-typedef struct _TennixArchive TennixArchive;
-
-/* reading existing archives */
-TennixArchive* tnxar_open(const char* filename);
-int tnxar_set_current_filename(TennixArchive* tnxar, const char* filename);
-char* tnxar_get_current_filename(TennixArchive* tnxar);
-char* tnxar_read_current(TennixArchive* tnxar);
-size_t tnxar_size_current(TennixArchive* tnxar);
-int tnxar_eof(TennixArchive* tnxar);
-void tnxar_next(TennixArchive* tnxar);
-void tnxar_close(TennixArchive* tnxar);
-
-/* utility functions */
-void tnxar_xormem(char* mem, uint32_t length, char key);
-
-
-#ifdef TENNIXAR_STANDALONE
-/* for debugging */
-void tnxar_dump(TennixArchive* tnxar);
-
-/* creating new archives */
-TennixArchive* tnxar_create();
-void tnxar_append(TennixArchive *tnxar, char* filename, char* mem, uint32_t length);
-void tnxar_build(TennixArchive *tnxar, char* filename);
-#endif
 
 #endif

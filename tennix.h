@@ -29,12 +29,6 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_net.h>
 
-typedef unsigned char bool;
-enum {
-    false,
-    true
-};
-
 typedef struct {
     unsigned char x;
     unsigned char y;

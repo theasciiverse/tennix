@@ -19,6 +19,8 @@
 # MA  02110-1301, USA.
 #
 
+CC = g++
+
 
 ifeq ($(MKCALLGRAPH),1)
   CC        =  nccgen -ncgcc -ncld -ncfabs
@@ -35,7 +37,8 @@ DATAROOTDIR ?= $(PREFIX)/share
 DATADIR ?= $(DATAROOTDIR)/games
 
 LIBS =
-CFLAGS += -std=c99 -W -Wall -ansi -pedantic -Wcast-qual -Wwrite-strings -DVERSION=\"$(RELEASE)\" -O2 -DPREFIX=\"$(PREFIX)\" -g
+CFLAGS += -W -Wall -ansi -pedantic -Wcast-qual -Wwrite-strings -DVERSION=\"$(RELEASE)\" -O2 -DPREFIX=\"$(PREFIX)\" -g
+CXXFLAGS += $(CFLAGS)
 
 USE_PYTHON ?= 1
 
@@ -73,8 +76,8 @@ else
   CFLAGS += $$(sdl-config --cflags)
 endif
 
-SRC = tennix.c game.c graphics.c input.c util.c sound.c animation.c network.c
-OBJ = tennix.o game.o graphics.o input.o util.o sound.o animation.o archive-lib.o SDL_rotozoom.o network.o
+SRC = tennix.c game.c graphics.cc input.c util.c sound.cc animation.c network.c
+OBJ = tennix.o game.o graphics.o input.o util.o sound.o animation.o archive.o SDL_rotozoom.o network.o
 ifeq ($(MSYSTEM),MINGW32)
   OBJ += tennixres.o
 endif
@@ -111,24 +114,21 @@ install: tennix
 	install -m 644 tennix.desktop $(DESTDIR)$(DATAROOTDIR)/applications/
 	install -m 644 tennix.tnx $(DESTDIR)$(DATADIR)/tennix/
 
+archive.o: archive.cc archive.cc
 tennix.o: tennix.c tennix.h game.h graphics.h input.h util.h animation.h sound.h locations.h util.h
-graphics.o: graphics.c graphics.h tennix.h archive.h sound.h
+graphics.o: graphics.cc graphics.h tennix.h archive.hh sound.h
 game.o: game.c game.h graphics.h tennix.h sound.h input.h util.h network.h
-sound.o: sound.c sound.h tennix.h archive.h graphics.h
+sound.o: sound.cc sound.h tennix.h archive.hh graphics.h
 input.o: input.c input.h tennix.h graphics.h game.h util.h tennixpy.h
 util.o: util.c util.h tennix.h
 animation.o: animation.c animation.h graphics.h tennix.h credits.h
-tennixpy.o: tennix.c tennix.h game.h archive.h
+tennixpy.o: tennixpy.cc tennix.c tennix.h game.h archive.hh
 network.o: network.c network.h game.h
 SDL_rotozoom.o: SDL_rotozoom.c SDL_rotozoom.h
 
-archive-lib.o: archive.c archive.h
-	$(CC) -c -o $@ $<
-
 tennixar: archive dump
 
-archive.o: archive.c archive.h
-	$(CC) $(CFLAGS) -DTENNIXAR_STANDALONE -c -o $@ $<
+archive: archivetool.cc archive.o archive.hh
 
 dump: archive
 	ln -s archive dump

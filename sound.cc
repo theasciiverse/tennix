@@ -23,7 +23,7 @@
 
 #include "tennix.h"
 #include "sound.h"
-#include "archive.h"
+#include "archive.hh"
 #include "graphics.h"
 
 #include <stdarg.h>
@@ -134,17 +134,19 @@ void init_sound() {
                 LAST_SOUNDEFFECT_ID+1+1);
     }
 
-    tnxar = tnxar_open(ARCHIVE_FILE);
+    tnxar = new TennixArchive(ARCHIVE_FILE);
+#if 0
     if (tnxar == NULL) {
         /* not found in cwd - try installed... */
         tnxar = tnxar_open(ARCHIVE_FILE_INSTALLED);
         assert(tnxar != NULL);
     }
+#endif
 
     for( i=0; i<SOUND_MAX; i++) {
-        if (tnxar_set_current_filename(tnxar, samples[i]) != 0) {
-            d = tnxar_read_current(tnxar);
-            data = Mix_LoadWAV_RW(SDL_RWFromMem(d, tnxar_size_current(tnxar)), 0);
+        if (tnxar->setItemFilename(samples[i]) != 0) {
+            d = tnxar->getItemBytes();
+            data = Mix_LoadWAV_RW(SDL_RWFromMem(d, tnxar->getItemSize()), 0);
             free(d);
         } else {
             fprintf(stderr, "Cannot find %s\n", samples[i]);
@@ -162,7 +164,7 @@ void init_sound() {
         updatescr();
     }
 
-    tnxar_close(tnxar);
+    delete tnxar;
 
     clear_screen();
     store_screen();
