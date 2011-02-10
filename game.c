@@ -240,7 +240,7 @@ void gameloop(GameState *s, TennixNet* c) {
     }
 
     clear_screen();
-    rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
+    //rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
     store_screen();
 
     stop_sample(SOUND_AUDIENCE);
@@ -483,7 +483,7 @@ void render(const GameState* s, RenderState* r) {
 
     if( s->winner != WINNER_NONE) {
         clear_screen();
-        rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
+        //rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
         store_screen();
         show_sprite( GR_RACKET, 2*(s->winner-1), 4, WIDTH/2 - get_image_width( GR_RACKET)/8, HEIGHT/2 - get_image_height( GR_RACKET), 255);
         /*sprintf( s->game_score_str, "player %d wins the match with %s", s->winner, format_sets( s));
@@ -514,7 +514,7 @@ void render(const GameState* s, RenderState* r) {
             r->ec_sets = s->ec_sets;
         }
         clear_screen();
-        rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
+        //rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
         fill_image(s->location->court_type, 120, 120, 400, 250);
         show_image(GR_COURT, 0, 0, 255);
         font_draw_string(FONT_XLARGE, r->text_game, 14, 14);

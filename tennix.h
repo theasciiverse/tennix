@@ -79,7 +79,7 @@ typedef struct {
 #  define GAMESTATE_FILE ".tennix-current_match-" VERSION
 #endif
 
-#define COPYRIGHT "Copyright 2003, 2007, 2008, 2009 Thomas Perl"
+#define COPYRIGHT "Copyright 2003, 2007-2011 Thomas Perl"
 #define URL "http://icculus.org/tennix/"
 
 #define WIDTH 640

@@ -27,7 +27,7 @@ ifeq ($(MKCALLGRAPH),1)
   LD        =  nccld
 endif
 
-RELEASE   =  1.0
+RELEASE   =  1.1
 
 UNAME = $(shell uname)
 

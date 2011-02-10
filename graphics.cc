@@ -435,7 +435,7 @@ void draw_button_object(MenuButton* b, int mx, int my)
     if (b->image_id == GR_COUNT) {
         draw_button_text(b->text, b->x, b->y, b->w, b->h, b->r, b->g, b->b, M_POS_BUTTON(*b, mx, my));
     } else {
-        show_image_rotozoom(b->image_id, b->x+b->w/2, b->y+b->h/2, 0.0, 1.0+0.2*M_POS_BUTTON(*b, mx, my));
+        show_image_rotozoom(b->image_id, b->x+b->w/2, b->y+b->h/2, 0.0, 1.0-0.2*!M_POS_BUTTON(*b, mx, my));
     }
 }
 

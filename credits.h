@@ -28,11 +28,11 @@
 #define CREDITS_OFFSET 500
 
 const char* credits_text[] = {
-    "Tennix 2009 World Tennis Championship Tour",
-    "Version " VERSION " (2009-02-24)",
+    "Tennix Classic Championship Tour 2011",
+    "Version " VERSION " (2011-02-10)",
     CREDITS_EMPTY_TEXT,
     "Code, graphics and idea by",
-    "Thomas Perl (thpinfo.com)",
+    "Thomas Perl (thp.io)",
     CREDITS_EMPTY_TEXT,
     "Public domain artwork by",
     "http://en.wikipedia.org/wiki/User:Ivan",

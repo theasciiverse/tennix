@@ -180,7 +180,7 @@ int main( int argc, char** argv) {
             break;
     }
 #else
-    fprintf(stderr, "Tennix 2009 World Tennis Championship Tour (v" VERSION ")\n" COPYRIGHT "\n" URL "\n\n");
+    fprintf(stderr, "Tennix Classic Championship Tour 2011 (v" VERSION ")\n" COPYRIGHT "\n" URL "\n\n");
 
     i = 1;
     while (i < argc) {
@@ -202,24 +202,42 @@ int main( int argc, char** argv) {
         }
         else if (OPTION_SET("--slave", "-s")) {
             net_host = OPTION_VALUE;
-            assert(OPTION_VALUE != NULL);
-            OPTION_VALUE_PROCESSED;
-            net_master = false;
+            if (OPTION_VALUE != NULL) {
+                OPTION_VALUE_PROCESSED;
+                net_master = false;
+            } else {
+                fprintf(stderr, "Missing option parameter.\n");
+                do_help = true;
+                break;
+            }
         }
         else if (OPTION_SET("--master", "-m")) {
             net_host = OPTION_VALUE;
-            assert(OPTION_VALUE != NULL);
-            OPTION_VALUE_PROCESSED;
-            net_master = true;
+            if (OPTION_VALUE != NULL) {
+                OPTION_VALUE_PROCESSED;
+                net_master = true;
+            } else {
+                fprintf(stderr, "Missing option parameter.\n");
+                do_help = true;
+                break;
+            }
         }
         else {
-            fprintf(stderr, "Ignoring unknown option: %s\n", argv[i]);
+            fprintf(stderr, "Unknown option: %s\n", argv[i]);
+            do_help = true;
         }
         i++;
     }
 
     if (do_help == true) {
-        fprintf(stderr, "Usage: %s [--fullscreen|-f] [--help|-h]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [OPTIONS]\n\n"
+        " Where [OPTIONS] are zero or more of the following:\n\n"
+        "    [--fullscreen|-f]           Fullscreen mode\n"
+        "    [--benchmark|-b]            Run in benchmark/attract mode\n"
+        "    [--master|-m <IP-of-slave>] Network play as master\n"
+        "    [--slave|-s <IP-of-master>] Network play as slave\n"
+        "    [--help|-h]                 Show help information\n\n"
+        " See tennix(6) for details.\n", argv[0]);
         return 0;
     }
 #endif
@@ -241,7 +259,7 @@ int main( int argc, char** argv) {
         exit( 1);
     }   
 
-    SDL_WM_SetCaption( "Tennix 2009 World Tennis Championship Tour", "Tennix 2009");
+    SDL_WM_SetCaption( "Tennix Classic Championship Tour 2011", "Tennix 2011");
     SDL_ShowCursor( SDL_DISABLE);
     SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, 1);
 
@@ -321,7 +339,7 @@ int main( int argc, char** argv) {
                 break;
             case MENU_STATE_SLIDE_TO_MAINMENU:
                 clear_screen();
-                rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
+                //rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
                 store_screen();
                 slide = slide_start;
                 slide_direction = -1;
@@ -352,7 +370,7 @@ int main( int argc, char** argv) {
                 state = MENU_STATE_LOCATION;
                 clear_screen();
 
-                rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
+                //rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
                 /* Draw and store the worldmap with day/night times */
                 show_image(GR_WORLDMAP, WIDTH/2-get_image_width(GR_WORLDMAP)/2, HEIGHT/2-get_image_height(GR_WORLDMAP)/2, 255);
                 day_night(get_image_width(GR_WORLDMAP), &night_start, &night_end);
@@ -371,7 +389,7 @@ int main( int argc, char** argv) {
             case MENU_STATE_FADE_TO_OPTIONS:
                 start_fade();
                 clear_screen();
-                rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
+                //rectangle(0, 0, WIDTH, HEIGHT, 80, 80, 80);
                 rectangle(CONTROLLER_SETUP_BORDER, HEIGHT/2-CONTROLLER_SETUP_SIZE/2, CONTROLLER_SETUP_SIZE, CONTROLLER_SETUP_SIZE, 150, 150, 150);
                 rectangle(WIDTH-CONTROLLER_SETUP_BORDER-CONTROLLER_SETUP_SIZE, (HEIGHT-CONTROLLER_SETUP_SIZE)/2, CONTROLLER_SETUP_SIZE, CONTROLLER_SETUP_SIZE, 150, 150, 150);
                 font_draw_string(FONT_XLARGE, "Controller setup", (WIDTH-font_get_string_width(FONT_XLARGE, "Controller setup"))/2, 20);
@@ -495,10 +513,10 @@ int main( int argc, char** argv) {
                 show_image(GR_BTN_RESUME, WIDTH-get_image_width(GR_BTN_RESUME)+slide+(slide/7)+3-(3*(btn_hovering==MENU_RESUME)), 230, 255);
                 font_draw_string(FONT_SMALL, "match paused", 10, 10);
             } else {
-                font_draw_string(FONT_MEDIUM, "Tennix 2009 World Tennis Championship Tour", 10, 10);
+                font_draw_string(FONT_MEDIUM, "Tennix Classic Championship Tour 2011", 10, 10);
             }
-            font_draw_string_color(FONT_MEDIUM, URL, 10-1, HEIGHT-10-1-font_get_height(FONT_MEDIUM), 130, 130, 130);
-            font_draw_string_color(FONT_MEDIUM, URL, 10, HEIGHT-10-font_get_height(FONT_MEDIUM), 30, 30, 30);
+            //font_draw_string_color(FONT_MEDIUM, URL, 10-1, HEIGHT-10-1-font_get_height(FONT_MEDIUM), 130, 130, 130);
+            font_draw_string_color(FONT_MEDIUM, URL, 10, HEIGHT-10-font_get_height(FONT_MEDIUM), 100, 100, 100);
             show_image(GR_BTN_QUIT, WIDTH-get_image_width(GR_BTN_QUIT)+slide+(slide/7)+3-(3*(btn_hovering==MENU_QUIT)), 350, 255);
         } else if (state == MENU_STATE_OPTIONS) {
             /* Options screen */
@@ -774,11 +792,11 @@ int main( int argc, char** argv) {
     }
 
     /* Play the credits */
-    /*intro = create_credits();
+    intro = create_credits();
     intro_playback = animation_state_new(intro);
     animation_state_run(intro_playback, 1);
     animation_state_free(intro_playback);
-    animation_free(intro);*/
+    animation_free(intro);
 
     uninit_graphics();
     uninit_input();

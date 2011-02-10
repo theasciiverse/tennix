@@ -1,16 +1,17 @@
 
 
 
-          thpinfo.com presents
-          ****** *****  **   **  **   **  **  **   **
-            **   **     ***  **  ***  **  **  *** ***
-            ==   ====   == = ==  == = ==  ==    ===
-            ##   ##     ##  ###  ##  ###  ##  ### ###
-            ##   #####  ##   ##  ##   ##  ##  ##   ##
-                  2009 World Tennix Championship Tour
+                 thp.io presents...
 
- Copyright (C) 2003, 2007, 2008, 2009 Thomas Perl <thp@thpinfo.com>
- 
+                 ****** *****  **   **  **   **  **  **   **
+                   **   **     ***  **  ***  **  **  *** ***
+                   ==   ====   == = ==  == = ==  ==    ===
+                   ##   ##     ##  ###  ##  ###  ##  ### ###
+                   ##   #####  ##   ##  ##   ##  ##  ##   ##
+                         Classic Championship Tour 2011
+
+               Copyright (C) 2003, 2007-2011 Thomas Perl <thp.io>
+
 
 
 LICENSE
@@ -69,6 +70,7 @@ INSTALLATION AND BUILD INSTRUCTIONS
      · SDL_image >= 1.2.6  (www.libsdl.org/projects/SDL_image)
      · SDL_mixer >= 1.2.8  (www.libsdl.org/projects/SDL_mixer)
      · SDL_ttf   >= 2.0.9  (www.libsdl.org/projects/SDL_ttf)
+     · SDL_net   >= 1.2.7  (www.libsdl.org/projects/SDL_net)
 
    (Tennix might compile and work with earlier versions of the respective
    libraries, but the versions here have been the ones that I've tested it
@@ -84,7 +86,7 @@ INSTALLATION AND BUILD INSTRUCTIONS
    command line:
 
     aptitude install libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev \
-                     libsdl-ttf2.0-dev python-dev
+                     libsdl-ttf2.0-dev libsdl-net1.2-dev python-dev
 
 
 PLAYING TENNIX
@@ -109,14 +111,32 @@ PLAYING TENNIX
 
    FUNCTION KEYS
 
-   Y  .... Make screenshot (save as screenshot.bmp)
    F  .... Toggle fullscreen (X11 only)
+   P  .... Pause game
 
-   Bonus (because you took the time to look at the README file):
-   Obviously, there are some hidden easter eggs that are still not available
-   via the UI, due to the fact that we didn't implement the UI for it yet :)
-   Think about [r]ain and fog (think fog[t], even..). Wind is also available,
-   but it's so broken, you'll have to look up the keys in game.c.
+
+NETWORK MULTIPLAYER
+===================
+
+   This is done using two computers, the first is the faster one and the second
+   one is the slower one. If both computers are equally powerful, just chose
+   the faster one randomly.
+
+   On the faster computer, use:
+     ./tennix -m REMOTEHOST
+
+   On the slower computer, use:
+     ./tennix -s REMOTEHOST
+
+   So, if your faster computer is called "fast.lan" and the slower computer is
+   called "slow.lan", you could use the following setup:
+
+     user@fast:~$ ./tennix -m slow.lan
+     user@slow:~$ ./tennix -s fast.lan
+
+   You have to configure each opponent in the input device selection screen
+   using "Network player" as input device. Make sure that you do the reverse
+   on the opposite computer.
 
 
 DEVELOPMENT/DEBUGGING
@@ -155,7 +175,6 @@ CREDITS
 CONTACT
 =======
 
-    E-Mail: Thomas Perl <thp@thpinfo.com>
+    E-Mail: Thomas Perl <m//thp.io>
     URL: http://icculus.org/tennix/
-
 
