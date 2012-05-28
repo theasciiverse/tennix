@@ -388,6 +388,9 @@ void step(GameState* s) {
                         s->ball.move_x = 4.0 + 3.0*PLAYER(s, p).power/PLAYER_POWER_MAX;
                         s->ball.move_z = 1.1*PLAYER(s, p).power/PLAYER_POWER_MAX;
                         break;
+                    default:
+                        assert(false);
+                        break;
                 }
                 s->ball.move_y = get_move_y( s, p);
                 s->sound_events ^= SOUND_EVENT_RACKET;

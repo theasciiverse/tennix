@@ -27,24 +27,23 @@ ifeq ($(MKCALLGRAPH),1)
   LD        =  nccld
 endif
 
-RELEASE   =  1.1
-
-UNAME = $(shell uname)
+RELEASE = 1.1.1
 
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
 DATAROOTDIR ?= $(PREFIX)/share
 DATADIR ?= $(DATAROOTDIR)/games
 
-LIBS =
-CFLAGS += -W -Wall -ansi -pedantic -Wcast-qual -Wwrite-strings -DVERSION=\"$(RELEASE)\" -O2 -DPREFIX=\"$(PREFIX)\" -g
+CFLAGS += -W -Wall -DVERSION=\"$(RELEASE)\" -O2 -DPREFIX=\"$(PREFIX)\"
 CXXFLAGS += $(CFLAGS)
 
 USE_PYTHON ?= 1
 
 ifeq ($(USE_PYTHON),1)
-  CFLAGS += `python-config --includes` -DTENNIX_PYTHON
-  LIBS += `python-config --libs`
+  PYTHON_INCLUDES := $(shell python-config --includes)
+  PYTHON_LIBS := $(shell python-config --libs)
+  CFLAGS += $(PYTHON_INCLUDES) -DTENNIX_PYTHON
+  LIBS += $(PYTHON_LIBS)
 endif
 
 ifeq ($(NONFREE_LOCATIONS),1)
@@ -67,17 +66,14 @@ ifeq ($(MAEMO),1)
   CFLAGS += -DMAEMO
 endif
 
-ifeq ($(UNAME),Darwin)
-  SDLLIBS=$$(sdl-config --prefix)/lib
-  LIBS += $$(sdl-config --static-libs) $(SDLLIBS)/libSDL_mixer.a $(SDLLIBS)/libSDL_image.a $(SDLLIBS)/libSDL_ttf.a $(SDLLIBS)/libSDL_net.a $$(freetype-config --prefix)/lib/libfreetype.a
-  CFLAGS += $$(sdl-config --cflags) -lz
-else
-  LIBS += $$(sdl-config --libs) -lSDL_mixer -lSDL_image -lSDL_ttf -lSDL_net
-  CFLAGS += $$(sdl-config --cflags)
-endif
+SDL_LIBS := $(shell sdl-config --libs)
+SDL_CFLAGS := $(shell sdl-config --cflags)
 
-SRC = tennix.cc game.c graphics.cc input.c util.c sound.cc animation.c network.c
+LIBS += $(SDL_LIBS) -lSDL_mixer -lSDL_image -lSDL_ttf -lSDL_net
+CFLAGS += $(SDL_CFLAGS)
+
 OBJ = tennix.o game.o graphics.o input.o util.o sound.o animation.o archive.o SDL_rotozoom.o network.o
+
 ifeq ($(MSYSTEM),MINGW32)
   OBJ += tennixres.o
 endif

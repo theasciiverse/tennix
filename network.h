@@ -103,19 +103,19 @@ void
 net_serialize_ball(const Ball* src, NetworkBall* dest);
 
 void
-net_unserialize_ball(const NetworkBall* src, Ball* dest);
+net_unserialize_ball(NetworkBall* src, Ball* dest);
 
 void
 net_serialize_player(const Player* src, NetworkPlayer* dest);
 
 void
-net_unserialize_player(const NetworkPlayer* src, Player* dest);
+net_unserialize_player(NetworkPlayer* src, Player* dest);
 
 void
 net_serialize_gamestate(const GameState* src, NetworkGameState* dest);
 
 void
-net_unserialize_gamestate(const NetworkGameState* src, GameState* dest);
+net_unserialize_gamestate(NetworkGameState* src, GameState* dest);
 
 #endif
 

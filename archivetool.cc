@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <libgen.h>
 #include <sys/stat.h>
 
 #include "archive.hh"

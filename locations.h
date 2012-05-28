@@ -155,7 +155,7 @@ static Location locations[] = {
 #endif
 
     /* End marker */
-    { NULL, NULL, NULL, 0, 0, NULL, 0, 0, 0, 0, false }
+    { NULL, NULL, NULL, 0, 0, NULL, 0, 0, 0, 0, false, false, 0, 0 }
 };
 
 unsigned int location_count()

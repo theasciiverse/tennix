@@ -98,6 +98,13 @@ typedef struct {
     bool inhibit_gravity;
 } Ball;
 
+enum PlayerDesire {
+    DESIRE_NORMAL,
+    DESIRE_TOPSPIN,
+    DESIRE_SMASH,
+    DESIRE_MAX
+};
+
 typedef struct {
     InputDevice* input;
     char input_device_index;
@@ -106,9 +113,9 @@ typedef struct {
     float power;
     bool use_power;
     unsigned char score;
-    unsigned char desire;
+    PlayerDesire desire;
     bool type; /* is this player ai-controlled or human? */
-    char game; /* score for the current game */
+    int game; /* score for the current game */
     unsigned char sets[SETS_TO_WIN*2]; /* score for each set */
     float accelerate; /* a value [0..1] how fast the user accelerates */
 } Player;
@@ -116,13 +123,6 @@ typedef struct {
 enum {
     PLAYER_TYPE_HUMAN,
     PLAYER_TYPE_AI
-};
-
-enum {
-    DESIRE_NORMAL,
-    DESIRE_TOPSPIN,
-    DESIRE_SMASH,
-    DESIRE_MAX
 };
 
 /* wait 2 seconds before we score the game */
@@ -161,7 +161,7 @@ enum {
 
 typedef struct {
     const Location* location;
-    char current_location; /* index of loc. in global location table */
+    int current_location; /* index of loc. in global location table */
     Ball ball;
     Player players[MAXPLAYERS];
     unsigned char serving_player;

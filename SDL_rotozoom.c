@@ -365,6 +365,9 @@ int zoomSurfaceRGBA(SDL_Surface * src, SDL_Surface * dst, int flipx, int flipy, 
 
 int zoomSurfaceY(SDL_Surface * src, SDL_Surface * dst, int flipx, int flipy)
 {
+    (void)flipx;
+    (void)flipy;
+
     Uint32 x, y, sx, sy, *sax, *say, *csax, *csay, csx, csy;
     Uint8 *sp, *dp, *csp;
     int dgap;
@@ -393,7 +396,7 @@ int zoomSurfaceY(SDL_Surface * src, SDL_Surface * dst, int flipx, int flipy)
      */
     csx = 0;
     csax = sax;
-    for (x = 0; x < dst->w; x++) {
+    for (x = 0; x < (Uint32)dst->w; x++) {
 	csx += sx;
 	*csax = (csx >> 16);
 	csx &= 0xffff;
@@ -401,7 +404,7 @@ int zoomSurfaceY(SDL_Surface * src, SDL_Surface * dst, int flipx, int flipy)
     }
     csy = 0;
     csay = say;
-    for (y = 0; y < dst->h; y++) {
+    for (y = 0; y < (Uint32)dst->h; y++) {
 	csy += sy;
 	*csay = (csy >> 16);
 	csy &= 0xffff;
@@ -410,13 +413,13 @@ int zoomSurfaceY(SDL_Surface * src, SDL_Surface * dst, int flipx, int flipy)
 
     csx = 0;
     csax = sax;
-    for (x = 0; x < dst->w; x++) {
+    for (x = 0; x < (Uint32)dst->w; x++) {
 	csx += (*csax);
 	csax++;
     }
     csy = 0;
     csay = say;
-    for (y = 0; y < dst->h; y++) {
+    for (y = 0; y < (Uint32)dst->h; y++) {
 	csy += (*csay);
 	csay++;
     }
@@ -432,10 +435,10 @@ int zoomSurfaceY(SDL_Surface * src, SDL_Surface * dst, int flipx, int flipy)
      * Draw 
      */
     csay = say;
-    for (y = 0; y < dst->h; y++) {
+    for (y = 0; y < (Uint32)dst->h; y++) {
 	csax = sax;
 	sp = csp;
-	for (x = 0; x < dst->w; x++) {
+	for (x = 0; x < (Uint32)dst->w; x++) {
 	    /*
 	     * Draw 
 	     */
@@ -801,6 +804,8 @@ SDL_Surface* rotateSurface90Degrees(SDL_Surface* pSurf, int numClockwiseTurns)
 void rotozoomSurfaceSizeTrig(int width, int height, double angle, double zoomx, double zoomy, int *dstwidth, int *dstheight, 
 			     double *canglezoom, double *sanglezoom)
 {
+    (void)zoomy;
+
     double x, y, cx, cy, sx, sy;
     double radangle;
     int dstwidthhalf, dstheighthalf;

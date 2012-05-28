@@ -461,7 +461,7 @@ int main( int argc, char** argv) {
                 start_fade();
                 gameloop(current_game, connection);
                 SDL_Delay(150);
-                while(SDL_PollEvent(&e));
+                while (SDL_PollEvent(&e)) {};
 #ifdef ENABLE_FPS_LIMIT
                 frames = 0;
                 ft = SDL_GetTicks();

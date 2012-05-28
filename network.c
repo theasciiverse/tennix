@@ -183,7 +183,7 @@ net_serialize_ball(const Ball* src, NetworkBall* dest)
 }
 
 void
-net_unserialize_ball(const NetworkBall* src, Ball* dest)
+net_unserialize_ball(NetworkBall* src, Ball* dest)
 {
     assert(src != NULL && dest != NULL);
     dest->x = unpack_float(SDLNet_Read32(&(src->x)), -WIDTH, WIDTH*2);
@@ -213,7 +213,7 @@ net_serialize_player(const Player* src, NetworkPlayer* dest)
 }
 
 void
-net_unserialize_player(const NetworkPlayer* src, Player* dest)
+net_unserialize_player(NetworkPlayer* src, Player* dest)
 {
     assert(src != NULL && dest != NULL);
     dest->x = unpack_float(SDLNet_Read32(&(src->x)), 0, WIDTH*1.2);
@@ -221,7 +221,7 @@ net_unserialize_player(const NetworkPlayer* src, Player* dest)
     dest->power = unpack_float(SDLNet_Read32(&(src->power)), 0, 110);
     dest->use_power = src->use_power;
     dest->score = src->score;
-    dest->desire = src->desire;
+    dest->desire = (PlayerDesire)src->desire;
     dest->game = src->game;
     memcpy(dest->sets, src->sets, sizeof(unsigned char)*(SETS_TO_WIN*2));
     dest->accelerate = unpack_float(SDLNet_Read32(&(src->accelerate)), 0, 200);
@@ -250,7 +250,7 @@ net_serialize_gamestate(const GameState* src, NetworkGameState* dest)
 }
 
 void
-net_unserialize_gamestate(const NetworkGameState* src, GameState* dest)
+net_unserialize_gamestate(NetworkGameState* src, GameState* dest)
 {
     int p;
 
