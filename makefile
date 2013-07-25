@@ -174,7 +174,7 @@ clean:
 	rm -f tennix.tnx
 
 distclean: clean
-	rm -rf tennix-$(RELEASE).zip tennix-$(RELEASE)-bin.tar.gz ChangeLog .release-tmp tennix-$(RELEASE).tar.gz
+	rm -rf tennix-$(RELEASE).zip tennix-$(RELEASE)-bin.tar.gz .release-tmp tennix-$(RELEASE).tar.gz
 
 .PHONY: distclean clean release-bin release-win32 release-win32-setup release-osx install tennixar
 
