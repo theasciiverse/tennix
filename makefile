@@ -90,7 +90,7 @@ DATAFILES = README README.*
 DATAFILES_OSX = $(DATAFILES) data/Tennix.icns
 
 tennix: $(OBJ) tennix.tnx
-	$(CC) $(CFLAGS)   -o tennix $(OBJ) $(LIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS)  -o tennix $(OBJ) $(LIBS)
 	test -f tennix.exe && upx tennix.exe || true 
 
 ChangeLog:
