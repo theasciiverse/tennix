@@ -21,13 +21,14 @@
  *
  **/
 
-#include <assert.h>
+#include "tennix.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <libgen.h>
 #include <sys/stat.h>
 
-#include "archive.hh"
+#include "archive.h"
 
 int main(int argc, char* argv[])
 {
@@ -37,7 +38,6 @@ int main(int argc, char* argv[])
     const char* filename;
     char *bn = (char*)basename(argv[0]);
     int len, i;
-    struct stat st;
 
     if(strcmp(bn, "archive") == 0) {
         if (argc < 2) {
@@ -48,26 +48,26 @@ int main(int argc, char* argv[])
             exit(EXIT_FAILURE);
         }
 
-        if (stat(argv[1], &st) != -1) {
-            fprintf(stderr, "File %s already exists. Aborting.\n", argv[1]);
+        if (strcmp(".tnx", argv[1] + strlen(argv[1]) - 4) != 0) {
+            fprintf(stderr, "Wrong file extension: %s\n", argv[1]);
             exit(EXIT_FAILURE);
         }
 
-        tnxar = new TennixArchive();
+        TennixArchive archive;
 
-        fprintf(stderr, "Creating %s with %d files\n", argv[1], argc-2);
+        //fprintf(stderr, "Creating %s with %d files\n", argv[1], argc-2);
         for (i=2; i<argc; i++) {
             fp = fopen(argv[i], "rb");
             fseek(fp, 0, SEEK_END);
             len = ftell(fp);
             fseek(fp, 0, SEEK_SET);
             data = (char*)malloc(len);
-            assert(fread(data, len, 1, fp) == 1);
+            tnx_assert(fread(data, len, 1, fp) == 1);
             fclose(fp);
-            tnxar->appendItem((char*)basename(argv[i]), data, len);
+            char *filename = strdup(basename(argv[i]));
+            archive.appendItem(filename, data, len);
         }
-        tnxar->buildFile(argv[1]);
-        delete tnxar;
+        archive.buildFile(argv[1]);
     } else if(strcmp(bn, "dump") == 0) {
         if (argc < 2) {
             fprintf(stderr, "Usage: %s archive.tnx\n", bn);
@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
                 fprintf(stderr, " (%d bytes)", len);
                 fp = fopen(filename, "wb");
                 fputc('.', stderr);
-                assert(fwrite(data, len, 1, fp) == 1);
+                tnx_assert(fwrite(data, len, 1, fp) == 1);
                 fputc('.', stderr);
                 fclose(fp);
                 fprintf(stderr, ".OK\n");
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
                 fprintf(stderr, " (%d bytes)", len);
                 fp = fopen(filename, "wb");
                 fputc('.', stderr);
-                assert(fwrite(data, len, 1, fp) == 1);
+                tnx_assert(fwrite(data, len, 1, fp) == 1);
                 fputc('.', stderr);
                 fclose(fp);
                 fprintf(stderr, ".OK\n");

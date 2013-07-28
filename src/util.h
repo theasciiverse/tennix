@@ -26,19 +26,4 @@
 
 void day_night(unsigned int width, unsigned int* start, unsigned int* end);
 
-/**
- * On Maemo, we somehow don't get these defined in any of the header files,
- * so we define the prototypes here - if we don't do that, bad things will
- * happen.
- **/
-#ifdef MAEMO
-float fminf(float, float);
-float fmaxf(float, float);
-float fabsf(float);
-float sinf(float);
-float cosf(float);
 #endif
-
-
-#endif
-

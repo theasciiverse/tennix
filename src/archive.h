@@ -79,13 +79,7 @@ class TennixArchive {
         static void xormem(char* mem, uint32_t length, char key);
 
     public:
-        TennixArchive() {
-            strcpy(header.header, TENNIX_ARCHIVE_HEADER);
-            header.items = 0;
-            building = 1;
-            fp = NULL;
-        }
-
+        TennixArchive();
         TennixArchive(const char* filename, const char* fallback=NULL);
 
         ~TennixArchive() {

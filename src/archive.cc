@@ -21,12 +21,13 @@
  *
  **/
 
+#include "tennix.h"
+
 #include <iostream>
 
 #include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
@@ -35,26 +36,46 @@
 
 #include <arpa/inet.h>
 
-#include "archive.hh"
+#include "archive.h"
+
+TennixArchive::TennixArchive()
+    : fp(NULL)
+    , header()
+    , items(NULL)
+    , blobs(NULL)
+    , offset(0)
+    , current_item(0)
+    , building(1)
+{
+    strcpy(header.header, TENNIX_ARCHIVE_HEADER);
+    header.items = 0;
+}
 
 TennixArchive::TennixArchive(const char* filename, const char* fallback)
+    : fp(NULL)
+    , header()
+    , items(NULL)
+    , blobs(NULL)
+    , offset(0)
+    , current_item(0)
+    , building(0)
 {
     fp = fopen(filename, "rb");
     if (fp == NULL && fallback != NULL) {
         fp = fopen(fallback, "rb");
     }
-    assert(fp != NULL);
+    tnx_assert(fp != NULL);
 
     offset = sizeof(TennixArchiveHeader)*fread(&(header), sizeof(TennixArchiveHeader), 1, fp);
-    assert(offset == sizeof(TennixArchiveHeader));
-    assert(strncmp(header.header, TENNIX_ARCHIVE_HEADER, TENNIX_ARCHIVE_HEADER_LEN) == 0);
-    assert(header.versionmajor == TENNIX_ARCHIVE_VERSIONMAJOR);
-    assert(header.versionminor == TENNIX_ARCHIVE_VERSIONMINOR);
+    tnx_assert(offset == sizeof(TennixArchiveHeader));
+    tnx_assert(strncmp(header.header, TENNIX_ARCHIVE_HEADER, TENNIX_ARCHIVE_HEADER_LEN) == 0);
+    tnx_assert(header.versionmajor == TENNIX_ARCHIVE_VERSIONMAJOR);
+    tnx_assert(header.versionminor == TENNIX_ARCHIVE_VERSIONMINOR);
 
     items = (TennixArchiveItem*)calloc(header.items, sizeof(TennixArchiveItem));
-    assert(items != NULL);
+    tnx_assert(items != NULL);
     offset += sizeof(TennixArchiveItem)*fread(items, sizeof(TennixArchiveItem), header.items, fp);
-    assert(offset == sizeof(TennixArchiveHeader) + header.items*sizeof(TennixArchiveItem));
+    tnx_assert(offset == sizeof(TennixArchiveHeader) + header.items*sizeof(TennixArchiveItem));
 
     xormem((char*)(items), header.items*sizeof(TennixArchiveItem), header.key);
 
@@ -63,10 +84,6 @@ TennixArchive::TennixArchive(const char* filename, const char* fallback)
         items[i].offset = ntohl(items[i].offset);
         items[i].length = ntohl(items[i].length);
     }
-
-    current_item = 0;
-
-    building = 0;
 }
 
 std::ostream&
@@ -116,7 +133,7 @@ TennixArchive::getItemBytes()
     /* the last char is a null character, so this works for strings, too */
     data[size]='\0';
     fseek(fp, items[current_item].offset, SEEK_SET);
-    assert(fread(data, size, 1, fp) == 1);
+    tnx_assert(fread(data, size, 1, fp) == 1);
     xormem(data, size, items[current_item].key);
     return data;
 }
@@ -158,7 +175,7 @@ TennixArchive::buildFile(char* filename)
     memsize = (size_t*)calloc(header.items, sizeof(size_t));
 
     fp = fopen(filename, "wb");
-    assert(fp != NULL);
+    tnx_assert(fp != NULL);
 
     offset += sizeof(TennixArchiveHeader) + header.items*sizeof(TennixArchiveItem);
 
@@ -167,9 +184,7 @@ TennixArchive::buildFile(char* filename)
 
     header.key = (0xaa + 0x77*header.items*3) % 0xff;
 
-    fprintf(stderr, "Packing: ");
     for (int i=0; i<header.items; i++) {
-        fprintf(stderr, "%s", items[i].filename);
         items[i].offset = htonl(offset); /* network byte order */
         items[i].key = 0xaa ^ ((i<<2)%0x100);
         xormem(blobs[i], items[i].length, items[i].key);
@@ -177,24 +192,14 @@ TennixArchive::buildFile(char* filename)
         offset += items[i].length;
         items[i].length = htonl(items[i].length); /* network byte order */
         xormem((char*)(items + i), sizeof(TennixArchiveItem), header.key);
-        if (i != header.items-1) {
-            fprintf(stderr, ", ");
-        }
     }
-    fputc('\n', stderr);
 
-    fprintf(stderr, "Writing: %s", filename);
-    fputc('.', stderr);
-    assert(fwrite(&(header), sizeof(TennixArchiveHeader), 1, fp) == 1);
-    fputc('.', stderr);
-    assert(fwrite(items, sizeof(TennixArchiveItem), header.items, fp) == header.items);
-    fputc('.', stderr);
+    tnx_assert(fwrite(&(header), sizeof(TennixArchiveHeader), 1, fp) == 1);
+    tnx_assert(fwrite(items, sizeof(TennixArchiveItem), header.items, fp) == header.items);
     for (int i=0; i<header.items; i++) {
-        assert(fwrite(blobs[i], memsize[i], 1, fp) == 1);
+        tnx_assert(fwrite(blobs[i], memsize[i], 1, fp) == 1);
         free(blobs[i]);
     }
-    fputc('.', stderr);
-    fprintf(stderr, "OK\n");
 
     free(memsize);
     free(blobs);

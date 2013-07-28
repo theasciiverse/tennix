@@ -25,31 +25,27 @@
 #ifndef __TENNIXPY_H
 #define __TENNIXPY_H
 
-#ifdef TENNIX_PYTHON
+#include "config.h"
 
-#include "archive.hh"
+#ifdef HAVE_PYTHON
 
-extern PyThreadState* _py_save;
+#include "archive.h"
+#include "input.h"
 
-PyObject* tennixpy_register_bot(PyObject* self, PyObject* bot_class);
-void tennixpy_unregister_bot(PyObject* bot);
-void tennixpy_get_bot_name(PyObject* bot_class, char* dest, int maxlen);
+void tennixpy_unregister_bot(InputDevice *device);
+void tennixpy_get_bot_name(InputDevice *device, char *dest, int maxlen);
 
-PyObject* tennixpy_create_bot(PyObject* bot_class, GameState* s, int player_id);
-void tennixpy_destroy_bot(PyObject* bot);
+void tennixpy_create_bot(InputDevice *device, GameState *s, int player_id);
+void tennixpy_destroy_bot(InputDevice *device);
 
-float tennixpy_bot_get_axis(PyObject* bot, int axis);
-char tennixpy_bot_get_key(PyObject* bot, int key);
-
-PyObject* tennixpy_get_ball_pos(PyObject* self, PyObject* gamestate);
-PyObject* tennixpy_get_power(PyObject* self, PyObject* args);
-PyObject* tennixpy_get_position(PyObject* self, PyObject* args);
-
-PyObject* tennixpy_create_module(void);
+//float tennixpy_bot_get_axis(PyObject* bot, int axis);
+float tennixpy_bot_get_axis(InputDevice *device, int axis);
+//char tennixpy_bot_get_key(PyObject* bot, int key);
+char tennixpy_bot_get_key(InputDevice *device, int key);
 
 void tennixpy_init(TennixArchive& tnxar);
 void tennixpy_uninit();
 
-#endif
+#endif /* HAVE_PYTHON */
 
-#endif
+#endif /* __TENNIXPY_H */

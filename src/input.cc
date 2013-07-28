@@ -28,12 +28,13 @@
 #include "game.h"
 #include "input.h"
 #include "util.h"
-#include "archive.hh"
+#include "archive.h"
+
 
 static InputDevice devices[MAX_INPUT_DEVICES];
 static int devices_count;
 
-#ifdef TENNIX_PYTHON
+#ifdef HAVE_PYTHON
 #include "tennixpy.h"
 #endif
 
@@ -43,7 +44,6 @@ void init_input(TennixArchive& tnxar)
 
     SDL_JoystickEventState(SDL_ENABLE);
 
-#ifndef MAEMO
     /* keyboard presets */
     devices[devices_count].type = INPUT_TYPE_KEYBOARD;
     devices[devices_count].up_key = 'w';
@@ -67,7 +67,6 @@ void init_input(TennixArchive& tnxar)
     devices[devices_count].exclusive_to_player = 2;
     strcpy(devices[devices_count].name, "Keyboard (OL/KIJ)");
     devices_count++;
-#endif
 
     /* keyboard presets */
     devices[devices_count].type = INPUT_TYPE_KEYBOARD;
@@ -76,15 +75,8 @@ void init_input(TennixArchive& tnxar)
     devices[devices_count].input_keys[INPUT_KEY_HIT]= SDLK_SPACE;
     devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = SDLK_LCTRL;
     devices[devices_count].input_keys[INPUT_KEY_SMASH] = SDLK_LALT;
-#ifdef MAEMO
-    devices[devices_count].icon = GR_INPUT_MAEMO_DPAD;
-    strcpy(devices[devices_count].name, "D-Pad");
-    devices[devices_count].input_keys[INPUT_KEY_HIT]= SDLK_RETURN;
-    /* FIXME: No TOPSPIN and SMASH keys on Maemo yet with d-pad */
-#else
     devices[devices_count].icon = GR_INPUT_KEYBOARD_ARROWS;
     strcpy(devices[devices_count].name, "Keyboard (arrows)");
-#endif
     devices_count++;
 
     /* mouse */
@@ -92,13 +84,8 @@ void init_input(TennixArchive& tnxar)
     devices[devices_count].input_keys[INPUT_KEY_HIT]= SDL_BUTTON(1);
     devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = SDL_BUTTON(2);
     devices[devices_count].input_keys[INPUT_KEY_SMASH] = SDL_BUTTON(3);
-#ifdef MAEMO
-    devices[devices_count].icon = GR_INPUT_TOUCHSCREEN;
-    strcpy(devices[devices_count].name, "Touchscreen");
-#else
     devices[devices_count].icon = GR_INPUT_MOUSE;
     strcpy(devices[devices_count].name, "Mouse");
-#endif
     devices_count++;
 
     /* network peer */
@@ -122,7 +109,7 @@ void init_input(TennixArchive& tnxar)
         devices_count++;
     }
 
-#ifdef TENNIX_PYTHON
+#ifdef HAVE_PYTHON
     /* This will init Python and load all available bots */
     tennixpy_init(tnxar);
 #endif
@@ -137,14 +124,14 @@ void uninit_input()
     for (i=0; i<devices_count; i++) {
         if (devices[i].type == INPUT_TYPE_JOYSTICK) {
             SDL_JoystickClose(devices[i].joystick);
-#ifdef TENNIX_PYTHON
+#ifdef HAVE_PYTHON
         } else if (devices[i].type == INPUT_TYPE_AI_PYTHON) {
-            tennixpy_unregister_bot(devices[i].py_bot_class);
+            tennixpy_unregister_bot(&(devices[i]));
 #endif
         }
     }
 
-#ifdef TENNIX_PYTHON
+#ifdef HAVE_PYTHON
     tennixpy_uninit();
 #endif
 
@@ -156,7 +143,7 @@ input_pack_axis(float v)
 {
     static const float min = -1.2;
     static const float max = 1.2;
-    assert(v >= min && v < max);
+    tnx_assert(v >= min && v < max);
     return (Uint8)((1U<<7) * (v-min) / (max-min));
 }
 
@@ -165,7 +152,7 @@ input_unpack_axis(Uint8 v)
 {
     static const float min = -1.2;
     static const float max = 1.2;
-    assert(v < (1U<<7));
+    tnx_assert(v < (1U<<7));
     return v * (max-min) / (1U<<7) + min;
 }
 
@@ -183,9 +170,9 @@ void input_device_join_game(InputDevice* device, void* gamestate, int player_id)
         return;
     }
     fprintf(stderr, "Input Device %s joins the game\n", device->name);
-#ifdef TENNIX_PYTHON
+#ifdef HAVE_PYTHON
     if (device->type == INPUT_TYPE_AI_PYTHON) {
-        device->py_bot = tennixpy_create_bot(device->py_bot_class, (GameState*)gamestate, player_id);
+        tennixpy_create_bot(device, (GameState*)gamestate, player_id);
     }
 #endif
 }
@@ -196,10 +183,9 @@ void input_device_part_game(InputDevice* device)
         /* player is a c-style bot with no device attached */
         return;
     }
-#ifdef TENNIX_PYTHON
+#ifdef HAVE_PYTHON
     if (device->type == INPUT_TYPE_AI_PYTHON) {
-        tennixpy_destroy_bot(device->py_bot);
-        device->py_bot = NULL;
+        tennixpy_destroy_bot(device);
     }
 #endif
     fprintf(stderr, "Input Device %s leaves the game\n", device->name);
@@ -212,7 +198,7 @@ const char* input_device_get_name(InputDevice* d)
 
 float input_device_get_axis(InputDevice* d, unsigned const char axis) {
     Uint8 *keystate;
-    Uint8 mb;
+    //Uint8 mb;
     Uint8 net_value;
     float result = 0.0;
 
@@ -232,7 +218,7 @@ float input_device_get_axis(InputDevice* d, unsigned const char axis) {
             result = JOYSTICK_PERCENTIZE(SDL_JoystickGetAxis(d->joystick, 1+d->y_axis*2));
         }
     } else if (d->type == INPUT_TYPE_MOUSE) {
-        mb = SDL_GetMouseState(&d->mx, &d->my);
+        //mb = SDL_GetMouseState(&d->mx, &d->my);
         if (axis == INPUT_AXIS_X) {
             /* Not x-movement yet (PLAYER_MOVE_X is not defined!) */
             /*if (fabsf(d->mx - d->player_x) > PLAYER_MOVE_X) {
@@ -251,9 +237,9 @@ float input_device_get_axis(InputDevice* d, unsigned const char axis) {
                 }
             }
         }
-#ifdef TENNIX_PYTHON
+#ifdef HAVE_PYTHON
     } else if (d->type == INPUT_TYPE_AI_PYTHON) {
-        result = tennixpy_bot_get_axis(d->py_bot, axis);
+        result = tennixpy_bot_get_axis(d, axis);
 #endif
     } else if (d->type == INPUT_TYPE_NETWORK) {
         if (axis == INPUT_AXIS_X) {
@@ -262,7 +248,7 @@ float input_device_get_axis(InputDevice* d, unsigned const char axis) {
             result = input_unpack_axis(d->net.y);
         }
     } else {
-        assert(0/*unimplemented*/);
+        tnx_assert(0/*unimplemented*/);
     }
 
     net_value = input_pack_axis(result);
@@ -287,14 +273,14 @@ char input_device_get_key(InputDevice* d, unsigned const char key) {
     } else if (d->type == INPUT_TYPE_MOUSE) {
         mb = SDL_GetMouseState(NULL, NULL);
         result = (mb & d->input_keys[key]) != 0;
-#ifdef TENNIX_PYTHON
+#ifdef HAVE_PYTHON
     } else if (d->type == INPUT_TYPE_AI_PYTHON) {
-        result = tennixpy_bot_get_key(d->py_bot, key);
+        result = tennixpy_bot_get_key(d, key);
 #endif
     } else if (d->type == INPUT_TYPE_NETWORK) {
         result = (d->net.keys & (1<<key));
     } else {
-        assert(0/*unimplemented*/);
+        tnx_assert(0/*unimplemented*/);
     }
 
     /* Update the input device's NetworkInputData struct */
@@ -308,23 +294,10 @@ char input_device_get_key(InputDevice* d, unsigned const char key) {
 }
 
 
-#ifdef TENNIX_PYTHON
-
-void input_add_python_bot(PyObject* bot_class)
+InputDevice *
+input_add_device()
 {
-    if (devices_count < MAX_INPUT_DEVICES) {
-        devices[devices_count].type = INPUT_TYPE_AI_PYTHON;
-        devices[devices_count].icon = GR_INPUT_AI;
-        devices[devices_count].py_bot_class = bot_class;
-        tennixpy_get_bot_name(bot_class, devices[devices_count].name, INPUT_DEVICE_NAME_MAX);
-        fprintf(stderr, " %s", devices[devices_count].name);
-        devices_count++;
-    } else {
-        fprintf(stderr, "Warning: Cannot add any more Python bots.\n");
-        /* We carry a ref of bot_class, so give it up here */
-        tennixpy_unregister_bot(bot_class);
-    }
+    tnx_assert(devices_count < MAX_INPUT_DEVICES);
+    return &(devices[devices_count++]);
 }
-
-#endif
 

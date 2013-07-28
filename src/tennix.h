@@ -24,10 +24,22 @@
 #ifndef __TENNIX_H
 #define __TENNIX_H
 
+#include "config.h"
+
+#define tnx_assert(x) do { \
+    if (!(x)) { \
+        fprintf(stderr, "Assertion fail: %s\n", #x); \
+        exit(1); \
+    } \
+} while(0)
+
 #include <sys/param.h>
 
 #include <SDL/SDL.h>
+
+#ifdef HAVE_SDL_NET
 #include <SDL/SDL_net.h>
+#endif
 
 typedef struct {
     unsigned char x;
@@ -35,7 +47,7 @@ typedef struct {
     unsigned char keys; /* bitfield (0 = key pressed, 1 = not pressed) */
 } NetworkInputData;
 
-
+#ifdef HAVE_SDL_NET
 typedef struct {
     UDPsocket send_socket;
     UDPsocket recv_input_socket;
@@ -56,30 +68,16 @@ typedef struct {
 
     bool master;
 } TennixNet;
-
-#ifdef DELUXE_EDITION
-#  define HAVE_VOICE_FILES
-#  define NONFREE_LOCATIONS
-#endif
-
-#if defined(__MACH__) && defined(__APPLE__)
-#  define MACOSX
-#endif
+#else
+typedef void TennixNet;
+#endif /* HAVE_SDL_NET */
 
 #define ARCHIVE_FILE "tennix.tnx"
-#ifdef MACOSX
-#  define ARCHIVE_FILE_INSTALLED "Tennix.app/Contents/Resources/" ARCHIVE_FILE
-#else
-#  define ARCHIVE_FILE_INSTALLED "/" PREFIX "/share/games/tennix/" ARCHIVE_FILE
-#endif
+#define ARCHIVE_FILE_INSTALLED "/" PREFIX "/share/tennix/" ARCHIVE_FILE
 
-#ifdef WIN32
-#  define GAMESTATE_FILE "current_match-" VERSION ".tennix"
-#else
-#  define GAMESTATE_FILE ".tennix-current_match-" VERSION
-#endif
+#define GAMESTATE_FILE ".tennix-current_match-" VERSION
 
-#define COPYRIGHT "Copyright 2003, 2007-2011 Thomas Perl"
+#define COPYRIGHT "Copyright 2003, 2007-2011, 2013 Thomas Perl"
 #define URL "http://icculus.org/tennix/"
 
 #define WIDTH 640
@@ -137,8 +135,6 @@ enum {
     MENU_STATE_QUIT
 };
 
-/* Comment the following #define to disable FPS limiting */
-/*#define ENABLE_FPS_LIMIT*/
 #define DEFAULT_FPS 33
 
 

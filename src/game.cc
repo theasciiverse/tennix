@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <unistd.h>
 
 #include "tennix.h"
@@ -76,12 +75,6 @@ int gamestate_save(GameState* s, const char* filename)
     InputDevice* input_devices[MAXPLAYERS];
     int i, result = 0;
     FILE* fp = NULL;
-#ifndef WIN32
-    char tmp[MAXPATHLEN];
-
-    assert(getcwd(tmp, MAXPATHLEN) == tmp);
-    assert(chdir(getenv("HOME")) == 0);
-#endif
 
     /**
      * Process-specific data (pointers to data
@@ -116,10 +109,6 @@ int gamestate_save(GameState* s, const char* filename)
 
     fclose(fp);
 
-#ifndef WIN32
-    assert(chdir(tmp) == 0);
-#endif
-
     return result;
 }
 
@@ -128,12 +117,6 @@ GameState* gamestate_load(const char* filename)
 {
     FILE* fp;
     GameState* s = NULL;
-#ifndef WIN32
-    char tmp[MAXPATHLEN];
-
-    assert(getcwd(tmp, MAXPATHLEN) == tmp);
-    assert(chdir(getenv("HOME")) == 0);
-#endif
 
     fp = fopen(filename, "r");
 
@@ -151,10 +134,6 @@ GameState* gamestate_load(const char* filename)
         fclose(fp);
     }
 
-#ifndef WIN32
-    assert(chdir(tmp) == 0);
-#endif
-
     return s;
 }
 
@@ -165,9 +144,11 @@ void gameloop(GameState *s, TennixNet* c) {
     Uint32 dt = GAME_TICKS;
     Uint32 diff;
     Uint32 accumulator = 0;
+#ifdef HAVE_SDL_NET
+    int i = 0;
+#endif /* HAVE_SDL_NET */
     bool quit = false;
     int p;
-    int i=0;
     RenderState r = {
         SOUND_EVENT_NONE,
         REFEREE_COUNT,
@@ -214,12 +195,14 @@ void gameloop(GameState *s, TennixNet* c) {
         while( accumulator >= dt) {
             step(s);
 
+#ifdef HAVE_SDL_NET
             network_receive(c);
             network_get_gamestate(c, s);
 
             if ((i++) % 10 == 0) {
                 network_send_state(c, s);
             }
+#endif /* HAVE_SDL_NET */
 
             quit = handle_input(s, c);
             accumulator -= dt;
@@ -352,7 +335,7 @@ void step(GameState* s) {
                     s->referee = REFEREE_PLAYER2;
                     break;
                 default:
-                    assert(0);
+                    tnx_assert(0);
                     break;
             }
             s->score_time = 0;
@@ -389,7 +372,7 @@ void step(GameState* s) {
                         s->ball.move_z = 1.1*PLAYER(s, p).power/PLAYER_POWER_MAX;
                         break;
                     default:
-                        assert(false);
+                        tnx_assert(false);
                         break;
                 }
                 s->ball.move_y = get_move_y( s, p);
@@ -406,13 +389,15 @@ void step(GameState* s) {
 }
 
 bool handle_input(GameState* s, TennixNet* c) {
-    static NetworkGameState tmp;
-    static NetworkInputData net_input;
     Uint8* keys = NULL;
     int p;
 
     SDL_PumpEvents();
     keys = SDL_GetKeyState(NULL);
+
+#ifdef HAVE_SDL_NET
+    static NetworkGameState tmp;
+    static NetworkInputData net_input;
 
     if (keys['1']) {
         net_serialize_gamestate(s, &tmp);
@@ -421,17 +406,22 @@ bool handle_input(GameState* s, TennixNet* c) {
     }
 
     network_get_input(c, &net_input);
+#endif /* HAVE_SDL_NET */
     if (s->winner == WINNER_NONE) {
         for (p=1; p<=MAXPLAYERS; p++) {
             if( PLAYER(s, p).type == PLAYER_TYPE_HUMAN) {
+#ifdef HAVE_SDL_NET
                 if (PLAYER(s, p).input->type == INPUT_TYPE_NETWORK) {
                     memcpy(&(PLAYER(s, p).input->net), &net_input,
                             sizeof(NetworkInputData));
                 }
+#endif /* HAVE_SDL_NET */
                 input_human(s, p);
+#ifdef HAVE_SDL_NET
                 if (PLAYER(s, p).input->type != INPUT_TYPE_NETWORK) {
                     network_send_input(c, &(PLAYER(s, p).input->net));
                 }
+#endif /* HAVE_SDL_NET */
             } else {
                 input_ai(s, p);
             }
@@ -450,7 +440,7 @@ bool handle_input(GameState* s, TennixNet* c) {
 }
 
 void render(const GameState* s, RenderState* r) {
-    int x, y, b;
+    int x, y;
     unsigned int i;
     float zoom;
     float rotate;
@@ -571,14 +561,6 @@ void render(const GameState* s, RenderState* r) {
     rectangle(10, HEIGHT-30, (int)(PLAYER(s, 1).power), 10, 200, 200, 200);
     rectangle(WIDTH-PLAYER_POWER_MAX-10, HEIGHT-30, (int)(PLAYER(s, 2).power), 10, 200, 200, 200);
     
-    if( s->ball.move_x > 0) {
-        b = (time/100)%BALL_STATES;
-    } else if( s->ball.move_x < 0) {
-        b = BALL_STATES-1-(time/100)%BALL_STATES;
-    } else {
-        b = 0;
-    }
-
     rotate = 0.0;
     zoom = fmaxf(0.5, fminf(1.0, (float)(30.-(s->ball.z))/10.));
     show_image_rotozoom(GR_SHADOW, s->ball.x, s->ball.y+3, rotate, zoom);
@@ -805,7 +787,7 @@ int score_game(GameState* s) {
     }
 
     /* we cannot be in an "impossibly high" set */
-    assert(s->current_set < SETS_TO_WIN*2-1);
+    tnx_assert(s->current_set < SETS_TO_WIN*2-1);
 
     winner->game++;
     s->ec_game++;

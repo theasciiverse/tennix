@@ -23,7 +23,7 @@
 
 #include "tennix.h"
 #include "sound.h"
-#include "archive.hh"
+#include "archive.h"
 #include "graphics.h"
 
 #include <stdarg.h>

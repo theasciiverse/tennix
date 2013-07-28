@@ -24,7 +24,7 @@
 #ifndef __GRAPHICS_H
 #define __GRAPHICS_H
 
-#include "archive.hh"
+#include "archive.h"
 #include "tennix.h"
 
 #include "SDL_image.h"

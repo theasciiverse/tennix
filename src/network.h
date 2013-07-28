@@ -24,10 +24,14 @@
 #ifndef __NETWORK_H
 #define __NETWORK_H
 
+#include "config.h"
+
 #include "game.h"
 #include "input.h"
 
+#ifdef HAVE_SDL_NET
 #include <SDL/SDL_net.h>
+#endif
 
 /* Vanity ports "STNX" and "MTNX" */
 #define TENNIXNET_PORT_SLAVE 7869

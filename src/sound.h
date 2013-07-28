@@ -24,7 +24,7 @@
 #ifndef __SOUND_H
 #define __SOUND_H
 
-#include "archive.hh"
+#include "archive.h"
 
 #include "SDL_mixer.h"
 

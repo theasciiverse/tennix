@@ -27,12 +27,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
 #include "tennix.h"
-#include "archive.hh"
+#include "archive.h"
 #include "game.h"
 #include "graphics.h"
 #include "sound.h"
@@ -45,47 +41,7 @@
 
 SDL_Surface *screen;
 
-#ifdef WIN32
-
-/* IDs from the resource file */
-#define START_BUTTON 1
-#define CHECKBOX_FULLSCREEN 2
-#define QUIT_BUTTON 3
-
-BOOL CALLBACK ConfigDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    static int checkbox_is_checked;
-
-    switch (uMsg) {
-        case WM_CLOSE:
-            EndDialog(hwndDlg, IDCANCEL);
-            break;
-        case WM_COMMAND:
-            switch (wParam) {
-                case START_BUTTON:
-                    EndDialog(hwndDlg, (checkbox_is_checked)?(IDYES):(IDNO));
-                    break;
-                case QUIT_BUTTON:
-                    EndDialog(hwndDlg, IDCANCEL);
-                    break;
-                case CHECKBOX_FULLSCREEN:
-                    checkbox_is_checked ^= 1;
-                    break;
-            }
-            break;
-        default:
-            return FALSE;
-    }
-    return TRUE;
-}
-#endif
-
-#ifdef WIN32
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, 
-    LPSTR lpCmdLine, int nCmdShow) {
-#else
 int main( int argc, char** argv) {
-#endif
     int i, slide, slide_direction;
     unsigned int x;
     Uint32 ticks;
@@ -108,8 +64,10 @@ int main( int argc, char** argv) {
     AnimationState *intro_playback;
     float wiggle;
     TennixNet* connection = NULL;
+#ifdef HAVE_SDL_NET
     char* net_host = NULL;
     bool net_master = false;
+#endif /* HAVE_SDL_NET */
     TennixArchive* tnxar = NULL;
 
     MenuButton btn_back = {
@@ -161,25 +119,6 @@ int main( int argc, char** argv) {
     Uint32 ft, frames; /* frame timer and frames */
 #endif
 
-#if defined(MAEMO) || defined(MACOSX)
-    sdl_flags |= SDL_FULLSCREEN;
-#endif
-
-#ifdef WIN32
-    int mb_result;
-    mb_result = DialogBox(hInstance, "CONFIG", 0, (DLGPROC)ConfigDialogProc);
-
-    switch (mb_result) {
-        case IDYES:
-            sdl_flags |= SDL_FULLSCREEN;
-            break;
-        case IDCANCEL:
-            return 0;
-            break;
-        default:
-            break;
-    }
-#else
     fprintf(stderr, "Tennix Classic Championship Tour 2011 (v" VERSION ")\n" COPYRIGHT "\n" URL "\n\n");
 
     i = 1;
@@ -200,6 +139,7 @@ int main( int argc, char** argv) {
         else if (OPTION_SET("--benchmark", "-b")) {
             benchmark = true;
         }
+#ifdef HAVE_SDL_NET
         else if (OPTION_SET("--slave", "-s")) {
             net_host = OPTION_VALUE;
             if (OPTION_VALUE != NULL) {
@@ -222,6 +162,7 @@ int main( int argc, char** argv) {
                 break;
             }
         }
+#endif /* HAVE_SDL_NET */
         else {
             fprintf(stderr, "Unknown option: %s\n", argv[i]);
             do_help = true;
@@ -234,13 +175,14 @@ int main( int argc, char** argv) {
         " Where [OPTIONS] are zero or more of the following:\n\n"
         "    [--fullscreen|-f]           Fullscreen mode\n"
         "    [--benchmark|-b]            Run in benchmark/attract mode\n"
+#ifdef HAVE_SDL_NET
         "    [--master|-m <IP-of-slave>] Network play as master\n"
         "    [--slave|-s <IP-of-master>] Network play as slave\n"
+#endif /* HAVE_SDL_NET */
         "    [--help|-h]                 Show help information\n\n"
         " See tennix(6) for details.\n", argv[0]);
         return 0;
     }
-#endif
 
     if (benchmark) {
         srand(100);
@@ -267,12 +209,16 @@ int main( int argc, char** argv) {
     init_graphics(*tnxar);
     init_sound(*tnxar);
     init_input(*tnxar);
+#ifdef HAVE_SDL_NET
     init_network();
+#endif /* HAVE_SDL_NET */
     delete tnxar;
 
+#ifdef HAVE_SDL_NET
     if (net_host != NULL) {
         connection = network_connect(net_host, net_master);
     }
+#endif /* HAVE_SDL_NET */
 
     menu_button_init(&btn_back);
     menu_button_init(&btn_start);
@@ -409,11 +355,7 @@ int main( int argc, char** argv) {
                     /* FIXME - this should not be written here, but taken from the input devices */
                     btn_player1.text = "Keyboard (arrows)";
                     btn_player2.text = "Carl Van Court";
-#ifdef MAEMO
-                    PLAYER(prepared_game, 1).input_device_index = 0;
-#else
                     PLAYER(prepared_game, 1).input_device_index = 2;
-#endif
                     PLAYER(prepared_game, 1).type = PLAYER_TYPE_HUMAN;
                     PLAYER(prepared_game, 1).input = &(input_devices[PLAYER(prepared_game, 1).input_device_index]);
                     location_info_visible = false;
@@ -619,7 +561,6 @@ int main( int argc, char** argv) {
             /* No menu screen - no hovering. */
             btn_hovering = 0;
         }
-#ifndef MAEMO /* On Maemo, we cannot really "hover" (touchscreen!) */
         if (btn_hovering_old != btn_hovering && btn_hovering != 0) {
 #ifdef HAVE_VOICE_FILES
             if (btn_hovering == MENU_QUIT) {
@@ -630,10 +571,9 @@ int main( int argc, char** argv) {
                 play_sample(SOUND_MOUSEOVER);
             }
 #else
-            /*play_sample(SOUND_MOUSEOVER);*/
+            play_sample(SOUND_MOUSEOVER);
 #endif
         }
-#endif
    
         if( keys[SDLK_ESCAPE] || keys['q']) {
             /* FIXME: do the state thingie! */
@@ -644,11 +584,9 @@ int main( int argc, char** argv) {
             SDL_WM_ToggleFullScreen( screen);
         }
    
-#ifndef MAEMO /* No mouse cursor on Maemo (we have a touchscreen) */
         if (state == MENU_STATE_MAINMENU || state == MENU_STATE_OPTIONS || state == MENU_STATE_LOCATION) {
             show_image(GR_CURSOR, mx-2, my-1, 255);
         }
-#endif
 
         /* Draw the "real" mouse coordinates */
         /*rectangle(mx-1, my-1, 2, 2, 255, 255, 255);*/
@@ -800,7 +738,9 @@ int main( int argc, char** argv) {
 
     uninit_graphics();
     uninit_input();
+#ifdef HAVE_SDL_NET
     uninit_network();
+#endif /* HAVE_SDL_NET */
 
     SDL_Quit();
     return 0;

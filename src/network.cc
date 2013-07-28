@@ -21,6 +21,10 @@
  *
  **/
 
+#include "config.h"
+
+#ifdef HAVE_SDL_NET
+
 #include "game.h"
 #include "network.h"
 
@@ -271,3 +275,4 @@ net_unserialize_gamestate(NetworkGameState* src, GameState* dest)
     dest->status_message = src->status_message;
 }
 
+#endif /* HAVE_SDL_NET */

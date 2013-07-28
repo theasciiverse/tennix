@@ -25,14 +25,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
-#include <assert.h>
 #include <ctype.h>
 #include <string.h>
-#include <assert.h>
 
 #include "tennix.h"
 #include "graphics.h"
-#include "archive.hh"
+#include "archive.h"
 #include "sound.h"
 
 #include "SDL_rotozoom.h"
@@ -151,16 +149,16 @@ void init_graphics(TennixArchive& tnxar) {
     /* Load fonts from resource file */
     for (i=0; i<FONT_COUNT; i++) {
         if (font_desc[i].filename != NULL) {
-            assert(tnxar.setItemFilename(font_desc[i].filename) != 0);
+            tnx_assert(tnxar.setItemFilename(font_desc[i].filename) != 0);
             font_data = tnxar.getItemBytes();
             freelist_append(font_freelist, font_data);
         }
-        assert(font_data != NULL);
+        tnx_assert(font_data != NULL);
         rw = SDL_RWFromMem((void*)font_data, tnxar.getItemSize());
         fonts[i].data = TTF_OpenFontRW(rw, 1, font_desc[i].size);
         if (fonts[i].data == NULL) {
             fprintf(stderr, "TTF error: %s\n", TTF_GetError());
-            assert(fonts[i].data != NULL);
+            tnx_assert(fonts[i].data != NULL);
         }
         TTF_SetFontStyle(fonts[i].data, font_desc[i].style);
     }
@@ -233,7 +231,7 @@ void uninit_graphics() {
 FreeList* freelist_create()
 {
     FreeList* list = (FreeList*)malloc(sizeof(FreeList));
-    assert(list != NULL);
+    tnx_assert(list != NULL);
 
     list->head = NULL;
 
@@ -244,8 +242,8 @@ void freelist_append(FreeList* list, const char* data)
 {
     FreeListItem* new_item = (FreeListItem*)malloc(sizeof(FreeListItem));
 
-    assert(list != NULL);
-    assert(data != NULL);
+    tnx_assert(list != NULL);
+    tnx_assert(data != NULL);
 
     new_item->data = data;
 
@@ -258,7 +256,7 @@ void freelist_free_all(FreeList* list)
 {
     FreeListItem* next;
 
-    assert(list != NULL);
+    tnx_assert(list != NULL);
 
     while (list->head != NULL) {
         /* Remove one item from the head of the list */
@@ -287,7 +285,7 @@ int get_sprite_width( image_id id, int items) {
 void show_sprite( image_id id, int pos, int items, int x_offset,
         int y_offset, int opacity)
 {
-    assert(id < GR_COUNT);
+    tnx_assert(id < GR_COUNT);
     SDL_SetAlpha(images[id].data, SDL_SRCALPHA | SDL_RLEACCEL, opacity);
     blit_surface(images[id].data, x_offset, y_offset, pos, items);
 }
@@ -297,7 +295,7 @@ void show_image_rotozoom(image_id id, int x, int y, float rotate, float zoom)
     SDL_Surface* tmp;
     SDL_Rect src, dst;
 
-    assert(id < GR_COUNT);
+    tnx_assert(id < GR_COUNT);
 
     tmp = rotozoomSurface(images[id].data, rotate, zoom, SMOOTHING_OFF);
 
@@ -591,11 +589,11 @@ SDL_Surface* font_render_surface(font_id id, const char* text, Uint8 r,
     color.g = g;
     color.b = b;
 
-    assert(id < FONT_COUNT);
+    tnx_assert(id < FONT_COUNT);
 
     result = TTF_RenderText_Blended(fonts[id].data, text, color);
 
-    assert(result != NULL);
+    tnx_assert(result != NULL);
 
     return result;
 }
@@ -617,7 +615,7 @@ void blit_surface(SDL_Surface* surface, int x, int y, int pos, int count)
 
 SDL_Surface* get_surface(image_id id)
 {
-    assert(id < GR_COUNT);
+    tnx_assert(id < GR_COUNT);
     return images[id].data;
 }
 
@@ -632,7 +630,7 @@ void font_draw_string_color(font_id id, const char* s, int x_offset, int y_offse
 int font_get_string_width(font_id id, const char* s) {
     int w, h;
 
-    assert(id < FONT_COUNT);
+    tnx_assert(id < FONT_COUNT);
 
     if (TTF_SizeText(fonts[id].data, s, &w, &h) != 0) {
         return 0;
@@ -642,7 +640,7 @@ int font_get_string_width(font_id id, const char* s) {
 }
 
 int font_get_height(font_id id) {
-    assert(id < FONT_COUNT);
+    tnx_assert(id < FONT_COUNT);
     return TTF_FontHeight(fonts[id].data);
 }
 

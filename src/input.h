@@ -24,12 +24,8 @@
 #ifndef __INPUT_H
 #define __INPUT_H
 
-#include "archive.hh"
+#include "archive.h"
 #include "graphics.h"
-
-#ifdef TENNIX_PYTHON
-#include <Python.h>
-#endif
 
 #define JOYSTICK_PERCENTIZE(x) ((float)(x)/(float)(32768))
 
@@ -45,7 +41,7 @@ enum {
     INPUT_TYPE_JOYSTICK,
     INPUT_TYPE_MOUSE,
     INPUT_TYPE_NETWORK,
-#ifdef TENNIX_PYTHON
+#ifdef HAVE_PYTHON
     INPUT_TYPE_AI_PYTHON,
 #endif
     INPUT_TYPE_MAX
@@ -98,11 +94,8 @@ typedef struct {
     /* Network-specific items */
     NetworkInputData net;
 
-#ifdef TENNIX_PYTHON
-    /* Python-specific items */
-    PyObject* py_bot_class;
-    PyObject* py_bot;
-#endif
+    /* Plugin-specific data */
+    void *user_data;
 
     /* The picture for this input device */
     image_id icon;
@@ -114,9 +107,7 @@ typedef struct {
 void init_input(TennixArchive& tnxar);
 void uninit_input();
 
-#ifdef TENNIX_PYTHON
-void input_add_python_bot(PyObject* pyclass);
-#endif
+InputDevice *input_add_device();
 
 InputDevice* find_input_devices(unsigned int*);
 

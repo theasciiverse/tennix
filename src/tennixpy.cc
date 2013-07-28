@@ -22,13 +22,28 @@
  *
  **/
 
-#ifdef TENNIX_PYTHON
+#include "config.h"
+
+#ifdef HAVE_PYTHON
 
 #include <Python.h>
 
 #include "game.h"
-#include "archive.hh"
+#include "archive.h"
 #include "tennixpy.h"
+
+PyObject* tennixpy_register_bot(PyObject* self, PyObject* bot_class);
+PyObject* tennixpy_get_ball_pos(PyObject* self, PyObject* gamestate);
+PyObject* tennixpy_get_power(PyObject* self, PyObject* args);
+PyObject* tennixpy_get_position(PyObject* self, PyObject* args);
+PyObject* tennixpy_create_module(void);
+
+
+struct InputDevicePython {
+    PyObject* py_bot_class;
+    PyObject* py_bot;
+};
+
 
 /* This saves our current Python thread state */
 PyThreadState* _py_save;
@@ -53,8 +68,12 @@ PyObject* tennixpy_create_module(void)
     return module;
 }
 
-PyObject* tennixpy_create_bot(PyObject* bot_class, GameState* s, int player_id)
+void
+tennixpy_create_bot(InputDevice *device, GameState *s, int player_id)
 {
+    InputDevicePython *pydevice = (InputDevicePython*)device->user_data;
+    PyObject *bot_class = pydevice->py_bot_class;
+
     PyObject* o = NULL;
     PyObject* args;
     PyObject* gamestate;
@@ -77,11 +96,14 @@ PyObject* tennixpy_create_bot(PyObject* bot_class, GameState* s, int player_id)
     }
     _py_save = PyEval_SaveThread();
 
-    return o;
+    pydevice->py_bot = o;
 }
 
-void tennixpy_destroy_bot(PyObject* bot)
+void tennixpy_destroy_bot(InputDevice *device)
 {
+    InputDevicePython *pydevice = (InputDevicePython*)device->user_data;
+    PyObject *bot = pydevice->py_bot;
+
     PyObject* finish_func;
     PyEval_RestoreThread(_py_save);
     finish_func = PyObject_GetAttrString(bot, "finish");
@@ -92,8 +114,11 @@ void tennixpy_destroy_bot(PyObject* bot)
     _py_save = PyEval_SaveThread();
 }
 
-float tennixpy_bot_get_axis(PyObject* bot, int axis)
+float tennixpy_bot_get_axis(InputDevice *device, int axis)
 {
+    InputDevicePython *pydevice = (InputDevicePython*)device->user_data;
+    PyObject *bot = pydevice->py_bot;
+
     PyObject* args;
     PyObject* get_axis_func;
     PyObject* r;
@@ -124,8 +149,11 @@ float tennixpy_bot_get_axis(PyObject* bot, int axis)
     return result;
 }
 
-char tennixpy_bot_get_key(PyObject* bot, int key)
+char tennixpy_bot_get_key(InputDevice *device, int key)
 {
+    InputDevicePython *pydevice = (InputDevicePython*)device->user_data;
+    PyObject *bot = pydevice->py_bot;
+
     PyObject* args;
     PyObject* get_key_func;
     PyObject* r;
@@ -158,6 +186,29 @@ char tennixpy_bot_get_key(PyObject* bot, int key)
     return result;
 }
 
+static void
+input_add_python_bot(PyObject* bot_class)
+{
+    InputDevice *device = input_add_device();
+
+    if (device == NULL) {
+        fprintf(stderr, "Warning: Cannot add any more Python bots.\n");
+        // We carry a ref of bot_class, so give it up here
+        Py_DECREF(bot_class);
+        return;
+    }
+
+    device->type = INPUT_TYPE_AI_PYTHON;
+    device->icon = GR_INPUT_AI;
+
+    InputDevicePython *pydevice = new InputDevicePython;
+    pydevice->py_bot_class = bot_class;
+    pydevice->py_bot = NULL;
+    device->user_data = (void*)pydevice;
+    tennixpy_get_bot_name(device, device->name, INPUT_DEVICE_NAME_MAX);
+    fprintf(stderr, " %s", device->name);
+}
+
 PyObject* tennixpy_register_bot(PyObject* self, PyObject* bot_class)
 {
     assert(self == NULL);
@@ -172,8 +223,10 @@ PyObject* tennixpy_register_bot(PyObject* self, PyObject* bot_class)
     Py_RETURN_NONE;
 }
 
-void tennixpy_get_bot_name(PyObject* bot_class, char* dest, int maxlen)
+void tennixpy_get_bot_name(InputDevice *device, char* dest, int maxlen)
 {
+    InputDevicePython *pydevice = (InputDevicePython*)device->user_data;
+    PyObject *bot_class = pydevice->py_bot_class;
     PyObject *name;
 
     name = PyObject_GetAttrString(bot_class, "name");
@@ -305,11 +358,13 @@ void tennixpy_init(TennixArchive& tnxar)
     _py_save = PyEval_SaveThread();
 }
 
-void tennixpy_unregister_bot(PyObject* bot)
+void tennixpy_unregister_bot(InputDevice *device)
 {
+    InputDevicePython *pydevice = (InputDevicePython*)device->user_data;
     PyEval_RestoreThread(_py_save);
-    Py_DECREF(bot);
+    Py_XDECREF(pydevice->py_bot);
     _py_save = PyEval_SaveThread();
+    delete pydevice;
 }
 
 void tennixpy_uninit()
@@ -322,4 +377,4 @@ void tennixpy_uninit()
     /*Py_Finalize();*/
 }
 
-#endif
+#endif /* HAVE_PYTHON */
