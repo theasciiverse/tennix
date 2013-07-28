@@ -76,8 +76,6 @@ class TennixArchive {
         int current_item;
         int building;
 
-        static void xormem(char* mem, uint32_t length, char key);
-
     public:
         TennixArchive();
         TennixArchive(const char* filename, const char* fallback=NULL);

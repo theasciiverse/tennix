@@ -30,96 +30,200 @@
 
 #include "archive.h"
 
-int main(int argc, char* argv[])
+static int
+extract_file(TennixArchive *tnxar, bool verbose)
 {
-    TennixArchive* tnxar;
-    char* data;
-    FILE *fp;
-    const char* filename;
-    char *bn = (char*)basename(argv[0]);
-    int len, i;
+    char *data = tnxar->getItemBytes();
 
-    if(strcmp(bn, "archive") == 0) {
-        if (argc < 2) {
-            fprintf(stderr, "Usage: %s archive.tnx file1 [....]\n", bn);
-            exit(EXIT_FAILURE);
-        } else if (argc == 2) {
-            fprintf(stderr, "Refusing to create an empty archive.\n");
-            exit(EXIT_FAILURE);
-        }
-
-        if (strcmp(".tnx", argv[1] + strlen(argv[1]) - 4) != 0) {
-            fprintf(stderr, "Wrong file extension: %s\n", argv[1]);
-            exit(EXIT_FAILURE);
-        }
-
-        TennixArchive archive;
-
-        //fprintf(stderr, "Creating %s with %d files\n", argv[1], argc-2);
-        for (i=2; i<argc; i++) {
-            fp = fopen(argv[i], "rb");
-            fseek(fp, 0, SEEK_END);
-            len = ftell(fp);
-            fseek(fp, 0, SEEK_SET);
-            data = (char*)malloc(len);
-            tnx_assert(fread(data, len, 1, fp) == 1);
-            fclose(fp);
-            char *filename = strdup(basename(argv[i]));
-            archive.appendItem(filename, data, len);
-        }
-        archive.buildFile(argv[1]);
-    } else if(strcmp(bn, "dump") == 0) {
-        if (argc < 2) {
-            fprintf(stderr, "Usage: %s archive.tnx\n", bn);
-            exit(EXIT_FAILURE);
-        }
-        TennixArchive archive(argv[1]);
-        std::cerr << archive << std::endl;
-    } else if(strcmp(bn, "extract") == 0) {
-        if (argc < 2 || argc > 3) {
-            fprintf(stderr, "Usage: %s archive.tnx [file]\n", bn);
-            exit(EXIT_FAILURE);
-        }
-        tnxar = new TennixArchive(argv[1]);
-        if (argc == 2) {
-            while (!tnxar->endOfFile()) {
-                filename = tnxar->getItemFilename();
-                data = tnxar->getItemBytes();
-                len = tnxar->getItemSize();
-                fprintf(stderr, "Extracting: %s", filename);
-                fprintf(stderr, " (%d bytes)", len);
-                fp = fopen(filename, "wb");
-                fputc('.', stderr);
-                tnx_assert(fwrite(data, len, 1, fp) == 1);
-                fputc('.', stderr);
-                fclose(fp);
-                fprintf(stderr, ".OK\n");
-                free(data);
-                tnxar->next();
-            }
-        } else if (argc == 3) {
-            filename = argv[2];
-            if (tnxar->setItemFilename(filename) != 0) {
-                fprintf(stderr, "Extracting: %s", filename);
-                data = tnxar->getItemBytes();
-                len = tnxar->getItemSize();
-                fprintf(stderr, " (%d bytes)", len);
-                fp = fopen(filename, "wb");
-                fputc('.', stderr);
-                tnx_assert(fwrite(data, len, 1, fp) == 1);
-                fputc('.', stderr);
-                fclose(fp);
-                fprintf(stderr, ".OK\n");
-                free(data);
-            } else {
-                fprintf(stderr, "File not found in %s: %s\n", argv[1], filename);
-                delete tnxar;
-                exit(EXIT_FAILURE);
-            }
-        }
-        delete tnxar;
+    if (verbose) {
+        printf("%s\n", tnxar->getItemFilename());
     }
 
-    return EXIT_SUCCESS;
+    FILE *fp = fopen(tnxar->getItemFilename(), "wb");
+    if (fp == NULL) {
+        return 1;
+    }
+    fwrite(data, tnxar->getItemSize(), 1, fp);
+    fclose(fp);
+
+    free(data);
+
+    return 0;
+}
+
+
+class ArchiveTool {
+    public:
+        ArchiveTool(int argc, char **argv);
+
+        int run();
+
+    private:
+        int usage();
+
+        int create(bool verbose);
+        int test(bool verbose);
+        int extract(bool verbose);
+
+        int argc;
+        char **argv;
+};
+
+ArchiveTool::ArchiveTool(int argc, char **argv)
+    : argc(argc)
+    , argv(argv)
+{
+}
+
+int
+ArchiveTool::run()
+{
+    bool do_create = false;
+    bool do_test = false;
+    bool do_extract = false;
+    bool verbose = false;
+
+    if (argc < 2) {
+        return usage();
+    }
+
+    char *opts = argv[1];
+    if (*opts == '-') opts++;
+
+    while (*opts) {
+        switch (*opts) {
+            case 'c':
+                do_create = true;
+                break;
+            case 't':
+                do_test = true;
+                break;
+            case 'x':
+                do_extract = true;
+                break;
+            case 'v':
+                verbose = true;
+                break;
+            case 'f':
+                if (opts[1]) {
+                    return usage();
+                }
+                break;
+            default:
+                return usage();
+                break;
+        }
+        opts++;
+    }
+
+    if (do_create && !do_test && !do_extract && argc > 3) {
+        return create(verbose);
+    } else if (do_test && !do_create && !do_extract && argc > 2) {
+        return test(verbose);
+    } else if (do_extract && !do_create && !do_test && argc > 2) {
+        return extract(verbose);
+    }
+
+    return usage();
+}
+
+int
+ArchiveTool::create(bool verbose)
+{
+    if (argc < 4) {
+        fprintf(stderr, "Refusing to create an empty archive.\n");
+        return 1;
+    }
+
+    char *archive = argv[2];
+    if (strcmp(".tnx", archive + strlen(archive) - 4) != 0) {
+        fprintf(stderr, "Wrong file extension: %s\n", archive);
+        return 1;
+    }
+
+    TennixArchive tnxar;
+    for (int i=3; i<argc; i++) {
+        FILE *fp = fopen(argv[i], "rb");
+        fseek(fp, 0, SEEK_END);
+        size_t len = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        char *data = (char*)malloc(len);
+        tnx_assert(fread(data, len, 1, fp) == 1);
+        fclose(fp);
+        char *filename = strdup(basename(argv[i]));
+        if (verbose) {
+            printf("%s\n", filename);
+        }
+        tnxar.appendItem(filename, data, len);
+    }
+    tnxar.buildFile(archive);
+    return 0;
+}
+
+int
+ArchiveTool::test(bool verbose)
+{
+    TennixArchive tnxar(argv[2]);
+
+    while (!tnxar.endOfFile()) {
+        if (verbose) {
+            printf("%ld %s\n", tnxar.getItemSize(), tnxar.getItemFilename());
+        } else {
+            printf("%s\n", tnxar.getItemFilename());
+        }
+        tnxar.next();
+    }
+
+    return 0;
+}
+
+int
+ArchiveTool::extract(bool verbose)
+{
+    TennixArchive tnxar(argv[2]);
+
+    if (argc == 3) {
+        while (!tnxar.endOfFile()) {
+            if (extract_file(&tnxar, verbose) != 0) {
+                printf("Error extracting file\n");
+                return 1;
+            }
+            tnxar.next();
+        }
+        return 0;
+    }
+
+    for (int i=3; i<argc; i++) {
+        if (tnxar.setItemFilename(argv[i])) {
+            if (extract_file(&tnxar, verbose) != 0) {
+                printf("Error extracting file: %s\n", argv[i]);
+                return 1;
+            }
+        } else {
+            fprintf(stderr, "File not in archive: %s\n", argv[i]);
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+int
+ArchiveTool::usage()
+{
+    fprintf(stderr, "Usage: %s [-ctxvf] <archive.tnx> file1 ...\n", argv[0]);
+    fprintf(stderr, "    -c ... Create archive\n");
+    fprintf(stderr, "    -t ... Test archive (list contents)\n");
+    fprintf(stderr, "    -x ... Extract archive\n");
+    fprintf(stderr, "    -v ... Verbose output\n");
+    fprintf(stderr, "    -f ... Filename of archive (optional)\n");
+    return 1;
+}
+
+int
+main(int argc, char **argv)
+{
+    ArchiveTool tool(argc, argv);
+    return tool.run();
 }
 

@@ -37,12 +37,9 @@ TENNIX_OBJ += src/tennix.o src/game.o src/graphics.o src/input.o
 TENNIX_OBJ += src/util.o src/sound.o src/animation.o src/archive.o
 TENNIX_OBJ += src/SDL_rotozoom.o src/network.o src/tennixpy.o
 
-# Object files for "archive"
-ARCHIVE_BIN := archive
+# Object files for "tnxar"
+ARCHIVE_BIN := tnxar
 ARCHIVE_OBJ += src/archivetool.o src/archive.o
-
-# Target filename for "dump"
-DUMP_BIN := dump
 
 # Data files for tennix.tnx
 TENNIX_TNX := tennix.tnx
@@ -63,7 +60,7 @@ TENNIX_PNG := data/tennix.png
 TENNIX_DESKTOP := data/tennix.desktop
 TENNIX_MAN := data/tennix.6
 
-all: $(TENNIX_BIN) $(ARCHIVE_BIN) $(DUMP_BIN) $(TENNIX_TNX)
+all: $(TENNIX_BIN) $(ARCHIVE_BIN) $(TENNIX_TNX)
 
 %.o: %.cc
 	$(SILENTMSG) "  CXX     $@"
@@ -77,13 +74,9 @@ $(ARCHIVE_BIN): $(ARCHIVE_OBJ)
 	$(SILENTMSG) "  LD      $@"
 	$(SILENTCMD)$(CXX) -o $@ $^
 
-$(DUMP_BIN): $(ARCHIVE_BIN)
-	$(SILENTMSG) "  SYMLINK $@"
-	$(SILENTCMD)$(LN) -s $< $@
-
 $(TENNIX_TNX): $(ARCHIVE_BIN) $(TENNIX_TNX_DATA)
-	$(SILENTMSG) "  ARCHIVE $@"
-	$(SILENTCMD)./$(ARCHIVE_BIN) $@ $(TENNIX_TNX_DATA)
+	$(SILENTMSG) "  TNXAR   $@"
+	$(SILENTCMD)./$(ARCHIVE_BIN) -cf $@ $(TENNIX_TNX_DATA)
 
 install: $(TENNIX_BIN) $(TENNIX_TNX) $(TENNIX_PNG) $(TENNIX_DESKTOP) $(TENNIX_MAN)
 	$(SILENTMSG) "  INSTALL $(TENNIX_BIN)"
@@ -106,7 +99,6 @@ clean:
 	$(SILENTMSG) "  CLEAN"
 	$(SILENTCMD)$(RM) -f $(TENNIX_BIN) $(TENNIX_OBJ)
 	$(SILENTCMD)$(RM) -f $(ARCHIVE_BIN) $(ARCHIVE_OBJ)
-	$(SILENTCMD)$(RM) -f $(DUMP_BIN)
 	$(SILENTCMD)$(RM) -f $(TENNIX_TNX)
 
 distclean: clean

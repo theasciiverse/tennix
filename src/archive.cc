@@ -38,6 +38,15 @@
 
 #include "archive.h"
 
+static void
+xormem(char* mem, uint32_t length, char key)
+{
+   char *i = mem, *end = mem+length;
+   for(; i != end; i++) {
+       *i ^= key;
+   }
+}
+
 TennixArchive::TennixArchive()
     : fp(NULL)
     , header()
@@ -64,7 +73,11 @@ TennixArchive::TennixArchive(const char* filename, const char* fallback)
     if (fp == NULL && fallback != NULL) {
         fp = fopen(fallback, "rb");
     }
-    tnx_assert(fp != NULL);
+
+    if (fp == NULL) {
+        fprintf(stderr, "Cannot open archive: %s\n", filename);
+        exit(1);
+    }
 
     offset = sizeof(TennixArchiveHeader)*fread(&(header), sizeof(TennixArchiveHeader), 1, fp);
     tnx_assert(offset == sizeof(TennixArchiveHeader));
@@ -136,16 +149,6 @@ TennixArchive::getItemBytes()
     tnx_assert(fread(data, size, 1, fp) == 1);
     xormem(data, size, items[current_item].key);
     return data;
-}
-
-void
-TennixArchive::xormem(char* mem, uint32_t length, char key)
-{
-   char *i = mem, *end = mem+length;
-
-   for(; i != end; i++) {
-       *i ^= key;
-   }
 }
 
 void
