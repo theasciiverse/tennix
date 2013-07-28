@@ -101,12 +101,16 @@ class TennixArchive {
             return items[current_item].length;
         }
 
-        int endOfFile() {
+        bool endOfFile() {
             return current_item >= header.items;
         }
 
         void next() {
             current_item++;
+        }
+
+        void rewind() {
+            current_item = 0;
         }
 
         /* only for building/utility mode: */

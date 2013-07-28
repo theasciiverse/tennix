@@ -32,12 +32,12 @@
 #include "archive.h"
 #include "tennixpy.h"
 
-PyObject* tennixpy_register_bot(PyObject* self, PyObject* bot_class);
-PyObject* tennixpy_get_ball_pos(PyObject* self, PyObject* gamestate);
-PyObject* tennixpy_get_power(PyObject* self, PyObject* args);
-PyObject* tennixpy_get_position(PyObject* self, PyObject* args);
-PyObject* tennixpy_create_module(void);
-
+static void tennixpy_get_bot_name(InputDevice *device, char *dest, int maxlen);
+static PyObject* tennixpy_register_bot(PyObject* self, PyObject* bot_class);
+static PyObject* tennixpy_get_ball_pos(PyObject* self, PyObject* gamestate);
+static PyObject* tennixpy_get_power(PyObject* self, PyObject* args);
+static PyObject* tennixpy_get_position(PyObject* self, PyObject* args);
+static PyObject* tennixpy_create_module(void);
 
 struct InputDevicePython {
     PyObject* py_bot_class;
@@ -46,7 +46,7 @@ struct InputDevicePython {
 
 
 /* This saves our current Python thread state */
-PyThreadState* _py_save;
+static PyThreadState *_py_save;
 
 static PyMethodDef TennixMethods[] = {
     {"register_bot", tennixpy_register_bot, METH_O, "Register a new bot"},
@@ -206,7 +206,6 @@ input_add_python_bot(PyObject* bot_class)
     pydevice->py_bot = NULL;
     device->user_data = (void*)pydevice;
     tennixpy_get_bot_name(device, device->name, INPUT_DEVICE_NAME_MAX);
-    fprintf(stderr, " %s", device->name);
 }
 
 PyObject* tennixpy_register_bot(PyObject* self, PyObject* bot_class)
@@ -322,37 +321,25 @@ PyObject* tennixpy_get_position(PyObject* self, PyObject* args)
 void tennixpy_init(TennixArchive& tnxar)
 {
     PyObject* tennix_module;
-    /*PyObject* bot_module;*/
-    /*FILE* fp;*/
     char* data;
-    /*const char* argv[] = {""};*/
 
-    /* Search for modules in CWD */
     setenv("PYTHONPATH", ".", 1);
     PyEval_InitThreads();
     Py_Initialize();
     tennix_module = tennixpy_create_module();
-    /*Py_Main(1, argv);*/
-    /*bot_module = PyImport_ImportModule("defaultbot");
-    if (bot_module == NULL) {
-        PyErr_Print();
-    }
-    Py_DECREF(bot_module);*/
 
-    if (tnxar.setItemFilename("defaultbot.py") != 0) {
-        fprintf(stderr, "Loading computer players:");
-        data = tnxar.getItemBytes();
-        if (PyRun_SimpleString(data) != 0) {
-            PyErr_Print();
-        } else {
-            fprintf(stderr, ".\n");
+    tnxar.rewind();
+    while (!tnxar.endOfFile()) {
+        const char *filename = tnxar.getItemFilename();
+        if (strcmp(".py", filename + strlen(filename) - 3) == 0) {
+            data = tnxar.getItemBytes();
+            if (PyRun_SimpleString(data) != 0) {
+                PyErr_Print();
+            }
+            free(data);
         }
-        free(data);
+        tnxar.next();
     }
-
-    /*fp = fopen("defaultbot.py", "r");
-    PyRun_SimpleFile(fp, "defaultbot.py");
-    fclose(fp);*/
 
     Py_DECREF(tennix_module);
     _py_save = PyEval_SaveThread();

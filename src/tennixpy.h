@@ -32,15 +32,12 @@
 #include "archive.h"
 #include "input.h"
 
-void tennixpy_unregister_bot(InputDevice *device);
-void tennixpy_get_bot_name(InputDevice *device, char *dest, int maxlen);
-
 void tennixpy_create_bot(InputDevice *device, GameState *s, int player_id);
 void tennixpy_destroy_bot(InputDevice *device);
 
-//float tennixpy_bot_get_axis(PyObject* bot, int axis);
+void tennixpy_unregister_bot(InputDevice *device);
+
 float tennixpy_bot_get_axis(InputDevice *device, int axis);
-//char tennixpy_bot_get_key(PyObject* bot, int key);
 char tennixpy_bot_get_key(InputDevice *device, int key);
 
 void tennixpy_init(TennixArchive& tnxar);
