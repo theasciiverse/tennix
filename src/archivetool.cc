@@ -220,6 +220,8 @@ ArchiveTool::usage()
     return 1;
 }
 
+#undef main
+
 int
 main(int argc, char **argv)
 {
