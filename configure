@@ -2,7 +2,7 @@
 # Configuration script for Tennix
 # 2013-07-27 Thomas Perl <m@thp.io>
 
-V="1.2.0"
+V="1.2.1"
 SILENT="1"
 PYTHON="1"
 PREFIX="/usr/local"
