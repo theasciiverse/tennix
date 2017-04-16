@@ -575,12 +575,12 @@ int main( int argc, char** argv) {
 #endif
         }
    
-        if( keys[SDLK_ESCAPE] || keys['q']) {
+        if( keys[SDLK_ESCAPE] || keys[(int)'q']) {
             /* FIXME: do the state thingie! */
             break;
         }
 
-        if( keys['f']) {
+        if( keys[(int)'f']) {
             SDL_WM_ToggleFullScreen( screen);
         }
    

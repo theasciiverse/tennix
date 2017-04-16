@@ -23,6 +23,8 @@
 
 #include <string.h>
 
+#include <cstdlib>
+
 #include "tennix.h"
 #include "graphics.h"
 #include "game.h"
@@ -221,7 +223,7 @@ float input_device_get_axis(InputDevice* d, unsigned const char axis) {
         //mb = SDL_GetMouseState(&d->mx, &d->my);
         if (axis == INPUT_AXIS_X) {
             /* Not x-movement yet (PLAYER_MOVE_X is not defined!) */
-            /*if (fabsf(d->mx - d->player_x) > PLAYER_MOVE_X) {
+            /*if (std::abs(d->mx - d->player_x) > PLAYER_MOVE_X) {
                 if (d->mx > d->player_x)  {
                     return 1.0;
                 } else if (d->mx < d->player_x) {
@@ -229,7 +231,7 @@ float input_device_get_axis(InputDevice* d, unsigned const char axis) {
                 }
             }*/
         } else {
-            if (fabsf(d->my - d->player_y) > PLAYER_MOVE_Y) {
+            if (std::abs(d->my - d->player_y) > PLAYER_MOVE_Y) {
                 if (d->my > d->player_y)  {
                     result = 1.0;
                 } else if (d->my < d->player_y) {
