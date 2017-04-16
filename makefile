@@ -55,6 +55,8 @@ ifeq ($(HAVE_PYTHON),1)
 TENNIX_TNX_DATA += $(wildcard data/*.py)
 endif
 
+TENNIX_TNX_DATA := $(sort $(TENNIX_TNX_DATA))
+
 # Installable files
 TENNIX_PNG := data/tennix.png
 TENNIX_DESKTOP := data/tennix.desktop
