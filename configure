@@ -87,7 +87,7 @@ check_header_cc() {
 }
 
 message_wrapper() {
-    echo -n "$1 ... "
+    printf "$1 ... "
     shift
     $*
     if [ $? -eq 0 ]; then
@@ -110,7 +110,7 @@ check_sdl_lib() {
 }
 
 check_os() {
-    echo -n "Detecting operating system ... "
+    printf "Detecting operating system ... "
     UNAME=$(uname -s)
     case $UNAME in
         Linux)
