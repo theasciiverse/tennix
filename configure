@@ -6,7 +6,7 @@ V="1.2.0"
 SILENT="1"
 PYTHON="1"
 PREFIX="/usr/local"
-DEFAULT_CFLAGS="-I. -Wno-char-subscripts -Wno-maybe-uninitialized"
+DEFAULT_CFLAGS="-I. -Wall"
 
 if [ -z "$CC" ]; then
     CC="gcc"
