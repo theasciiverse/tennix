@@ -94,7 +94,7 @@ typedef struct {
     float move_y;
     float move_z;
     bool ground_hit;
-    char last_hit_by;
+    signed char last_hit_by;
     bool inhibit_gravity;
 } Ball;
 
@@ -107,7 +107,7 @@ enum PlayerDesire {
 
 typedef struct {
     InputDevice* input;
-    char input_device_index;
+    signed char input_device_index;
     float x;
     float y;
     float power;
