@@ -4,6 +4,7 @@
 
 V="1.2.0"
 SILENT="1"
+PYTHON="1"
 PREFIX="/usr/local"
 DEFAULT_CFLAGS="-I. -Wno-char-subscripts -Wno-maybe-uninitialized"
 
@@ -259,6 +260,7 @@ usage() {
     --enable-nonfree-locations  Additional tennis courts on world map
     --enable-fps-limit          Limit frame rate
     --disable-silent            Disable silent make output
+    --disable-python            Disable checking for Python
 
 EOF
 }
@@ -286,6 +288,9 @@ parse_arguments() {
                 ;;
             --disable-silent)
                 SILENT="0"
+                ;;
+            --disable-python)
+                PYTHON="0"
                 ;;
             -h|--help)
                 usage
@@ -317,7 +322,7 @@ require_tool rm RM
 
 # Check for SDL 1.2 and libpython
 require_sdl
-check_python
+[ "$PYTHON" != "0" ] && check_python
 
 # Check for mandatory and optional libraries
 require_library SDL_image SDL_image.h HAVE_SDL_IMAGE
