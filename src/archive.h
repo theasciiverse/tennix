@@ -74,7 +74,6 @@ class TennixArchive {
         char** blobs;
         size_t offset;
         int current_item;
-        int building;
 
     public:
         TennixArchive();

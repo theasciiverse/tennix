@@ -54,7 +54,6 @@ TennixArchive::TennixArchive()
     , blobs(NULL)
     , offset(0)
     , current_item(0)
-    , building(1)
 {
     strcpy(header.header, TENNIX_ARCHIVE_HEADER);
     header.items = 0;
@@ -67,7 +66,6 @@ TennixArchive::TennixArchive(const char* filename, const char* fallback)
     , blobs(NULL)
     , offset(0)
     , current_item(0)
-    , building(0)
 {
     fp = fopen(filename, "rb");
     if (fp == NULL && fallback != NULL) {
