@@ -71,19 +71,23 @@ cond_definition() {
 }
 
 check_cc() {
-    echo "int main() { return 0; }" | $CC $CFLAGS -x c -c -o /dev/null - 2>/dev/null
+    echo "int main() { return 0; }" | $CC $CFLAGS -x c -c -o configtest.o - 2>/dev/null
+    rm -f configtest.o
 }
 
 check_cxx() {
-    echo "class A { public: A() {} }; int main() { A a; }" | $CXX $CFLAGS -x c++ -c -o /dev/null -
+    echo "class A { public: A() {} }; int main() { A a; }" | $CXX $CFLAGS -x c++ -c -o configtest.o -
+    rm -f configtest.o
 }
 
 check_linker_cc() {
-    echo "int main() { return 0; }" | $CC $CFLAGS $LDFLAGS -l$1 -x c -o /dev/null - 2>/dev/null
+    echo "int main() { return 0; }" | $CC $CFLAGS $LDFLAGS -l$1 -x c -o configtest.o - 2>/dev/null
+    rm -f configtest.o
 }
 
 check_header_cc() {
-    echo "#include <$1>" | $CC $CFLAGS -c -x c -o /dev/null -c - 2>/dev/null
+    echo "#include <$1>" | $CC $CFLAGS -c -x c -o configtest.o -c - 2>/dev/null
+    rm -f configtest.o
 }
 
 message_wrapper() {
