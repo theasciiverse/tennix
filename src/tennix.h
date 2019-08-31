@@ -35,10 +35,10 @@
 
 #include <sys/param.h>
 
-#include <SDL/SDL.h>
+#include <SDL.h>
 
 #ifdef HAVE_SDL_NET
-#include <SDL/SDL_net.h>
+#include <SDL_net.h>
 #endif
 
 typedef struct {

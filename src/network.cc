@@ -29,7 +29,6 @@
 #include "network.h"
 
 #include <assert.h>
-#include <SDL/SDL_net.h>
 
 /* HELPER FUNCTIONS */
 
