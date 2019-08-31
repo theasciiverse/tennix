@@ -70,7 +70,7 @@ all: $(TENNIX_BIN) $(ARCHIVE_BIN) $(TENNIX_TNX)
 
 $(TENNIX_BIN): $(TENNIX_OBJ)
 	$(SILENTMSG) "  LD      $@"
-	$(SILENTCMD)$(CXX) $(LDFLAGS) -o $@ $^
+	$(SILENTCMD)$(CXX) -o $@ $^ $(LDFLAGS)
 
 $(ARCHIVE_BIN): $(ARCHIVE_OBJ)
 	$(SILENTMSG) "  LD      $@"

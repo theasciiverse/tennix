@@ -6,7 +6,7 @@ V="1.2.1"
 SILENT="1"
 PYTHON="1"
 PREFIX="/usr/local"
-DEFAULT_CFLAGS="-I. -Wall"
+DEFAULT_CFLAGS="-I. -Wall -fPIC"
 
 if [ -z "$CC" ]; then
     CC="gcc"
