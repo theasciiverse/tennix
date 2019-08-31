@@ -122,7 +122,7 @@ check_os() {
             PLATFORM="linux"
             ;;
         Darwin)
-            echo "Mac OS X"
+            echo "macOS"
             PLATFORM="osx"
             ;;
         *)
