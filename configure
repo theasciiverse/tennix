@@ -152,12 +152,12 @@ check_voice_files() {
 }
 
 check_python_lib() {
-    if ! which python-config >/dev/null 2>&1; then
+    if ! which python3-config >/dev/null 2>&1; then
         return 1
     fi
 
-    CFLAGS="$(python-config --cflags) $CFLAGS"
-    LDFLAGS="$(python-config --libs) $LDFLAGS"
+    CFLAGS="$(python3-config --cflags) $CFLAGS"
+    LDFLAGS="$(python3-config --ldflags) $LDFLAGS"
     return 0
 }
 
@@ -183,7 +183,7 @@ require_tool() {
 }
 
 check_python() {
-    message_wrapper "Checking for libpython" check_python_lib
+    message_wrapper "Checking for libpython3" check_python_lib
     cond_definition $? HAVE_PYTHON
 }
 
@@ -324,7 +324,7 @@ require_tool ln LN
 require_tool install INSTALL
 require_tool rm RM
 
-# Check for SDL 1.2 and libpython
+# Check for SDL 1.2 and libpython3
 require_sdl
 [ "$PYTHON" != "0" ] && check_python
 

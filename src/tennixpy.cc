@@ -56,15 +56,27 @@ static PyMethodDef TennixMethods[] = {
     {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "tennix",
+        NULL,
+        -1,
+        TennixMethods,
+        NULL,
+        NULL,
+        NULL,
+        NULL
+};
+
 PyObject* tennixpy_create_module(void)
 {
-    PyObject* module;
-    module = Py_InitModule("tennix", TennixMethods);
+    PyObject *module = PyModule_Create(&moduledef);
     PyModule_AddIntConstant(module, "INPUT_AXIS_X", INPUT_AXIS_X);
     PyModule_AddIntConstant(module, "INPUT_AXIS_Y", INPUT_AXIS_Y);
     PyModule_AddIntConstant(module, "INPUT_KEY_HIT", INPUT_KEY_HIT);
     PyModule_AddIntConstant(module, "INPUT_KEY_TOPSPIN", INPUT_KEY_TOPSPIN);
     PyModule_AddIntConstant(module, "INPUT_KEY_SMASH", INPUT_KEY_SMASH);
+    PyDict_SetItemString(PyImport_GetModuleDict(), moduledef.m_name, module);
     return module;
 }
 
@@ -80,7 +92,7 @@ tennixpy_create_bot(InputDevice *device, GameState *s, int player_id)
 
     PyEval_RestoreThread(_py_save);
     if (PyType_Check(bot_class)) {
-        gamestate = PyCObject_FromVoidPtr((void*)s, NULL);
+        gamestate = PyCapsule_New(s, "GameState", NULL);
         assert(gamestate != NULL);
         args = Py_BuildValue("(Oi)", gamestate, player_id);
         assert(args != NULL);
@@ -230,8 +242,8 @@ void tennixpy_get_bot_name(InputDevice *device, char* dest, int maxlen)
 
     name = PyObject_GetAttrString(bot_class, "name");
 
-    if (PyString_Check(name) && name != NULL) {
-        strncpy(dest, PyString_AsString(name), maxlen);
+    if (PyUnicode_Check(name) && name != NULL) {
+        strncpy(dest, PyUnicode_AsUTF8(name), maxlen);
     } else {
         strncpy(dest, "<unknown pybot>", maxlen);
     }
@@ -246,8 +258,8 @@ PyObject* tennixpy_get_ball_pos(PyObject* self, PyObject* gamestate)
 
     assert(self == NULL);
 
-    if (PyCObject_Check(gamestate)) {
-        s = (GameState*)PyCObject_AsVoidPtr(gamestate);
+    if (PyCapsule_CheckExact(gamestate)) {
+        s = (GameState *)PyCapsule_GetPointer(gamestate, "GameState");
         r = Py_BuildValue("(dd)", (double)(s->ball.x), (double)(s->ball.y - s->ball.z));
         return r;
     } else {
@@ -274,13 +286,13 @@ PyObject* tennixpy_get_power(PyObject* self, PyObject* args)
     gamestate = PyTuple_GetItem(args, 0);
     player_id = PyTuple_GetItem(args, 1);
 
-    if (PyInt_Check(player_id)) {
-        player = (int)PyInt_AsLong(player_id);
+    if (PyLong_Check(player_id)) {
+        player = (int)PyLong_AsLong(player_id);
     } else {
         return PyErr_Format(PyExc_TypeError, "Invalid player_id in second argument");
     }
-    if (PyCObject_Check(gamestate)) {
-        s = (GameState*)PyCObject_AsVoidPtr(gamestate);
+    if (PyCapsule_CheckExact(gamestate)) {
+        s = (GameState *)PyCapsule_GetPointer(gamestate, "GameState");
         return PyFloat_FromDouble((double)(PLAYER(s, player).power));
     } else {
         return PyErr_Format(PyExc_TypeError, "First argument is not a GameState");
@@ -305,13 +317,13 @@ PyObject* tennixpy_get_position(PyObject* self, PyObject* args)
     gamestate = PyTuple_GetItem(args, 0);
     player_id = PyTuple_GetItem(args, 1);
 
-    if (PyInt_Check(player_id)) {
-        player = (int)PyInt_AsLong(player_id);
+    if (PyLong_Check(player_id)) {
+        player = (int)PyLong_AsLong(player_id);
     } else {
         return PyErr_Format(PyExc_TypeError, "Invalid player_id in second argument");
     }
-    if (PyCObject_Check(gamestate)) {
-        s = (GameState*)PyCObject_AsVoidPtr(gamestate);
+    if (PyCapsule_CheckExact(gamestate)) {
+        s = (GameState *)PyCapsule_GetPointer(gamestate, "GameState");
         return Py_BuildValue("(dd)", (double)(PLAYER(s, player).x), (double)(PLAYER(s, player).y));
     } else {
         return PyErr_Format(PyExc_TypeError, "First argument is not a GameState");
@@ -324,8 +336,8 @@ void tennixpy_init(TennixArchive& tnxar)
     char* data;
 
     setenv("PYTHONPATH", ".", 1);
-    PyEval_InitThreads();
     Py_Initialize();
+    PyEval_InitThreads();
     tennix_module = tennixpy_create_module();
 
     tnxar.rewind();

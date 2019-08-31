@@ -18,7 +18,7 @@ class BasicBot(object):
         # FIXME: Expose debugging flag through "tennix" module
         global DEBUG
         if DEBUG:
-            print self.name, 'says:', (' '.join(str(x) for x in args))
+            print(self.name, 'says:', (' '.join(str(x) for x in args)))
 
 class DumbPythonBot(BasicBot):
     name = 'John McInpyre'
@@ -122,7 +122,7 @@ class DumbPythonBot(BasicBot):
 
             #self.current_tactic = random.randint(tennix.INPUT_KEY_HIT, tennix.INPUT_KEY_SMASH)
             #self.desired_power = self.DESIRED_POWER[self.current_tactic]*(1.2-0.4*random.random())
-            #print 'determined new tactic:', self.current_tactic
+            #print('determined new tactic:', self.current_tactic)
             i += 1
         self.say('Thread for', self.name, 'finished')
 
