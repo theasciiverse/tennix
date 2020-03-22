@@ -242,10 +242,11 @@ void tennixpy_get_bot_name(InputDevice *device, char* dest, int maxlen)
     name = PyObject_GetAttrString(bot_class, "name");
 
     if (PyUnicode_Check(name) && name != NULL) {
-        strncpy(dest, PyUnicode_AsUTF8(name), maxlen);
+        strncpy(dest, PyUnicode_AsUTF8(name), maxlen-1);
     } else {
-        strncpy(dest, "<unknown pybot>", maxlen);
+        strncpy(dest, "<unknown pybot>", maxlen-1);
     }
+    dest[maxlen-1] = '\0';
 
     Py_XDECREF(name);
 }
