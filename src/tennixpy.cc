@@ -222,7 +222,6 @@ input_add_python_bot(PyObject* bot_class)
 
 PyObject* tennixpy_register_bot(PyObject* self, PyObject* bot_class)
 {
-    assert(self == NULL);
     if (PyType_Check(bot_class)) {
         /* FIXME: check if all required attrs are here */
         input_add_python_bot(bot_class);
@@ -256,8 +255,6 @@ PyObject* tennixpy_get_ball_pos(PyObject* self, PyObject* gamestate)
     PyObject* r;
     GameState* s;
 
-    assert(self == NULL);
-
     if (PyCapsule_CheckExact(gamestate)) {
         s = (GameState *)PyCapsule_GetPointer(gamestate, "GameState");
         r = Py_BuildValue("(dd)", (double)(s->ball.x), (double)(s->ball.y - s->ball.z));
@@ -274,8 +271,6 @@ PyObject* tennixpy_get_power(PyObject* self, PyObject* args)
 
     GameState* s;
     int player;
-
-    assert(self == NULL);
 
     assert(PyTuple_Check(args));
 
@@ -307,7 +302,6 @@ PyObject* tennixpy_get_position(PyObject* self, PyObject* args)
     GameState* s;
     int player;
 
-    assert(self == NULL);
     assert(PyTuple_Check(args));
 
     if (PyObject_Length(args) != 2) {
