@@ -152,12 +152,22 @@ check_voice_files() {
 }
 
 check_python_lib() {
-    if ! which python3-config >/dev/null 2>&1; then
+    if [ -z "$PYTHON3_CONFIG" ]; then
+        PYTHON3_CONFIG="python3-config"
+    fi
+
+    if ! which "$PYTHON3_CONFIG" >/dev/null 2>&1; then
         return 1
     fi
 
-    CFLAGS="$(python3-config --cflags) $CFLAGS"
-    LDFLAGS="$(python3-config --ldflags) $LDFLAGS"
+    CFLAGS="$("$PYTHON3_CONFIG" --cflags) $CFLAGS"
+    if "$PYTHON3_CONFIG" --embed --libs >/dev/null 2>&1; then
+        # Python 3.8 and newer
+        LDFLAGS="$("$PYTHON3_CONFIG" --embed --libs) $LDFLAGS"
+    else
+        # Python 3.7 and older
+        LDFLAGS="$("$PYTHON3_CONFIG" --libs) $LDFLAGS"
+    fi
     return 0
 }
 
