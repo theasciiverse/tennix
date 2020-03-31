@@ -77,7 +77,7 @@ typedef void TennixNet;
 
 #define GAMESTATE_FILE ".tennix-current_match-" VERSION
 
-#define COPYRIGHT "Copyright 2003, 2007-2011, 2013, 2017, 2019 Thomas Perl"
+#define COPYRIGHT "Copyright 2003, 2007-2011, 2013, 2017, 2019-2020 Thomas Perl"
 #define URL "http://icculus.org/tennix/"
 
 #define WIDTH 640

@@ -29,7 +29,7 @@
 
 const char* credits_text[] = {
     "Tennix Classic Championship Tour 2011",
-    "Version " VERSION " (2019-08-31)",
+    "Version " VERSION " (2020-03-31)",
     CREDITS_EMPTY_TEXT,
     "Code, graphics and idea by",
     "Thomas Perl (thp.io)",
