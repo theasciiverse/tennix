@@ -33,7 +33,7 @@
 #include "archive.h"
 #include "sound.h"
 
-#include "SDL_rotozoom.h"
+#include "SDL2_rotozoom.h"
 
 static Image* images;
 
@@ -126,19 +126,8 @@ void init_graphics(TennixArchive& tnxar) {
     images = (Image*)calloc( GR_COUNT, sizeof( Image));
     fonts = (Font*)calloc(FONT_COUNT, sizeof(Font));
 
-    buffer = SDL_CreateRGBSurface(SDL_SWSURFACE, WIDTH, HEIGHT,
-                 screen->format->BitsPerPixel,
-                 screen->format->Rmask,
-                 screen->format->Gmask,
-                 screen->format->Bmask,
-                 screen->format->Amask);
-
-    background = SDL_CreateRGBSurface(SDL_SWSURFACE, WIDTH, HEIGHT,
-                     screen->format->BitsPerPixel,
-                     screen->format->Rmask,
-                     screen->format->Gmask,
-                     screen->format->Bmask,
-                     screen->format->Amask);
+    buffer = SDL_CreateRGBSurface(0, WIDTH, HEIGHT, 32, 0, 0, 0, 0);
+    background = SDL_CreateRGBSurface(0, WIDTH, HEIGHT, 32, 0, 0, 0, 0);
 
     if( buffer == NULL) {
         fprintf( stderr, "Cannot create buffer surface: %s\n", SDL_GetError());
@@ -182,7 +171,7 @@ void init_graphics(TennixArchive& tnxar) {
         }
 
         /* Convert to RGBA in the display format */
-        data = SDL_DisplayFormatAlpha(tmp);
+        data = SDL_ConvertSurfaceFormat(tmp, SDL_PIXELFORMAT_RGBA8888, 0);
         SDL_FreeSurface(tmp);
 
         if( !data) {
@@ -286,7 +275,8 @@ void show_sprite( image_id id, int pos, int items, int x_offset,
         int y_offset, int opacity)
 {
     tnx_assert(id < GR_COUNT);
-    SDL_SetAlpha(images[id].data, SDL_SRCALPHA | SDL_RLEACCEL, opacity);
+    SDL_SetSurfaceAlphaMod(images[id].data, opacity);
+    SDL_SetSurfaceBlendMode(images[id].data, SDL_BLENDMODE_BLEND);
     blit_surface(images[id].data, x_offset, y_offset, pos, items);
 }
 
@@ -390,12 +380,7 @@ void rectangle_alpha(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, Uint
 
     color = SDL_MapRGB(screen->format, r, g, b);
 
-    buf = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h,
-                 screen->format->BitsPerPixel,
-                 screen->format->Rmask,
-                 screen->format->Gmask,
-                 screen->format->Bmask,
-                 screen->format->Amask);
+    buf = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
 
     rect.x = rect.y = 0;
     rect2.x = x;
@@ -404,7 +389,8 @@ void rectangle_alpha(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, Uint
     rect.h = rect2.h = h;
 
     SDL_FillRect(buf, &rect, color);
-    SDL_SetAlpha(buf, SDL_RLEACCEL | SDL_SRCALPHA, opacity);
+    SDL_SetSurfaceAlphaMod(buf, opacity);
+    SDL_SetSurfaceBlendMode(buf, SDL_BLENDMODE_BLEND);
     SDL_BlitSurface(buf, &rect, screen, &rect2);
     update_rect(x, y, w, h);
 
@@ -533,19 +519,24 @@ void update_rect(Sint32 x, Sint32 y, Sint32 w, Sint32 h)
 
 void updatescr()
 {
+    // Update screen here, so that fullscreen toggle works
+    screen = SDL_GetWindowSurface(window);
+
     Uint32 ticks = SDL_GetTicks();
     SDL_Rect *r_current = NULL, *end_current = NULL;
     SDL_Rect *r_old = NULL;
 
     static int fading_last_time = 0;
+
     unsigned char fading_now = ticks < fading_start+FADE_DURATION;
 
     if (fading_now) {
-        SDL_SetAlpha(buffer, SDL_SRCALPHA | SDL_RLEACCEL, 255-255*(ticks-fading_start)/FADE_DURATION);
+        SDL_SetSurfaceAlphaMod(buffer, 255-255*(ticks-fading_start)/FADE_DURATION);
+        SDL_SetSurfaceBlendMode(buffer, SDL_BLENDMODE_BLEND);
         SDL_BlitSurface(buffer, NULL, screen, NULL);
-        SDL_UpdateRect(screen, 0, 0, 0, 0);
+        SDL_UpdateWindowSurface(window);
     } else if (fading_last_time && !fading_now) {
-        SDL_UpdateRect(screen, 0, 0, 0, 0);
+        SDL_UpdateWindowSurface(window);
     } else {
         if (rect_update_old_count == rect_update_cache_current) {
             /* Merge rects into one single rect list */
@@ -563,10 +554,10 @@ void updatescr()
                 r_current++;
                 r_old++;
             }
-            SDL_UpdateRects(screen, rect_update_old_count, rect_update_old);
+            SDL_UpdateWindowSurfaceRects(window, rect_update_old, rect_update_old_count);
         } else {
-            SDL_UpdateRects(screen, rect_update_old_count, rect_update_old);
-            SDL_UpdateRects(screen, rect_update_cache_current, rect_update_cache);
+            SDL_UpdateWindowSurfaceRects(window, rect_update_old, rect_update_old_count);
+            SDL_UpdateWindowSurfaceRects(window, rect_update_cache, rect_update_cache_current);
         }
     }
 

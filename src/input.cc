@@ -48,11 +48,11 @@ void init_input(TennixArchive& tnxar)
 
     /* keyboard presets */
     devices[devices_count].type = INPUT_TYPE_KEYBOARD;
-    devices[devices_count].up_key = 'w';
-    devices[devices_count].down_key = 's';
-    devices[devices_count].input_keys[INPUT_KEY_HIT]= 'd';
-    devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = 'e';
-    devices[devices_count].input_keys[INPUT_KEY_SMASH] = 'f';
+    devices[devices_count].up_key = SDL_SCANCODE_W;
+    devices[devices_count].down_key = SDL_SCANCODE_S;
+    devices[devices_count].input_keys[INPUT_KEY_HIT]= SDL_SCANCODE_D;
+    devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = SDL_SCANCODE_E;
+    devices[devices_count].input_keys[INPUT_KEY_SMASH] = SDL_SCANCODE_F;
     devices[devices_count].icon = GR_INPUT_KEYBOARD_WS;
     devices[devices_count].exclusive_to_player = 1;
     strcpy(devices[devices_count].name, "Keyboard (WS/DEF)");
@@ -60,11 +60,11 @@ void init_input(TennixArchive& tnxar)
 
     /* keyboard presets */
     devices[devices_count].type = INPUT_TYPE_KEYBOARD;
-    devices[devices_count].up_key = 'o';
-    devices[devices_count].down_key = 'l';
-    devices[devices_count].input_keys[INPUT_KEY_HIT]= 'k';
-    devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = 'i';
-    devices[devices_count].input_keys[INPUT_KEY_SMASH] = 'j';
+    devices[devices_count].up_key = SDL_SCANCODE_O;
+    devices[devices_count].down_key = SDL_SCANCODE_L;
+    devices[devices_count].input_keys[INPUT_KEY_HIT]= SDL_SCANCODE_K;
+    devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = SDL_SCANCODE_I;
+    devices[devices_count].input_keys[INPUT_KEY_SMASH] = SDL_SCANCODE_J;
     devices[devices_count].icon = GR_INPUT_KEYBOARD_OL;
     devices[devices_count].exclusive_to_player = 2;
     strcpy(devices[devices_count].name, "Keyboard (OL/KIJ)");
@@ -72,11 +72,11 @@ void init_input(TennixArchive& tnxar)
 
     /* keyboard presets */
     devices[devices_count].type = INPUT_TYPE_KEYBOARD;
-    devices[devices_count].up_key = SDLK_UP;
-    devices[devices_count].down_key = SDLK_DOWN;
-    devices[devices_count].input_keys[INPUT_KEY_HIT]= SDLK_SPACE;
-    devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = SDLK_LCTRL;
-    devices[devices_count].input_keys[INPUT_KEY_SMASH] = SDLK_LALT;
+    devices[devices_count].up_key = SDL_SCANCODE_UP;
+    devices[devices_count].down_key = SDL_SCANCODE_DOWN;
+    devices[devices_count].input_keys[INPUT_KEY_HIT]= SDL_SCANCODE_SPACE;
+    devices[devices_count].input_keys[INPUT_KEY_TOPSPIN] = SDL_SCANCODE_LCTRL;
+    devices[devices_count].input_keys[INPUT_KEY_SMASH] = SDL_SCANCODE_LALT;
     devices[devices_count].icon = GR_INPUT_KEYBOARD_ARROWS;
     strcpy(devices[devices_count].name, "Keyboard (arrows)");
     devices_count++;
@@ -99,7 +99,7 @@ void init_input(TennixArchive& tnxar)
     /* joysticks */
     n = SDL_NumJoysticks();
     for (x=0; x<n && devices_count<MAX_INPUT_DEVICES; x++) {
-        strcpy(devices[devices_count].name, SDL_JoystickName(x));
+        strcpy(devices[devices_count].name, SDL_JoystickNameForIndex(x));
         devices[devices_count].type = INPUT_TYPE_JOYSTICK;
         devices[devices_count].joystick = SDL_JoystickOpen(x);
         devices[devices_count].x_axis = 0;
@@ -199,7 +199,7 @@ const char* input_device_get_name(InputDevice* d)
 }
 
 float input_device_get_axis(InputDevice* d, unsigned const char axis) {
-    Uint8 *keystate;
+    const Uint8 *keystate;
     //Uint8 mb;
     Uint8 net_value;
     float result = 0.0;
@@ -207,7 +207,7 @@ float input_device_get_axis(InputDevice* d, unsigned const char axis) {
     SDL_PumpEvents();
 
     if (d->type == INPUT_TYPE_KEYBOARD) {
-        keystate = SDL_GetKeyState(NULL);
+        keystate = SDL_GetKeyboardState(NULL);
         if (axis == INPUT_AXIS_X) {
             result =  1.0*keystate[d->right_key] + -1.0*keystate[d->left_key];
         } else {
@@ -269,7 +269,7 @@ char input_device_get_key(InputDevice* d, unsigned const char key) {
     SDL_PumpEvents();
 
     if (d->type == INPUT_TYPE_KEYBOARD) {
-        result = SDL_GetKeyState(NULL)[d->input_keys[key]];
+        result = SDL_GetKeyboardState(NULL)[d->input_keys[key]];
     } else if (d->type == INPUT_TYPE_JOYSTICK) {
         result = SDL_JoystickGetButton(d->joystick, d->input_keys[key]);
     } else if (d->type == INPUT_TYPE_MOUSE) {

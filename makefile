@@ -35,7 +35,7 @@ endif
 TENNIX_BIN := tennix
 TENNIX_OBJ += src/tennix.o src/game.o src/graphics.o src/input.o
 TENNIX_OBJ += src/util.o src/sound.o src/animation.o src/archive.o
-TENNIX_OBJ += src/SDL_rotozoom.o src/network.o src/tennixpy.o
+TENNIX_OBJ += src/network.o src/tennixpy.o
 
 # Object files for "tnxar"
 ARCHIVE_BIN := tnxar

@@ -39,6 +39,7 @@
 
 #include "locations.h"
 
+SDL_Window *window;
 SDL_Surface *screen;
 
 int main( int argc, char** argv) {
@@ -47,10 +48,10 @@ int main( int argc, char** argv) {
     Uint32 ticks;
     int mx, my;
     unsigned int worldmap_xpos, worldmap_ypos;
-    Uint8 *keys;
+    const Uint8 *keys;
     Uint8 mb;
     SDL_Event e;
-    int sdl_flags = SDL_SWSURFACE;
+    int sdl_flags = 0;
     int btn_hovering = 0, btn_hovering_old = 0;
     int slide_start;
     bool mouse_pressed = false;
@@ -109,8 +110,6 @@ int main( int argc, char** argv) {
     bool location_info_visible = false;
     unsigned int location_info_xpos = 0, location_info_ypos = 0;
 
-    const SDL_VideoInfo* vi = NULL;
-
     bool do_help = false;
 
     int state = MENU_STATE_STARTED;
@@ -131,7 +130,7 @@ int main( int argc, char** argv) {
         #define OPTION_VALUE_PROCESSED \
                 (i++)
         if (OPTION_SET("--fullscreen", "-f")) {
-            sdl_flags |= SDL_FULLSCREEN;
+            sdl_flags |= SDL_WINDOW_FULLSCREEN;
         }
         else if (OPTION_SET("--help", "-h")) {
             do_help = true;
@@ -195,15 +194,15 @@ int main( int argc, char** argv) {
         exit( 1);
     }
 
-    vi = SDL_GetVideoInfo();
-    if( (screen = SDL_SetVideoMode( WIDTH, HEIGHT, vi->vfmt->BitsPerPixel, sdl_flags)) == NULL) {
-        fprintf( stderr, "Can't set video mode: %s\n", SDL_GetError());
-        exit( 1);
-    }   
+    window = SDL_CreateWindow("Tennix Classic Championship Tour 2011",
+            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            WIDTH, HEIGHT,
+            sdl_flags);
 
-    SDL_WM_SetCaption( "Tennix Classic Championship Tour 2011", "Tennix 2011");
+    // Obtain the initial window surface
+    screen = SDL_GetWindowSurface(window);
+
     SDL_ShowCursor( SDL_DISABLE);
-    SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, 1);
 
     tnxar = new TennixArchive(ARCHIVE_FILE, ARCHIVE_FILE_INSTALLED);
     init_graphics(*tnxar);
@@ -528,7 +527,7 @@ int main( int argc, char** argv) {
             /*break;*/
         }
 
-        keys = SDL_GetKeyState( NULL);
+        keys = SDL_GetKeyboardState(NULL);
         mb = SDL_GetMouseState( &mx, &my);
 
         btn_hovering_old = btn_hovering;
@@ -575,13 +574,17 @@ int main( int argc, char** argv) {
 #endif
         }
    
-        if( keys[SDLK_ESCAPE] || keys[(int)'q']) {
+        if( keys[SDL_SCANCODE_ESCAPE] || keys[SDL_SCANCODE_Q]) {
             /* FIXME: do the state thingie! */
             break;
         }
 
-        if( keys[(int)'f']) {
-            SDL_WM_ToggleFullScreen( screen);
+        if( keys[SDL_SCANCODE_V]) {
+            bool IsFullscreen = (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN) != 0;
+            SDL_SetWindowFullscreen(window, IsFullscreen ? 0 : SDL_WINDOW_FULLSCREEN);
+            if (IsFullscreen) {
+                SDL_SetWindowSize(window, WIDTH, HEIGHT);
+            }
         }
    
         if (state == MENU_STATE_MAINMENU || state == MENU_STATE_OPTIONS || state == MENU_STATE_LOCATION) {

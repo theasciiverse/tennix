@@ -10,7 +10,7 @@
                    ##   #####  ##   ##  ##   ##  ##  ##   ##
                          Classic Championship Tour 2011
 
-   Copyright (C) 2003, 2007-2011, 2013, 2017, 2019-2020 Thomas Perl <thp.io>
+Copyright (C) 2003, 2007-2011, 2013, 2017, 2019-2020, 2023 Thomas Perl <thp.io>
 
 
 
@@ -36,7 +36,7 @@ LICENSE
 ABOUT
 =====
 
-   This is the SDL (Simple DirectMedia Layer) port of Tennix!, a 
+   This is the SDL2 (Simple DirectMedia Layer) port of Tennix!, a 
    game written by Thomas Perl in 2003. This version has been up-
    scaled to a resolution of 640x480 in comparison to the 320x200 
    format used in the original game.
@@ -60,24 +60,28 @@ INSTALLATION AND BUILD INSTRUCTIONS
    makefile for instructions on what you can enable/disable with the help
    of environment variables (e.g. USE_PYTHON, NONFREE_LOCATIONS, DEBUG, ...)
 
-   Tennix is known to build on Debian GNU/Linux 4.0, Ubuntu 8.10, Windows XP
+   Tennix was known to build on Debian GNU/Linux 4.0, Ubuntu 8.10, Windows XP
    and Windows Vista (using MSYS/mingw32 - see README.win32), Mac OS X 10.4
    and Mac OS X 10.5 (using XCode Tools - see README.MacOSX), the Maemo 4.0
    and Maemo 4.1 SDKs (Chinook/Diablo - see README.Maemo).
 
+   The current version should work on modern machines (Linux, Windows, macOS)
+   with up-to-date SDL2 ports available, and has been tested on Ubuntu 23.04.
+
    Dependencies:
-     · SDL       >= 1.2.13 (www.libsdl.org)
-     · SDL_image >= 1.2.6  (www.libsdl.org/projects/SDL_image)
-     · SDL_mixer >= 1.2.8  (www.libsdl.org/projects/SDL_mixer)
-     · SDL_ttf   >= 2.0.9  (www.libsdl.org/projects/SDL_ttf)
-     · SDL_net   >= 1.2.7  (www.libsdl.org/projects/SDL_net)
+     · SDL2       >= 2.26.3 (https://www.libsdl.org)
+     · SDL2_image >= 2.6.3  (https://github.com/libsdl-org/SDL_image)
+     · SDL2_mixer >= 2.6.2  (https://github.com/libsdl-org/SDL_mixer)
+     · SDL2_ttf   >= 2.20.1 (https://github.com/libsdl-org/SDL_ttf)
+     · SDL2_net   >= 2.2.0  (https://github.com/libsdl-org/SDL_net)
+     · SDL2_gfx   >= 1.0.4  (https://www.ferzkopp.net/Software/SDL2_gfx/Docs/html/)
 
    (Tennix might compile and work with earlier versions of the respective
    libraries, but the versions here have been the ones that I've tested it
    with, so if there are problems, try to use the versions specified here)
 
    Optional dependencies:
-     · Python    >=  3.3.x  (www.python.org)
+     · Python    >=  3.8.x  (www.python.org)
        => If you don't want to use the Python integration, set the variable
           USE_PYTHON to a value other than 1 by specifying it on the "make"
           command line like this:      make USE_PYTHON=0
@@ -85,8 +89,10 @@ INSTALLATION AND BUILD INSTRUCTIONS
    On a Debian-based system, you can get all dependencies with the following
    command line:
 
-    aptitude install libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev \
-                     libsdl-ttf2.0-dev libsdl-net1.2-dev python3-dev
+    apt install libsdl2-dev \
+                libsdl2-image-dev libsdl2-mixer-dev \
+                libsdl2-ttf-dev libsdl2-net-dev \
+                libsdl2-gfx-dev python3-dev
 
 
 PLAYING TENNIX
@@ -111,7 +117,7 @@ PLAYING TENNIX
 
    FUNCTION KEYS
 
-   F  .... Toggle fullscreen (X11 only)
+   V  .... Toggle fullscreen (X11 only)
    P  .... Pause game
 
 

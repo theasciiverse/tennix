@@ -389,19 +389,19 @@ void step(GameState* s) {
 }
 
 bool handle_input(GameState* s, TennixNet* c) {
-    Uint8* keys = NULL;
+    const Uint8* keys = NULL;
     int p;
 
     SDL_PumpEvents();
-    keys = SDL_GetKeyState(NULL);
+    keys = SDL_GetKeyboardState(NULL);
 
 #ifdef HAVE_SDL_NET
     static NetworkGameState tmp;
     static NetworkInputData net_input;
 
-    if (keys[(int)'1']) {
+    if (keys[SDL_SCANCODE_1]) {
         net_serialize_gamestate(s, &tmp);
-    } else if (keys[(int)'2']) {
+    } else if (keys[SDL_SCANCODE_2]) {
         net_unserialize_gamestate(&tmp, s);
     }
 
@@ -436,7 +436,7 @@ bool handle_input(GameState* s, TennixNet* c) {
     }
     
     /* Maemo: The "F4" button is the "Open menu" button */
-    return (keys[SDLK_ESCAPE] || keys[(int)'q']);
+    return (keys[SDL_SCANCODE_ESCAPE] || keys[SDL_SCANCODE_Q]);
 }
 
 void render(const GameState* s, RenderState* r) {

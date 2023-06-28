@@ -77,7 +77,7 @@ typedef void TennixNet;
 
 #define GAMESTATE_FILE ".tennix-current_match-" VERSION
 
-#define COPYRIGHT "Copyright 2003, 2007-2011, 2013, 2017, 2019-2020 Thomas Perl"
+#define COPYRIGHT "Copyright 2003, 2007-2011, 2013, 2017, 2019-2020, 2023 Thomas Perl"
 #define URL "http://icculus.org/tennix/"
 
 #define WIDTH 640
@@ -139,6 +139,7 @@ enum {
 
 
 extern SDL_Surface *screen;
+extern SDL_Window *window;
 
 typedef struct {
     const char *text;

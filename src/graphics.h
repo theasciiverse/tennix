@@ -29,7 +29,7 @@
 
 #include "SDL_image.h"
 #include "SDL_ttf.h"
-#include "SDL_rotozoom.h"
+#include "SDL2_rotozoom.h"
 
 #define RECT_UPDATE_CACHE 150
 

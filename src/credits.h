@@ -29,7 +29,7 @@
 
 const char* credits_text[] = {
     "Tennix Classic Championship Tour 2011",
-    "Version " VERSION " (2020-03-31)",
+    "Version " VERSION " (2023-06-28)",
     CREDITS_EMPTY_TEXT,
     "Code, graphics and idea by",
     "Thomas Perl (thp.io)",
@@ -45,9 +45,6 @@ const char* credits_text[] = {
     "Additional artwork by",
     "Martin Third (http://flickr.com/photos/mthird3rd/471720012/)",
 #endif
-    CREDITS_EMPTY_TEXT,
-    "Using SDL_rotozoom by",
-    "A. Schiffler",
     CREDITS_EMPTY_TEXT,
     "Visit the Tennix website:",
     URL,

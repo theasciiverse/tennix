@@ -332,7 +332,6 @@ void tennixpy_init(TennixArchive& tnxar)
 
     setenv("PYTHONPATH", ".", 1);
     Py_Initialize();
-    PyEval_InitThreads();
     tennix_module = tennixpy_create_module();
 
     tnxar.rewind();
