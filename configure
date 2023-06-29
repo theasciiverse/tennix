@@ -346,7 +346,7 @@ require_library SDL2_image SDL_image.h HAVE_SDL_IMAGE
 require_library SDL2_ttf SDL_ttf.h HAVE_SDL_TTF
 check_library SDL2_net SDL_net.h HAVE_SDL_NET
 require_library SDL2_mixer SDL_mixer.h HAVE_SDL_MIXER
-require_library SDL2_gfx SDL_rotozoom.h HAVE_SDL_GFX
+require_library SDL2_gfx SDL2_rotozoom.h HAVE_SDL_GFX
 
 # Check for optional game content
 check_voice_files
