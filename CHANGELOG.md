@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 1.3.3 (2023-06-29)
+
+### Fixed
+
+- `configure`: Fix detection of working compiler and library/header search
+- `configure`: Fix `SDL2_rotozoom.h` header name
+
 ## 1.3.2 (2023-06-28)
 
 ### Changed
