@@ -163,7 +163,7 @@ check_python_lib() {
     CFLAGS="$("$PYTHON3_CONFIG" --cflags) $CFLAGS"
     if "$PYTHON3_CONFIG" --embed --libs >/dev/null 2>&1; then
         # Python 3.8 and newer
-        LDFLAGS="$("$PYTHON3_CONFIG" --embed --libs) $LDFLAGS"
+        LDFLAGS="$("$PYTHON3_CONFIG" --embed --libs --ldflags | tr '\n' ' ') $LDFLAGS"
     else
         # Python 3.7 and older
         LDFLAGS="$("$PYTHON3_CONFIG" --libs) $LDFLAGS"
