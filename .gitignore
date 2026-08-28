@@ -6,3 +6,9 @@
 /tennix
 /tennix.tnx
 /tnxar
+/msvc/.vs
+/msvc/ArchiveTool
+/msvc/Tennix
+/msvc/dependencies
+/msvc/x64
+/msvc/*.vcxproj.user

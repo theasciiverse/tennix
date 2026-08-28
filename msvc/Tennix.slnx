@@ -1,0 +1,8 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="ArchiveTool.vcxproj" Id="12f06656-6cfd-49f4-a799-965ecf83704f" />
+  <Project Path="Tennix.vcxproj" Id="5d4ba28a-5536-40f8-bf61-ef9874770247" />
+</Solution>

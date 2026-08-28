@@ -25,7 +25,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <libgen.h>
 #include <sys/stat.h>
 
 #include "archive.h"
@@ -150,7 +149,15 @@ ArchiveTool::create(bool verbose)
         char *data = (char*)malloc(len);
         tnx_assert(fread(data, len, 1, fp) == 1);
         fclose(fp);
-        char *filename = strdup(basename(argv[i]));
+        char *filename = argv[i];
+        char *cur = filename;
+        while (*cur) {
+            if (*cur == '/' || *cur == '\\') {
+                filename = cur + 1;
+            }
+
+            ++cur;
+        }
         if (verbose) {
             printf("%s\n", filename);
         }

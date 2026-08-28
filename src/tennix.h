@@ -33,13 +33,17 @@
     } \
 } while(0)
 
-#include <sys/param.h>
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
+#if !defined(TENNIX_ARCHIVE_TOOL)
 
 #include <SDL.h>
-
-#ifdef HAVE_SDL_NET
-#include <SDL_net.h>
+#if defined(HAVE_SDL_NET)
+#  include <SDL_net.h>
 #endif
+
+#endif /* !defined(TENNIX_ARCHIVE_TOOL) */
 
 typedef struct {
     unsigned char x;
@@ -47,7 +51,7 @@ typedef struct {
     unsigned char keys; /* bitfield (0 = key pressed, 1 = not pressed) */
 } NetworkInputData;
 
-#ifdef HAVE_SDL_NET
+#if defined(HAVE_SDL_NET) && !defined(TENNIX_ARCHIVE_TOOL)
 typedef struct {
     UDPsocket send_socket;
     UDPsocket recv_input_socket;
@@ -138,6 +142,8 @@ enum {
 #define DEFAULT_FPS 33
 
 
+#if !defined(TENNIX_ARCHIVE_TOOL)
+
 extern SDL_Surface *screen;
 extern SDL_Window *window;
 
@@ -154,6 +160,8 @@ typedef struct {
 } MenuButton;
 
 void menu_button_init(MenuButton*);
+
+#endif /* !defined(TENNIX_ARCHIVE_TOOL) */
 
 #define CONTROLLER_SETUP_BORDER 50
 #define CONTROLLER_SETUP_SIZE 200
